@@ -8,7 +8,7 @@ export type Task = {
 };
 export type Note = {
   id: string; title: string; body: string; pinned: boolean;
-  tags: string[]; createdAt: string; updatedAt: string;
+  tags: string[]; attachments?: string[]; createdAt: string; updatedAt: string;
 };
 export type NotesTasksData = { tasks: Task[]; notes: Note[] };
 export const NOTES_TASKS_KEY = "fox-notes-tasks-v1";
