@@ -114,7 +114,15 @@ npm run dev
 - Notifications are derived from local tasks with due dates: overdue, today and within the next three days
 - Read/unread state and one-day snoozing persist locally; a task can be opened directly from its notification
 - Optional browser desktop reminders for due-today tasks, with explicit permission and a local deduplication record; these work only while the app is open
-- Messages and Feed are distinct topbar screens. Both honestly show a disconnected/empty state because no provider is currently integrated; no fabricated conversations, posts or analytics
+- Messages remains a disconnected state; Feed has two configured public sources (Telegram @bulotkaff and VK btsah). Only verified retrieved posts are displayed.
+
+### Public feed sources
+- Registered Telegram [@bulotkaff](https://t.me/bulotkaff) and VK [btsah](https://vk.ru/btsah) as the first two sources in the Feed screen.
+- The scheduled GitHub Actions workflow `.github/workflows/feed-sync.yml` runs every six hours and can be started manually. It writes verified posts into `public/feed.json` and the public site is redeployed after updates.
+- Telegram public preview is fetched at `https://t.me/s/bulotkaff`, preserving post URLs, dates, text and public image links. The public page may expose only a subset of the channel history.
+- VK public posts are retrieved through the official `wall.get` API only if a repository secret named `VK_SERVICE_TOKEN` is configured. Without this secret the VK source is registered but honestly marked unavailable; the user may still open the group directly.
+- Neither source requires login to the user's personal account for read-only viewing. No personal account authorization, posting or message permissions are implemented.
+- Source sync failures retain previously retrieved posts and label them stale instead of inventing data.
 
 ### Backups and restore
 - Settings contain a full workspace export to a single local JSON backup (screens, tables, notes/tasks, editor widgets, preferences, and IndexedDB files with their binary contents encoded)
