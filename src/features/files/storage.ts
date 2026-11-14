@@ -54,6 +54,14 @@ export async function getItem(id:string):Promise<StoredItem|undefined>{
 export async function saveItem(item:StoredItem):Promise<void>{
   return transaction<void>("readwrite",(store,done)=>{store.put(item);done(undefined);});
 }
+export async function replaceItems(items:StoredItem[]):Promise<void>{
+  await transaction<void>("readwrite",(store,done)=>{
+    store.clear();
+    for(const item of items)store.put(item);
+    done(undefined);
+  });
+  window.dispatchEvent(new Event("fox-files-updated"));
+}
 export async function uploadFiles(files:FileList|File[],parentId:string|null=null):Promise<StoredItem[]>{
   const added:StoredItem[]=[];
   for(const file of Array.from(files)){
