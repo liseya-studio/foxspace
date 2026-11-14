@@ -5,7 +5,7 @@ import { importDelimitedFile } from "./importDelimited";
 import { importWorkbook } from "./importWorkbook";
 
 type Mode = "all" | "files" | "tables";
-type Props={mode:Mode;onOpenTables:()=>void;onCreateTable:()=>void;tables:{id:string;name:string;rows:unknown[]}[]};
+type Props={mode:Mode;onOpenTables:()=>void;onCreateTable:()=>void;createFolderRequest?:number;tables:{id:string;name:string;rows:unknown[]}[]};
 function fileIcon(item:StoredItem){
   if(item.kind==="folder")return <Folder size={19}/>;
   if(item.mime.startsWith("image/"))return <Image size={19}/>;
@@ -15,7 +15,7 @@ function fileIcon(item:StoredItem){
   if(item.mime.startsWith("text/"))return <FileText size={19}/>;
   return <File size={19}/>;
 }
-export default function FileBrowser({mode,onOpenTables,onCreateTable,tables}:Props){
+export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,createFolderRequest}:Props){
   const [items,setItems]=useState<StoredItem[]>([]);
   const [folderId,setFolderId]=useState<string|null>(null);
   const [query,setQuery]=useState("");
@@ -27,6 +27,7 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables}:Pro
   const uploadRef=useRef<HTMLInputElement>(null);
   const refresh=async()=>{try{setItems(await listItems());setError("");}catch(e){setError(e instanceof Error?e.message:"Не удалось прочитать файлы");}};
   useEffect(()=>{void refresh();const handler=()=>{void refresh();};window.addEventListener("fox-files-updated",handler);return()=>window.removeEventListener("fox-files-updated",handler);},[]);
+  useEffect(()=>{if(createFolderRequest){setFolderDialog(true);setFolderName("");}},[createFolderRequest]);
   const folder=items.find(item=>item.id===folderId);
   const crumbs:StoredItem[]=[];
   let current=folder;
