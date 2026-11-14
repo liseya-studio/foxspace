@@ -1,77 +1,65 @@
 import { useEffect, useMemo, useState } from "react";
-import { Rss, Layers3, ShieldCheck, Radio, ExternalLink, RefreshCw, Image as ImageIcon, AlertCircle, Search } from "lucide-react";
+import { Rss, Layers3, ShieldCheck, Radio, ExternalLink, RefreshCw, MessageCircle, Image as ImageIcon } from "lucide-react";
 
-type Platform = "telegram" | "vk";
-type FeedSource = {id:string;platform:Platform;title:string;url:string;status:"pending"|"ok"|"stale"|"unavailable";message?:string;updatedAt?:string};
-type FeedPost = {id:string;sourceId:string;text:string;url:string;date?:string|null;images?:string[]};
-type FeedPayload = {generatedAt:string|null;sources:FeedSource[];posts:FeedPost[]};
-const knownSources:FeedSource[]=[
-  {id:"telegram-bulotkaff",platform:"telegram",title:"Telegram · @bulotkaff",url:"https://t.me/bulotkaff",status:"pending"},
-  {id:"vk-btsah",platform:"vk",title:"ВКонтакте · btsah",url:"https://vk.ru/btsah",status:"pending"}
+type SourceId = "telegram-bulotkaff" | "vk-btsah";
+type Source = {id:SourceId;platform:"telegram"|"vk";title:string;url:string;status:string;message:string;updatedAt?:string};
+type Post = {id:string;sourceId:SourceId;text:string;url:string;date?:string|null;images?:string[]};
+type FeedData = {generatedAt:string|null;sources:Source[];posts:Post[]};
+const defaultSources:Source[]=[
+  {id:"telegram-bulotkaff",platform:"telegram",title:"Telegram · @bulotkaff",url:"https://t.me/bulotkaff",status:"pending",message:"Ожидаем первой синхронизации"},
+  {id:"vk-btsah",platform:"vk",title:"ВКонтакте · btsah",url:"https://vk.ru/btsah",status:"pending",message:"Ожидаем первой синхронизации"}
 ];
-function validPayload(value:unknown):value is FeedPayload{
-  return Boolean(value&&typeof value==="object"&&Array.isArray((value as FeedPayload).posts)&&Array.isArray((value as FeedPayload).sources));
+const sourceName=(id:SourceId)=>id==="telegram-bulotkaff"?"Telegram":"ВКонтакте";
+function validLink(url:string){return /^https:\/\//.test(url);}
+function readableDate(date?:string|null){
+  if(!date)return "Дата не указана";
+  const value=new Date(date);
+  return Number.isNaN(value.getTime())?"Дата не указана":value.toLocaleString("ru-RU",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"});
 }
 export default function FeedCenter(){
-  const [payload,setPayload]=useState<FeedPayload>({generatedAt:null,sources:knownSources,posts:[]});
+  const [feed,setFeed]=useState<FeedData>({generatedAt:null,sources:defaultSources,posts:[]});
+  const [filter,setFilter]=useState<"all"|SourceId>("all");
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
-  const [selected,setSelected]=useState<"all"|Platform>("all");
-  const [query,setQuery]=useState("");
-  async function refresh(){
+  const [refresh,setRefresh]=useState(0);
+  useEffect(()=>{
+    const controller=new AbortController();
     setLoading(true);
-    setError("");
-    try{
-      const response=await fetch(import.meta.env.BASE_URL+"feed.json",{cache:"no-store"});
-      if(!response.ok)throw new Error("Сервер не вернул данные ленты.");
-      const received:unknown=await response.json();
-      if(!validPayload(received))throw new Error("Некорректный формат данных ленты.");
-      setPayload(received);
-    }catch(reason){setError(reason instanceof Error?reason.message:"Не удалось загрузить ленту.");}
-    finally{setLoading(false);}
-  }
-  useEffect(()=>{void refresh();},[]);
-  const posts=useMemo(()=>payload.posts.filter(post=>{
-    const source=payload.sources.find(item=>item.id===post.sourceId);
-    if(!source ||(selected!=="all"&&source.platform!==selected))return false;
-    return !query.trim()||(post.text??"").toLocaleLowerCase("ru").includes(query.toLocaleLowerCase("ru"));
-  }),[payload,selected,query]);
-  const chosenSources=payload.sources.filter(item=>selected==="all"||item.platform===selected);
-  const labelOf=(id:string)=>payload.sources.find(s=>s.id===id)?.title??"Публикация";
-  function prettyDate(value?:string|null){
-    if(!value)return "Дата недоступна";
-    const date=new Date(value);
-    return Number.isNaN(date.getTime())?"Дата недоступна":date.toLocaleString("ru-RU",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"});
-  }
+    const source=import.meta.env.BASE_URL+"feed.json?v="+Date.now();
+    fetch(source,{signal:controller.signal,cache:"no-store"}).then(async response=>{
+      if(!response.ok)throw Error("Ошибка загрузки: HTTP "+response.status);
+      return response.json() as Promise<FeedData>;
+    }).then(data=>{
+      if(!Array.isArray(data.sources)||!Array.isArray(data.posts))throw Error("Некорректный формат ленты");
+      setFeed({generatedAt:data.generatedAt??null,sources:data.sources,posts:data.posts});
+      setError("");
+    }).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:"Не удалось загрузить ленту");})
+      .finally(()=>{if(!controller.signal.aborted)setLoading(false);});
+    return ()=>controller.abort();
+  },[refresh]);
+  const sources=feed.sources.length?feed.sources:defaultSources;
+  const visible=useMemo(()=>feed.posts.filter(post=>filter==="all"||post.sourceId===filter),[feed.posts,filter]);
+  const sourceById=(id:SourceId)=>sources.find(source=>source.id===id);
   return <section className="fox-feed-center">
-    <header className="fox-comm-heading"><div><div className="eyebrow">ПУБЛИКАЦИИ</div><h1>Лента</h1><p>Публикации из добавленных публичных источников Telegram и ВКонтакте.</p></div></header>
-    <div className="fox-feed-layout">
-      <div className="fox-feed-main">
-        <div className="fox-feed-controls"><div className="fox-feed-switch">
-          <button className={selected==="all"?"active":""} onClick={()=>setSelected("all")}><Layers3 size={15}/> Все</button>
-          <button className={selected==="telegram"?"active":""} onClick={()=>setSelected("telegram")}>Telegram</button>
-          <button className={selected==="vk"?"active":""} onClick={()=>setSelected("vk")}>ВКонтакте</button>
-        </div><button className="fox-feed-refresh" title="Обновить опубликованные данные" disabled={loading} onClick={()=>void refresh()}><RefreshCw size={16}/></button></div>
-        <label className="fox-feed-search"><Search size={15}/><input placeholder="Поиск по текстам публикаций" value={query} onChange={event=>setQuery(event.target.value)}/></label>
-        {error&&<div className="fox-feed-warning" role="alert"><AlertCircle size={16}/>{error}</div>}
-        {posts.length>0?<div className="fox-feed-posts">{posts.map(post=><article className="fox-feed-post" key={post.id}>
-          <div className="fox-feed-post-heading"><span className="fox-feed-post-avatar">{post.sourceId.startsWith("telegram")?"TG":"VK"}</span><div><strong>{labelOf(post.sourceId)}</strong><small>{prettyDate(post.date)}</small></div><a href={post.url} target="_blank" rel="noopener noreferrer" aria-label="Открыть оригинальную публикацию"><ExternalLink size={16}/></a></div>
-          {post.text&&<p className="fox-feed-post-text">{post.text}</p>}
-          {Boolean(post.images?.length)&&<div className="fox-feed-post-media">{post.images?.slice(0,6).map((url,index)=><a href={post.url} target="_blank" rel="noopener noreferrer" key={index}><img src={url} loading="lazy" alt={"Вложение "+(index+1)} onError={event=>{event.currentTarget.style.display="none";}}/></a>)}</div>}
-          {!post.images?.length&&!post.text&&<div className="fox-feed-post-attachment"><ImageIcon size={17}/> Медиа-публикация: просмотреть в источнике</div>}
-          <a className="fox-feed-post-original" href={post.url} target="_blank" rel="noopener noreferrer">Открыть публикацию <ExternalLink size={13}/></a>
-        </article>)}</div>:<div className="fox-comm-empty fox-feed-empty"><Rss size={32}/><h2>{loading?"Загружаем публикации":"Публикаций пока нет"}</h2><p>{loading?"Читаем доступные данные источников.":query?"По этому запросу публикаций нет.":"Источники добавлены, но реальные посты ещё не удалось получить. Проверьте статус справа и откройте публикации на оригинальных площадках."}</p></div>}
-        <div className="fox-feed-bottom">Данные обновляются при синхронизации. Последняя попытка: {prettyDate(payload.generatedAt)}.</div>
-      </div>
-      <aside className="fox-feed-side"><div className="fox-feed-aside-title"><Radio size={16}/> Источники <span>{payload.sources.length}</span></div>
-        <div className="fox-feed-sources">{payload.sources.map(source=><div className="fox-feed-source" key={source.id}>
-          <div className="fox-feed-source-heading"><span className={"fox-feed-platform "+source.platform}>{source.platform==="telegram"?"TG":"VK"}</span><div><strong>{source.title}</strong><small>{source.platform==="telegram"?"Публичный канал":"Публичное сообщество"}</small></div></div>
-          <p>{source.status==="ok"?"Посты загружены":source.status==="stale"?"Сохранённые посты; обновление не удалось":source.status==="pending"?"Ожидает первой синхронизации":"Публикации недоступны"}</p>
-          {(source.status!=="ok")&&source.message&&<small className="fox-feed-source-error">{source.message}</small>}
-          <a href={source.url} target="_blank" rel="noopener noreferrer">Открыть источник <ExternalLink size={13}/></a>
-        </div>)}</div>
-        <div className="fox-feed-privacy"><ShieldCheck size={16}/> Источники добавлены как публичные ссылки. Вход в личные аккаунты не выполнялся; приватные публикации недоступны.</div>
-      </aside>
-    </div>
+    <header className="fox-comm-heading"><div><div className="eyebrow">ПУБЛИКАЦИИ</div><h1>Лента</h1><p>Два выбранных публичных источника. Здесь отображаются только действительно загруженные публикации, без демонстрационных постов.</p></div></header>
+    <div className="fox-feed-layout"><div className="fox-feed-main">
+      <div className="fox-feed-filter-head"><Layers3 size={16}/><span>Публикации</span><small>{feed.posts.length} получено</small><button className="fox-feed-refresh" aria-label="Обновить ленту" title="Проверить новую синхронизацию" onClick={()=>setRefresh(v=>v+1)}><RefreshCw size={16}/></button></div>
+      <div className="fox-feed-filters"><button className={filter==="all"?"active":""} onClick={()=>setFilter("all")}>Все</button>{sources.map(source=><button key={source.id} className={filter===source.id?"active":""} onClick={()=>setFilter(source.id)}>{sourceName(source.id)}</button>)}</div>
+      {loading&&<div className="fox-feed-status" role="status">Загрузка публикаций…</div>}
+      {!loading&&error&&<div className="fox-feed-status" role="alert">Лента временно недоступна: {error}</div>}
+      {!loading&&visible.length>0&&<div className="fox-feed-posts">{visible.map(post=><article className="fox-feed-post" key={post.id}>
+        <div className="fox-feed-post-meta"><span className={"fox-feed-post-avatar "+(post.sourceId==="telegram-bulotkaff"?"telegram":"vk")}><MessageCircle size={18}/></span><div><strong>{sourceById(post.sourceId)?.title??sourceName(post.sourceId)}</strong><small>{readableDate(post.date)}</small></div><a href={post.url} target="_blank" rel="noopener noreferrer" aria-label="Открыть оригинал"><ExternalLink size={16}/></a></div>
+        {post.text&&<p className="fox-feed-post-text">{post.text}</p>}
+        {!!post.images?.length&&<div className="fox-feed-gallery">{post.images.filter(validLink).slice(0,4).map((url,i)=><a key={url+i} href={post.url} target="_blank" rel="noopener noreferrer"><img src={url} loading="lazy" alt={"Вложение "+(i+1)} onError={event=>event.currentTarget.style.display="none"}/></a>)}</div>}
+        {!post.text&&!post.images?.length&&<div className="fox-feed-no-preview"><ImageIcon size={18}/> Медиа без доступного предпросмотра</div>}
+        <a href={post.url} className="fox-feed-post-link" target="_blank" rel="noopener noreferrer">Смотреть оригинал <ExternalLink size={13}/></a>
+      </article>)}</div>}
+      {!loading&&visible.length===0&&<div className="fox-comm-empty fox-feed-empty"><Rss size={32}/><h2>Публикации пока не загружены</h2><p>Источники добавлены в Fox Space. Отображение постов зависит от доступности публичного Telegram-просмотра и официального VK API. Ты можешь открыть источники по ссылкам справа.</p></div>}
+    </div><aside className="fox-feed-side"><div className="fox-feed-aside-title"><Radio size={16}/> Источники</div><div className="fox-feed-sources">{sources.map(source=><div key={source.id} className="fox-feed-source">
+      <div className="fox-feed-source-title"><strong>{source.title}</strong><span className={"fox-feed-source-state "+source.status}>{source.status==="ok"?"Посты загружены":source.status==="stale"?"Старые данные":source.status==="pending"?"Ожидает загрузки":"Нет данных"}</span></div>
+      <p>{source.message||"Источник добавлен"}</p><a href={source.url} target="_blank" rel="noopener noreferrer">Открыть источник <ExternalLink size={13}/></a>
+    </div>)}</div>
+    {feed.generatedAt&&<p className="fox-feed-last-sync">Последняя попытка синхронизации: {readableDate(feed.generatedAt)}</p>}
+    <div className="fox-feed-privacy"><ShieldCheck size={16}/> Только публичный контент. Вход в Telegram/VK, чтение личных сообщений и публикация от имени аккаунта не выполняются.</div></aside></div>
   </section>;
 }
