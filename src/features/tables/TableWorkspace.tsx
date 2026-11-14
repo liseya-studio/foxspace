@@ -5,11 +5,12 @@ import {
   Columns3, Rows3, X, LayoutGrid, List, SlidersHorizontal
 } from "lucide-react";
 
-type ColumnType = "text" | "number" | "date" | "select" | "checkbox" | "person";
-type Column = { id: string; name: string; type: ColumnType; options?: string[] };
+type ColumnType = "text" | "number" | "date" | "select" | "checkbox" | "person" | "relation" | "formula";
+type Column = { id: string; name: string; type: ColumnType; options?: string[]; relationTableId?: string; formulaSourceId?: string };
 type Cell = string | number | boolean;
 type RowData = { id: string; cells: Record<string, Cell> };
-type DataTable = { id: string; name: string; columns: Column[]; rows: RowData[]; updatedAt: string };
+type SavedView = { id: string; name: string; filterColumn: string; filterOperator: string; filterValue: string; groupColumn: string; sortColumn: string; sortDirection: "asc" | "desc" };
+type DataTable = { id: string; name: string; columns: Column[]; rows: RowData[]; updatedAt: string; savedViews?: SavedView[] };
 
 const KEY = "fox-tables-v1";
 const types: { value: ColumnType; label: string; icon: typeof Type }[] = [
@@ -61,6 +62,10 @@ export default function TableWorkspace() {
   const [tableDialog, setTableDialog] = useState(false);
   const [newTableName, setNewTableName] = useState("");
   const [view, setView] = useState<"table" | "list">("table");
+  const [filterColumn, setFilterColumn] = useState("");
+  const [filterOperator, setFilterOperator] = useState("contains");
+  const [filterValue, setFilterValue] = useState("");
+  const [groupColumn, setGroupColumn] = useState("");
 
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify(tables)); }, [tables]);
   const activeTable = tables.find(t => t.id === activeId) ?? null;
@@ -112,13 +117,14 @@ export default function TableWorkspace() {
     let rows = activeTable.rows.filter(row => activeTable.columns.some(col => String(row.cells[col.id] ?? "").toLowerCase().includes(query.toLowerCase())));
     const selectCol = activeTable.columns.find(c => c.type === "select");
     if (categoryFilter !== "Все" && selectCol) rows = rows.filter(r => r.cells[selectCol.id] === categoryFilter);
+    if (filterColumn && filterValue.trim()) rows = rows.filter(r => { const value = String(r.cells[filterColumn] ?? "").toLowerCase(); const target = filterValue.toLowerCase(); if (filterOperator === "equals") return value === target; if (filterOperator === "not_equals") return value !== target; if (filterOperator === "gt") return Number(value) > Number(target); if (filterOperator === "lt") return Number(value) < Number(target); if (filterOperator === "empty") return !value; return value.includes(target); });
     if (sort) rows = [...rows].sort((a,b) => {
       const av = a.cells[sort.key] ?? ""; const bv = b.cells[sort.key] ?? "";
       const result = typeof av === "number" && typeof bv === "number" ? av-bv : String(av).localeCompare(String(bv), "ru");
       return sort.direction === "asc" ? result : -result;
     });
     return rows;
-  }, [activeTable, query, categoryFilter, sort]);
+  }, [activeTable, query, categoryFilter, sort, filterColumn, filterOperator, filterValue]);
 
   function exportCsv() {
     if (!activeTable) return;
@@ -146,7 +152,7 @@ export default function TableWorkspace() {
             <div className="table-toolbar-left"><div className="table-view-switch"><button className={view==="table"?"chosen":""} onClick={() => setView("table")}><Table2 size={15}/> Таблица</button><button className={view==="list"?"chosen":""} onClick={() => setView("list")}><List size={15}/> Список</button></div><button className={showFilters?"toolbar-button chosen":"toolbar-button"} onClick={() => setShowFilters(v => !v)}><Filter size={15}/> Фильтр {categoryFilter!=="Все" && <i/>}</button><button className="toolbar-button" onClick={() => setSort(sort ? null : {key:activeTable.columns[0].id,direction:"asc"})}><ArrowUpDown size={15}/> Сортировка</button></div>
             <div className="table-toolbar-right"><label className="table-search"><Search size={15}/><input placeholder="Найти в таблице" value={query} onChange={e => setQuery(e.target.value)}/></label><button className="toolbar-button" onClick={() => setColumnDialog(true)}><Columns3 size={15}/> Поля</button><button className="primary-button compact" onClick={addRow}><Plus size={15}/> Добавить запись</button></div>
           </div>
-          {showFilters && <div className="filter-bar"><SlidersHorizontal size={15}/><span>Фильтр по значению:</span><select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>{categories.map(c => <option key={c}>{c}</option>)}</select><button className="text-button-inline" onClick={() => setCategoryFilter("Все")}>Сбросить</button></div>}
+          {showFilters && <div className="filter-bar"><SlidersHorizontal size={15}/><span>Поле</span><select value={filterColumn} onChange={e=>setFilterColumn(e.target.value)}><option value="">Любое</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><select value={filterOperator} onChange={e=>setFilterOperator(e.target.value)}><option value="contains">содержит</option><option value="equals">равно</option><option value="not_equals">не равно</option><option value="gt">больше</option><option value="lt">меньше</option><option value="empty">пусто</option></select><input className="filter-value" placeholder="Значение" value={filterValue} onChange={e=>setFilterValue(e.target.value)}/><button className="text-button-inline" onClick={()=>{setFilterColumn("");setFilterValue("");setCategoryFilter("Все");}}>Сбросить</button></div>}
           {view === "table" ? <div className="data-grid-wrap"><table className="data-grid"><thead><tr><th className="row-index">#</th>{activeTable.columns.map(col => <th key={col.id}><button className="column-head" onClick={() => setSort(s => s?.key===col.id ? {key:col.id,direction:s.direction==="asc"?"desc":"asc"} : {key:col.id,direction:"asc"})}>{col.type==="number"?<Hash size={13}/>:col.type==="date"?<CalendarDays size={13}/>:col.type==="checkbox"?<CheckSquare size={13}/>:col.type==="select"?<Tag size={13}/>:<Type size={13}/>} {col.name}{sort?.key===col.id && <span>{sort.direction==="asc"?"↑":"↓"}</span>}</button><button className="column-menu" onClick={() => deleteColumn(col.id)} title="Удалить поле"><X size={12}/></button></th>)}<th className="add-col-head"><button onClick={() => setColumnDialog(true)} title="Добавить поле"><Plus size={15}/></button></th></tr></thead><tbody>{visibleRows.map((row,index) => <tr key={row.id}><td className="row-index">{index+1}</td>{activeTable.columns.map(col => <td key={col.id}>{renderCell(col,row.cells[col.id],v=>updateCell(row.id,col.id,v))}</td>)}<td className="row-actions"><button onClick={() => deleteRow(row.id)} title="Удалить запись"><Trash2 size={13}/></button></td></tr>)}</tbody></table>{visibleRows.length===0 && <div className="table-no-results">Нет записей по выбранным условиям</div>}<button className="add-row-inline" onClick={addRow}><Plus size={14}/> Добавить запись</button></div> : <div className="record-list">{visibleRows.map((row,index)=><div className="record-card" key={row.id}><span className="record-number">{String(index+1).padStart(2,"0")}</span><div className="record-fields">{activeTable.columns.map(c=><div key={c.id}><small>{c.name}</small>{renderCell(c,row.cells[c.id],v=>updateCell(row.id,c.id,v))}</div>)}</div><button onClick={()=>deleteRow(row.id)} className="tiny-icon"><Trash2 size={14}/></button></div>)}</div>}
           <div className="table-footer"><span>Показано {visibleRows.length} из {activeTable.rows.length} записей</span><span><Rows3 size={14}/> Все изменения сохраняются автоматически</span></div>
         </> : <div className="table-empty"><div className="empty-icon"><Table2 size={24}/></div><h2>Создайте первую таблицу</h2><p>Таблицы можно привязывать к пользовательским экранам и использовать как источник данных для виджетов.</p><button className="primary-button" onClick={() => setTableDialog(true)}><Plus size={16}/> Создать таблицу</button></div>}
