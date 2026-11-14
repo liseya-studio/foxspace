@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import TableWorkspace from "./features/tables/TableWorkspace";
 import FoxEditor from "./features/editor/FoxEditor";
+import NotesTasks from "./features/notes/NotesTasks";
 import {
   Bell, Mail, Search, Plus, ChevronDown, MoreHorizontal, Settings,
   FileSpreadsheet, StickyNote, CheckSquare, LayoutDashboard, X, Sun,
@@ -116,10 +117,7 @@ export default function App() {
         ) : active === "files" ? (
           <TableWorkspace />
         ) : active === "notes" ? (
-          <section className="content-page">
-            <div className="page-heading"><div><div className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</div><h1>Заметки и задачи</h1><p>Идеи, планы и текущие дела.</p></div><button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={17}/> Создать</button></div>
-            <div className="empty-panel"><div className="empty-icon"><StickyNote size={25}/></div><h2>Пока нет записей</h2><p>Здесь будут заметки, задачи и связанные с ними представления.</p><button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={16}/> Создать заметку</button></div>
-          </section>
+          <NotesTasks />
         ) : (
           <section className="content-page">
             <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div></div>
