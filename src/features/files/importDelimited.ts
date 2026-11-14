@@ -1,7 +1,7 @@
 import type { StoredItem } from "./storage";
 
 type Column={id:string;name:string;type:"text"|"number"|"date"|"checkbox"};
-type Table={id:string;name:string;columns:Column[];rows:{id:string;cells:Record<string,string|number|boolean>}[];updatedAt:string};
+export type ImportedTable={id:string;name:string;columns:Column[];rows:{id:string;cells:Record<string,string|number|boolean>}[];updatedAt:string};
 function splitRecords(input:string,separator:string):string[][]{
   const rows:string[][]=[];
   let row:string[]=[];
@@ -37,7 +37,7 @@ function cellType(values:string[]):Column["type"]{
   if(filled.every(v=>/^-?(?:\d+)(?:[.,]\d+)?$/.test(v)))return "number";
   return "text";
 }
-export async function importDelimitedFile(item:StoredItem):Promise<Table>{
+export async function parseDelimitedFile(item:StoredItem):Promise<ImportedTable>{
   if(!item.blob)throw Error("Содержимое файла не найдено");
   if(item.size>8*1024*1024)throw Error("Файл больше 8 МБ: импортируйте меньший CSV");
   const text=(await item.blob.text()).replace(/^\uFEFF/,"");
@@ -45,7 +45,7 @@ export async function importDelimitedFile(item:StoredItem):Promise<Table>{
   const records=splitRecords(text,delimiter).filter(row=>row.some(v=>v.trim()));
   if(records.length<1)throw Error("CSV пуст");
   const header=records[0];
-  if(header.length>100)throw Error("В таблице может быть не более 100 колонок");
+  if(header.length>200)throw Error("В таблице может быть не более 200 колонок");
   if(records.length<2)throw Error("В файле нет записей");
   const columns:Column[]=header.map((name,index)=>{
     const values=records.slice(1).map(row=>row[index]??"");
@@ -59,11 +59,29 @@ export async function importDelimitedFile(item:StoredItem):Promise<Table>{
     });
     return {id:crypto.randomUUID(),cells};
   });
-  const table:Table={id:crypto.randomUUID(),name:item.name.replace(/\.(csv|tsv)$/i,""),columns,rows,updatedAt:new Date().toISOString()};
-  let existing:Table[]=[];
-  try{const parsed=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]") as Table[];if(Array.isArray(parsed))existing=parsed;}catch{/* first import */}
-  try{localStorage.setItem("fox-tables-v1",JSON.stringify([...existing,table]));}
-  catch{throw Error("Недостаточно места в хранилище браузера для импорта таблицы");}
+  const table:ImportedTable={id:crypto.randomUUID(),name:item.name.replace(/\.(csv|tsv)$/i,""),columns,rows,updatedAt:new Date().toISOString()};
+  return table;
+}
+export function persistImportedTables(tables:ImportedTable[]):void{
+  if(!tables.length)return;
+  let existing:ImportedTable[]=[];
+  try{
+    const parsed=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]") as ImportedTable[];
+    if(Array.isArray(parsed))existing=parsed;
+  }catch{/* first import */}
+  const names=new Set(existing.map(table=>table.name.toLocaleLowerCase("ru")));
+  const seen=new Set<string>();
+  for(const table of tables){
+    const name=table.name.toLocaleLowerCase("ru");
+    if(names.has(name)||seen.has(name))throw Error("Таблица «"+table.name+"» уже существует. Импорт отменён, чтобы не перезаписать ваши данные.");
+    seen.add(name);
+  }
+  try{localStorage.setItem("fox-tables-v1",JSON.stringify([...existing,...tables]));}
+  catch{throw Error("Недостаточно места в браузере для импорта. Попробуйте уменьшить объём файла.");}
   window.dispatchEvent(new Event("fox-tables-updated"));
+}
+export async function importDelimitedFile(item:StoredItem):Promise<ImportedTable>{
+  const table=await parseDelimitedFile(item);
+  persistImportedTables([table]);
   return table;
 }
