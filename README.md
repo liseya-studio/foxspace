@@ -59,6 +59,8 @@ npm run dev
 - IndexedDB file and folder manager: upload, download, search, rename, move, recursive deletion, and in-app preview for images/video/audio/text/PDF
 - Drag-and-drop file uploading; file sizes reflect actual stored file metadata
 - Import CSV/TSV and XLSX workbooks into editable local tables; each populated XLSX sheet becomes a separate table
+- Direct **Import Excel into tables** action in Files & Tables: reads the selected local workbook without uploading the workbook to GitHub or any application server; all tables are saved together only after the workbook parses successfully; existing table names are protected against accidental replacement
+- Supports XLSX worksheets up to 200 columns and 10,000 rows each; empty and header-only sheets are skipped
 - CSV parser supports quoted delimiters and multiline fields; imported columns infer basic data types
 - Table library and table switching
 - Create new tables
@@ -148,7 +150,7 @@ GitHub Actions `.github/workflows/build.yml` runs `npm install` and `npm run bui
 ### Local data safety
 - The file manager persists blobs in browser IndexedDB; it does **not** access the macOS filesystem directly. Clearing site data, private-browsing expiry or browser storage eviction may delete local files. Export regular backups.
 - Notes, tables and widgets still use localStorage; attachments reference IndexedDB file IDs. Removing a file from the file manager can leave a missing attachment in notes.
-- Workbook import reads the cached values of formulas, not live Excel formulas; its current conversion does not preserve workbook styling or formulas. Import is capped at 8 MB and each populated sheet at 10,000 rows / 100 columns.
+- Workbook import reads the cached values of formulas, not live Excel formulas; its current conversion does not preserve workbook styling or formulas. Import is capped at 8 MB and each populated sheet at 10,000 rows / 200 columns.
 
 ### Notification limitations
 - In-app notifications are calculated on screen from task deadlines and do not require a server. Browser desktop reminders are opt-in, run while the web application is open, and depend on browser notification permission; they are not push notifications.
