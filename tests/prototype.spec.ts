@@ -133,3 +133,27 @@ test("platform icon gallery can change a screen dock icon",async({page})=>{
   await page.reload();
   await expect(page.locator(".dock-screen .fox-platform-icon")).toHaveCount(1);
 });
+
+test("a workbook-style import fills an existing empty travel template without losing map linkage",async({page})=>{
+  await page.locator(".dock-add").click();
+  await page.getByRole("button",{name:/Путешествия/}).click();
+  const before=await page.evaluate(()=>{
+    const screens=JSON.parse(localStorage.getItem("fox-screens")??"[]");
+    return {id:screens[0].tableId,tables:JSON.parse(localStorage.getItem("fox-tables-v1")??"[]").length};
+  });
+  await page.getByRole("button",{name:"Файлы и таблицы"}).click();
+  const sample="ISO A3;Страна;Город;Количество городов;Дата въезда\\nFRA;France;Paris;1;2024-08-01\\n";
+  await page.locator(".fox-file-header input[type=file]").first().setInputFiles({name:"Путешествия (поездки).csv",mimeType:"text/csv",buffer:Buffer.from(sample.replaceAll("\\\\n","\\n"))});
+  await expect(page.getByText("Путешествия (поездки).csv")).toBeVisible();
+  await page.getByTitle("Импортировать как таблицу").click();
+  const after=await page.evaluate(()=>{
+    const tables=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]");
+    const screens=JSON.parse(localStorage.getItem("fox-screens")??"[]");
+    return {id:screens[0].tableId,tables:tables.length,rows:tables.find((t:{id:string})=>t.id===screens[0].tableId)?.rows.length};
+  });
+  expect(after.id).toBe(before.id);
+  expect(after.tables).toBe(before.tables);
+  expect(after.rows).toBe(1);
+  await page.locator(".dock-screen-name").first().click();
+  await expect(page.getByText("1 стран с записями")).toBeVisible();
+});
