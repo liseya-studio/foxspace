@@ -28,6 +28,8 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
   const [previewUrl,setPreviewUrl]=useState<string|null>(null);
   const [previewText,setPreviewText]=useState("");
   const uploadRef=useRef<HTMLInputElement>(null);
+  const workbookRef=useRef<HTMLInputElement>(null);
+  const [importSummary,setImportSummary]=useState("");
   const refresh=async()=>{try{setItems(await listItems());setError("");}catch(e){setError(e instanceof Error?e.message:"Не удалось прочитать файлы");}};
   useEffect(()=>{void refresh();const handler=()=>{void refresh();};window.addEventListener("fox-files-updated",handler);return()=>window.removeEventListener("fox-files-updated",handler);},[]);
   useEffect(()=>{if(createFolderRequest){setFolderDialog(true);setFolderName("");onCreateFolderConsumed?.();}},[createFolderRequest]);
@@ -53,6 +55,18 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
     try{await action();await refresh();}
     catch(e){setError(e instanceof Error?e.message:"Не удалось выполнить операцию");}
     finally{setBusy(false);}
+  }
+  async function importLocalWorkbook(file:File|undefined){
+    if(!file)return;
+    setBusy(true);setError("");setImportSummary("");
+    try{
+      const now=new Date().toISOString();
+      const item:StoredItem={id:crypto.randomUUID(),parentId:null,name:file.name,kind:"file",mime:file.type||"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",size:file.size,createdAt:now,updatedAt:now,blob:file};
+      const names=await importWorkbook(item);
+      setImportSummary("Импортировано таблиц: "+names.length+". Данные доступны для виджетов Fox Editor.");
+      onOpenTables();
+    }catch(reason){setError(reason instanceof Error?reason.message:"Не удалось импортировать Excel");}
+    finally{setBusy(false);if(workbookRef.current)workbookRef.current.value="";}
   }
   async function upload(files:FileList|null){
     if(!files||files.length===0)return;
@@ -94,10 +108,10 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
   </div>;
   return <section className="fox-file-browser" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();void upload(e.dataTransfer.files);}}>
     <div className="fox-file-header"><div><div className="eyebrow">ЛОКАЛЬНОЕ ХРАНИЛИЩЕ</div><h2>{mode==="all"?"Мои файлы и таблицы":mode==="tables"?"Таблицы":"Файлы"}</h2><p>Файлы сохраняются в IndexedDB этого браузера, без загрузки на сервер.</p></div>
-      <div className="fox-file-header-actions"><input ref={uploadRef} type="file" multiple hidden onChange={e=>void upload(e.target.files)}/><button className="outline-button" onClick={()=>{setFolderDialog(true);setFolderName("");}} disabled={busy}><FolderPlus size={16}/> Папка</button><button className="primary-button" onClick={()=>uploadRef.current?.click()} disabled={busy}><Upload size={16}/> Загрузить файл</button></div></div>
+      <div className="fox-file-header-actions"><input ref={uploadRef} type="file" multiple hidden onChange={e=>void upload(e.target.files)}/><input ref={workbookRef} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onChange={e=>void importLocalWorkbook(e.target.files?.[0])}/><button className="outline-button" type="button" onClick={()=>workbookRef.current?.click()} disabled={busy}><FileText size={16}/> Импорт Excel в таблицы</button><button className="outline-button" onClick={()=>{setFolderDialog(true);setFolderName("");}} disabled={busy}><FolderPlus size={16}/> Папка</button><button className="primary-button" onClick={()=>uploadRef.current?.click()} disabled={busy}><Upload size={16}/> Загрузить файл</button></div></div>
     <div className="fox-file-stats"><span><HardDrive size={16}/> {fileCount} файлов · {sizeLabel(fileBytes)} фактических данных</span><span>{items.filter(item=>item.kind==="folder").length} папок · {tables.length} таблиц</span></div>
     <div className="fox-file-navigation"><div className="fox-file-breadcrumb"><button onClick={()=>setFolderId(null)}><FolderOpen size={16}/> Все файлы</button>{crumbs.map(c=><span key={c.id}><ChevronRight size={14}/><button onClick={()=>setFolderId(c.id)}>{c.name}</button></span>)}</div><label className="fox-file-search"><Search size={16}/><input placeholder="Поиск по файлам" value={query} onChange={e=>setQuery(e.target.value)}/></label></div>
-    {error&&<div className="fox-file-error" role="alert">{error}<button onClick={()=>setError("")}><X size={15}/></button></div>}
+    {error&&<div className="fox-file-error" role="alert">{error}<button onClick={()=>setError("")}><X size={15}/></button></div>}{importSummary&&<div className="fox-file-import-success" role="status">{importSummary}<button onClick={()=>setImportSummary("")}><X size={14}/></button></div>}
     {(mode==="all"||mode==="tables")&& !folderId && !query && <div className="fox-file-table-section"><div className="fox-file-section-heading"><h3>Таблицы</h3><button onClick={onOpenTables}>Открыть редактор <ChevronRight size={15}/></button></div><div className="fox-file-grid">{tables.map(tableTile)}<button className="fox-file-tile create" onClick={onCreateTable}><div className="fox-file-tile-icon"><Plus size={23}/></div><strong>Создать таблицу</strong><small>Новый источник данных</small></button></div></div>}
     {(mode==="all"||mode==="files")&&<div className="fox-file-library"><div className="fox-file-section-heading"><h3>{folder?.name??"Файлы и папки"}</h3><small>{filtered.length} элементов</small></div>{filtered.length>0?<div className="fox-file-grid">{filtered.map(fileTile)}</div>:<div className="fox-file-blank"><FolderOpen size={29}/><h3>{query?"Ничего не найдено":"Папка пуста"}</h3><p>Загрузите файлы или создайте папку. Также можно перетащить файлы сюда.</p><button className="outline-button" onClick={()=>uploadRef.current?.click()}><Upload size={15}/> Выбрать файлы</button></div>}</div>}
     {preview&&<div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setPreview(null)}><div className="fox-file-preview"><div className="fox-file-preview-header"><div><strong>{preview.name}</strong><small>{sizeLabel(preview.size)} · {preview.mime||"Файл"}</small></div><div><button onClick={()=>void run(()=>downloadItem(preview))}><Download size={16}/> Скачать</button><button onClick={()=>setPreview(null)} title="Закрыть"><X size={18}/></button></div></div><div className="fox-file-preview-body">{preview.mime.startsWith("image/")&&previewUrl?<img src={previewUrl} alt={preview.name}/>:preview.mime.startsWith("video/")&&previewUrl?<video controls src={previewUrl}/>:preview.mime.startsWith("audio/")&&previewUrl?<audio controls src={previewUrl}/>:preview.mime==="application/pdf"&&previewUrl?<iframe src={previewUrl} title={preview.name} sandbox=""/>:preview.mime.startsWith("text/")&&preview.size<512*1024?<pre>{previewText}</pre>:<div className="fox-file-preview-fallback"><File size={34}/><p>Для этого типа файла предпросмотр недоступен.</p><button className="outline-button" onClick={()=>void run(()=>downloadItem(preview))}>Скачать файл</button></div>}</div></div></div>}
