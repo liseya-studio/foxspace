@@ -14,6 +14,8 @@ function localTables():TableSummary[]{
 export default function FilesHub({createAction,onCreateConsumed}:{createAction?:{type:"table"|"folder";id:number}|null;onCreateConsumed?:()=>void}){
   const [tab,setTab]=useState<Tab>("all");
   const [createRequest,setCreateRequest]=useState(0);
+  const [folderRequest,setFolderRequest]=useState<number|undefined>(undefined);
+  const [openTableDialog,setOpenTableDialog]=useState(false);
   useEffect(()=>{if(createAction?.type==="table"){setCreateRequest(value=>value+1);setOpenTableDialog(true);setTab("tables");onCreateConsumed?.();}if(createAction?.type==="folder"){setFolderRequest(createAction.id);setTab("files");onCreateConsumed?.();}},[createAction]);
   const tables=localTables();
   function openTables(){setTab("tables");}
