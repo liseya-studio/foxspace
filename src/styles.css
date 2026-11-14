@@ -101,3 +101,61 @@
 
 /* Read-only public feed sources */
 .fox-feed-filters{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:12px 17px}.fox-feed-filters button{padding:8px 13px;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--muted);font-size:11px}.fox-feed-filters button.active{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}.fox-feed-refresh{margin-left:auto;display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:6px;background:var(--canvas);color:var(--muted)}.fox-feed-refresh:hover{color:var(--accent)}.fox-feed-status{padding:13px 18px;font-size:12px;color:var(--muted)}.fox-feed-posts{display:flex;flex-direction:column}.fox-feed-post{padding:23px 20px;border-bottom:1px solid var(--line)}.fox-feed-post:last-child{border-bottom:0}.fox-feed-post-meta{display:flex;gap:11px;align-items:center}.fox-feed-post-avatar{width:39px;height:39px;display:grid;place-items:center;flex-shrink:0;border-radius:12px;background:color-mix(in srgb,#3b9bd9 12%,var(--surface));color:#3b9bd9}.fox-feed-post-avatar.vk{background:color-mix(in srgb,#3976d3 12%,var(--surface));color:#3976d3}.fox-feed-post-meta>div{display:flex;flex:1;flex-direction:column;gap:5px;min-width:0}.fox-feed-post-meta strong{font-size:12px}.fox-feed-post-meta small{font-size:10px;color:var(--muted)}.fox-feed-post-meta>a{color:var(--muted);padding:5px}.fox-feed-post-text{font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0}.fox-feed-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:14px 0}.fox-feed-gallery a{display:block;max-height:260px;min-height:90px;overflow:hidden;border-radius:8px;background:var(--canvas)}.fox-feed-gallery img{width:100%;height:100%;object-fit:cover}.fox-feed-post-link,.fox-feed-source a{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);text-decoration:none}.fox-feed-post-link:hover,.fox-feed-source a:hover{text-decoration:underline}.fox-feed-no-preview{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:11px;margin:14px 0}.fox-feed-sources{display:grid;gap:13px;margin-top:14px}.fox-feed-source{padding:12px;background:var(--canvas);border:1px solid var(--line);border-radius:9px}.fox-feed-source-title{display:grid;gap:8px}.fox-feed-source-title strong{font-size:12px;overflow-wrap:anywhere}.fox-feed-source-state{font-size:10px;color:var(--muted)}.fox-feed-source-state.ok{color:#388b69}.fox-feed-source-state.unavailable{color:#ba6b36}.fox-feed-source p{font-size:11px;line-height:1.6;color:var(--muted);margin:10px 0}.fox-feed-last-sync{border-top:1px solid var(--line);padding:14px 0 0;font-size:10px;line-height:1.6;color:var(--muted);margin:14px 0}.fox-feed-source a{font-weight:600}@media(max-width:700px){.fox-feed-post{padding:15px}.fox-feed-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Compact Fox Space shell, centered search and icon-first Dock */
+.app-shell .topbar{position:relative;padding:0 clamp(16px,2.4vw,36px);height:62px;gap:12px}
+.app-shell .topbar-center-search{position:absolute;left:50%;transform:translateX(-50%);width:min(490px,38vw);height:39px;margin:0;padding:0 14px;justify-content:flex-start;background:var(--canvas);border-radius:10px;z-index:1;cursor:pointer}
+.app-shell .topbar-center-search span{display:inline;font-size:12px;flex:1;text-align:left}
+.app-shell .topbar-center-search kbd{display:inline;font-size:10px}
+.app-shell .top-actions{margin-left:auto;gap:7px}
+.app-shell .main-area{max-width:none;width:100%;padding:26px clamp(18px,3.1vw,54px) 105px;min-height:calc(100vh - 62px)}
+.app-shell .welcome{min-height:min(620px,calc(100vh - 200px));gap:clamp(20px,4vw,72px)}
+.app-shell .dock{min-height:72px;padding:7px 10px;gap:8px;align-items:center;bottom:14px}
+.app-shell .dock-fixed,.app-shell .dock-screens{align-items:center;gap:4px}
+.app-shell .dock-item,.app-shell .dock-screen-name{height:60px;min-width:70px;max-width:108px;display:flex;flex-direction:column;gap:5px;padding:6px 8px;align-items:center;justify-content:center;font-size:10px;text-align:center;line-height:1.15;white-space:normal}
+.app-shell .dock-item span,.app-shell .dock-screen-name .dock-custom-label{font-size:10px;line-height:1.12;font-weight:600;display:block;text-align:center;max-width:90px;overflow:hidden;text-overflow:ellipsis}
+.app-shell .dock-item svg,.app-shell .dock-screen-name svg{width:20px;height:20px;flex-shrink:0}
+.app-shell .dock-screen-emoji{font-size:20px;line-height:20px;height:20px}
+.app-shell .dock-screen{position:relative}
+.app-shell .screen-more{position:absolute;top:0;right:-3px;width:17px;height:17px;border-radius:5px;opacity:0;background:var(--surface)}
+.app-shell .dock-screen:hover .screen-more,.app-shell .screen-more:focus-visible{opacity:1}
+.app-shell .dock-divider{height:40px}
+.app-shell .fox-global-create{width:min(830px,calc(100vw - 30px));max-width:830px;max-height:min(90vh,900px);overflow-y:auto}
+.fox-screen-presets{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}
+.fox-screen-presets-heading{display:grid;gap:5px}
+.fox-screen-presets-heading strong{font-size:15px}
+.fox-screen-presets-heading small{font-size:11px;line-height:1.6;color:var(--muted)}
+.fox-preset-filters{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}
+.fox-preset-filters button{border:1px solid var(--line);background:var(--canvas);color:var(--muted);border-radius:20px;padding:7px 13px;font-size:11px;cursor:pointer}
+.fox-preset-filters button.selected{background:color-mix(in srgb,var(--accent) 10%,var(--surface));border-color:var(--accent);color:var(--accent)}
+.fox-preset-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.fox-preset-card{min-width:0;display:flex;align-items:center;gap:11px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--canvas);cursor:pointer;color:var(--text)}
+.fox-preset-card:hover{border-color:var(--accent);background:var(--surface)}
+.fox-preset-card>span:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.fox-preset-card strong{font-size:12px}
+.fox-preset-card small{font-size:10px;line-height:1.4;color:var(--muted)}
+.fox-preset-symbol{width:36px;height:36px;flex-shrink:0;display:grid;place-items:center;border-radius:9px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--accent);font-size:20px}
+.fox-preset-card>svg{color:var(--muted);flex-shrink:0}
+.fox-worldmap{display:flex;flex-direction:column;gap:8px;height:100%;min-height:380px}
+.fox-worldmap-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px}
+.fox-worldmap-toolbar>span,.fox-worldmap-toolbar>div{display:flex;align-items:center;gap:7px}
+.fox-worldmap-toolbar button{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:6px;padding:6px 8px;font-size:10px;cursor:pointer}
+.fox-worldmap-toolbar button.selected{border-color:var(--accent);color:var(--accent)}
+.fox-worldmap-surface{background:var(--canvas);border-radius:9px;min-height:0;flex:1;overflow:hidden}
+.fox-worldmap-surface svg{width:100%;height:100%;min-height:240px}
+.fox-worldmap-country{fill:color-mix(in srgb,var(--text) 13%,var(--surface));stroke:var(--surface);stroke-width:.7;cursor:pointer;transition:fill .16s}
+.fox-worldmap-country:hover{fill:color-mix(in srgb,var(--accent) 46%,var(--surface))}
+.fox-worldmap-country.visited{fill:var(--accent)}
+.fox-worldmap-country.active{fill:var(--accent);stroke:var(--text);stroke-width:1.5}
+.fox-worldmap-country.muted{opacity:.22}
+.fox-worldmap-details{display:flex;align-items:center;gap:11px;min-height:57px;padding:7px 12px;border:1px solid var(--line);border-radius:9px;font-size:11px;color:var(--muted)}
+.fox-worldmap-flag{font-size:30px;line-height:1}
+.fox-worldmap-details>div:nth-child(2){display:grid;gap:4px;flex:1}
+.fox-worldmap-details strong{font-size:13px;color:var(--text)}
+.fox-worldmap-details small{color:var(--muted);font-size:10px}
+.fox-worldmap-metrics{display:grid;gap:3px;text-align:center;min-width:54px}
+.fox-worldmap-metrics b{font-size:16px;color:var(--text)}
+.fox-worldmap-message{font-size:11px;color:var(--muted);line-height:1.4}
+.fox-widget-datecount strong{font-size:43px}
+@media(max-width:850px){.app-shell .topbar-center-search{width:min(340px,35vw)}.app-shell .main-area{padding:20px 18px 108px}.fox-preset-list{grid-template-columns:1fr}}
+@media(max-width:620px){.app-shell .topbar-center-search{position:static;transform:none;flex:1;width:auto;max-width:none;min-width:0}.app-shell .topbar-center-search span{display:none}.app-shell .topbar-center-search kbd{display:none}.app-shell .topbar{gap:8px;padding:0 12px}.app-shell .top-left .workspace-name,.app-shell .top-left .muted-icon{display:none}.app-shell .dock{gap:3px;max-width:calc(100vw - 12px);padding:4px 7px}.app-shell .dock-item,.app-shell .dock-screen-name{min-width:62px;max-width:82px;padding:5px 4px}.app-shell .dock-item span,.app-shell .dock-custom-label{font-size:9px}.fox-screen-presets-heading small{font-size:10px}.fox-worldmap-details{flex-wrap:wrap}}
