@@ -49,7 +49,7 @@ function loadTables(): DataTable[] {
   catch { return initialTables; }
 }
 const id = () => crypto.randomUUID();
-const formatDate = (value: string) => value ? new Date(value + "T00:00:00").toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" }) : "—";
+
 
 export default function TableWorkspace() {
   const [tables, setTables] = useState<DataTable[]>(loadTables);
@@ -76,7 +76,7 @@ export default function TableWorkspace() {
   const [logic, setLogic] = useState<"and" | "or">("and");
   const [groupColumn, setGroupColumn] = useState("");
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
-  const [savedViewName, setSavedViewName] = useState("");
+
 
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify(tables)); }, [tables]);
   const activeTable = tables.find(t => t.id === activeId) ?? null;
@@ -117,7 +117,12 @@ export default function TableWorkspace() {
     if (!activeTable || activeTable.columns.length <= 1) return;
     updateTable(t => ({ ...t, columns: t.columns.filter(c => c.id !== columnId), rows: t.rows.map(r => { const cells = { ...r.cells }; delete cells[columnId]; return { ...r, cells }; }) }));
   }
-  function moveColumn(from: string, to: string) {\n    if (from === to) return;\n    updateTable(t => { const columns = [...t.columns]; const source = columns.findIndex(col => col.id === from); const destination = columns.findIndex(col => col.id === to); if (source < 0 || destination < 0) return t; columns.splice(destination, 0, columns.splice(source, 1)[0]); return { ...t, columns }; });\n  }\n  function resizeColumn(columnId: string, width: number) { updateTable(t => ({ ...t, columns: t.columns.map(col => col.id === columnId ? { ...col, width: Math.max(110, Math.min(600, width)) } : col) })); }\n  function deleteRow(rowId: string) { updateTable(t => ({ ...t, rows: t.rows.filter(r => r.id !== rowId) })); }
+  function moveColumn(from: string, to: string) {
+    if (from === to) return;
+    updateTable(t => { const columns = [...t.columns]; const source = columns.findIndex(col => col.id === from); const destination = columns.findIndex(col => col.id === to); if (source < 0 || destination < 0) return t; columns.splice(destination, 0, columns.splice(source, 1)[0]); return { ...t, columns }; });
+  }
+  function resizeColumn(columnId: string, width: number) { updateTable(t => ({ ...t, columns: t.columns.map(col => col.id === columnId ? { ...col, width: Math.max(110, Math.min(600, width)) } : col) })); }
+  function deleteRow(rowId: string) { updateTable(t => ({ ...t, rows: t.rows.filter(r => r.id !== rowId) })); }
 
   const categories = useMemo(() => {
     const col = activeTable?.columns.find(c => c.type === "select");
@@ -158,8 +163,7 @@ export default function TableWorkspace() {
   function exportCsv() {
     if (!activeTable) return;
     const quote = (v: Cell) => '"' + String(v ?? "").replaceAll('"', '""') + '"';
-    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(r.cells[c.id] ?? "")).join(";"))].join("
-");
+    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(r.cells[c.id] ?? "")).join(";"))].join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = activeTable.name + ".csv"; a.click(); URL.revokeObjectURL(url);
   }
@@ -183,7 +187,7 @@ export default function TableWorkspace() {
             <div className="table-toolbar-right"><label className="table-search"><Search size={15}/><input placeholder="Найти в таблице" value={query} onChange={e => setQuery(e.target.value)}/></label><button className="toolbar-button" onClick={() => setColumnDialog(true)}><Columns3 size={15}/> Поля</button><button className="primary-button compact" onClick={addRow}><Plus size={15}/> Добавить запись</button></div>
           </div>
           {showFilters && <div className="filter-bar"><SlidersHorizontal size={15}/><span>Поле</span><select value={filterColumn} onChange={e=>setFilterColumn(e.target.value)}><option value="">Любое</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><select value={filterOperator} onChange={e=>setFilterOperator(e.target.value)}><option value="contains">содержит</option><option value="equals">равно</option><option value="not_equals">не равно</option><option value="gt">больше</option><option value="lt">меньше</option><option value="empty">пусто</option></select><input className="filter-value" placeholder="Значение" value={filterValue} onChange={e=>setFilterValue(e.target.value)}/><select value={logic} onChange={e=>setLogic(e.target.value as "and"|"or")}><option value="and">И</option><option value="or">ИЛИ</option></select><select value={secondColumn} onChange={e=>setSecondColumn(e.target.value)}><option value="">Второе поле</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><input className="filter-value" placeholder="Второе значение" value={secondValue} onChange={e=>setSecondValue(e.target.value)}/><button className="text-button-inline" onClick={()=>{setFilterColumn("");setFilterValue("");setCategoryFilter("Все");}}>Сбросить</button></div>}
-          {view === "table" ? <div className="data-grid-wrap"><table className="data-grid"><thead><tr><th className="row-index">#</th>{activeTable.columns.map(col => <th key={col.id} draggable onDragStart={e=>{setDraggedColumn(col.id);e.dataTransfer.setData("text/plain",col.id);}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();moveColumn(e.dataTransfer.getData("text/plain"),col.id);setDraggedColumn(null);}} onDragEnd={()=>setDraggedColumn(null)} style={{width:col.width??170,minWidth:col.width??170}}><button className="column-head" onClick={() => setSort(s => s?.key===col.id ? {key:col.id,direction:s.direction==="asc"?"desc":"asc"} : {key:col.id,direction:"asc"})}>{col.type==="number"?<Hash size={13}/>:col.type==="date"?<CalendarDays size={13}/>:col.type==="checkbox"?<CheckSquare size={13}/>:col.type==="select"?<Tag size={13}/>:<Type size={13}/>} {col.name}{sort?.key===col.id && <span>{sort.direction==="asc"?"↑":"↓"}</span>}</button><button className="column-menu" onClick={() => deleteColumn(col.id)} title="Удалить поле"><X size={12}/></button><input className="column-width" type="range" min="110" max="360" step="10" value={col.width??170} onChange={e=>resizeColumn(col.id,Number(e.target.value))} aria-label={"Ширина: "+col.name}/></th>)}<th className="add-col-head"><button onClick={() => setColumnDialog(true)} title="Добавить поле"><Plus size={15}/></button></th></tr></thead><tbody>{groupedRows.map(group=><>{group.label && <tr className="group-heading" key={"group-"+group.label}><td colSpan={activeTable.columns.length+2}>{group.label}<span>{group.rows.length} записей</span></td></tr>}{group.rows.map((row,index) => <tr key={row.id}><td className="row-index">{index+1}</td>{activeTable.columns.map(col => <td key={col.id}>{renderCell(col,computedCell(col,row,tables),v=>updateCell(row.id,col.id,v),tables)}</td>)}<td className="row-actions"><button onClick={() => deleteRow(row.id)} title="Удалить запись"><Trash2 size={13}/></button></td></tr>)}</>)}</tbody></table>{visibleRows.length===0 && <div className="table-no-results">Нет записей по выбранным условиям</div>}<button className="add-row-inline" onClick={addRow}><Plus size={14}/> Добавить запись</button></div> : <div className="record-list">{visibleRows.map((row,index)=><div className="record-card" key={row.id}><span className="record-number">{String(index+1).padStart(2,"0")}</span><div className="record-fields">{activeTable.columns.map(c=><div key={c.id}><small>{c.name}</small>{renderCell(c,computedCell(c,row,tables),v=>updateCell(row.id,c.id,v),tables)}</div>)}</div><button onClick={()=>deleteRow(row.id)} className="tiny-icon"><Trash2 size={14}/></button></div>)}</div>}
+          {view === "table" ? <div className="data-grid-wrap"><table className="data-grid"><thead><tr><th className="row-index">#</th>{activeTable.columns.map(col => <th key={col.id} draggable onDragStart={e=>{setDraggedColumn(col.id);e.dataTransfer.setData("text/plain",col.id);}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();moveColumn(e.dataTransfer.getData("text/plain"),col.id);setDraggedColumn(null);}} onDragEnd={()=>setDraggedColumn(null)} style={{width:col.width??170,minWidth:col.width??170}}><button className="column-head" onClick={() => setSort(s => s?.key===col.id ? {key:col.id,direction:s.direction==="asc"?"desc":"asc"} : {key:col.id,direction:"asc"})}>{col.type==="number"?<Hash size={13}/>:col.type==="date"?<CalendarDays size={13}/>:col.type==="checkbox"?<CheckSquare size={13}/>:col.type==="select"?<Tag size={13}/>:<Type size={13}/>} {col.name}{sort?.key===col.id && <span>{sort.direction==="asc"?"↑":"↓"}</span>}</button><button className="column-menu" onClick={() => deleteColumn(col.id)} title="Удалить поле"><X size={12}/></button><input className="column-width" type="range" min="110" max="360" step="10" value={col.width??170} onChange={e=>resizeColumn(col.id,Number(e.target.value))} aria-label={"Ширина: "+col.name}/></th>)}<th className="add-col-head"><button onClick={() => setColumnDialog(true)} title="Добавить поле"><Plus size={15}/></button></th></tr></thead><tbody>{groupedRows.map(group=><>{group.label && <tr className="group-heading" key={"group-"+group.label}><td colSpan={activeTable.columns.length+2}>{group.label}<span>{group.rows.length} записей</span></td></tr>}{group.rows.map((row,index) => <tr key={row.id}><td className="row-index">{index+1}</td>{activeTable.columns.map(col => <td key={col.id}>{renderCell(col,computedCell(col,row),v=>updateCell(row.id,col.id,v),tables)}</td>)}<td className="row-actions"><button onClick={() => deleteRow(row.id)} title="Удалить запись"><Trash2 size={13}/></button></td></tr>)}</>)}</tbody></table>{visibleRows.length===0 && <div className="table-no-results">Нет записей по выбранным условиям</div>}<button className="add-row-inline" onClick={addRow}><Plus size={14}/> Добавить запись</button></div> : <div className="record-list">{visibleRows.map((row,index)=><div className="record-card" key={row.id}><span className="record-number">{String(index+1).padStart(2,"0")}</span><div className="record-fields">{activeTable.columns.map(c=><div key={c.id}><small>{c.name}</small>{renderCell(c,computedCell(c,row),v=>updateCell(row.id,c.id,v),tables)}</div>)}</div><button onClick={()=>deleteRow(row.id)} className="tiny-icon"><Trash2 size={14}/></button></div>)}</div>}
           <div className="table-footer"><span>Показано {visibleRows.length} из {activeTable.rows.length} записей</span><span><Rows3 size={14}/> Все изменения сохраняются автоматически</span></div>
         </> : <div className="table-empty"><div className="empty-icon"><Table2 size={24}/></div><h2>Создайте первую таблицу</h2><p>Таблицы можно привязывать к пользовательским экранам и использовать как источник данных для виджетов.</p><button className="primary-button" onClick={() => setTableDialog(true)}><Plus size={16}/> Создать таблицу</button></div>}
       </div>
@@ -193,7 +197,7 @@ export default function TableWorkspace() {
   </section>;
 }
 
-function computedCell(column: Column, row: RowData, tables: DataTable[]): Cell | undefined {
+function computedCell(column: Column, row: RowData): Cell | undefined {
   if (column.type !== "formula" || !column.formulaSourceId) return row.cells[column.id];
   const source = Number(row.cells[column.formulaSourceId] ?? 0);
   const factor = Number(column.formulaFactor ?? 1);
