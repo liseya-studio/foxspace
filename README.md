@@ -10,6 +10,31 @@ Desktop-first interactive web prototype for Fox Space. This repository is the wo
 - Browser localStorage for prototype records/settings and IndexedDB for local file blobs
 - read-excel-file for browser-side XLSX import
 
+## Review the web prototype
+
+The frontend is ready for interactive review without a backend. It stores records locally in your browser. No Telegram or VK account is required to try navigation, tables, notes, tasks, notifications, files or Fox Editor.
+
+**Public preview (one-time GitHub Pages setup):**
+1. Open [repository Pages settings](https://github.com/liseya-studio/foxspace/settings/pages).
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Open [Actions → Deploy Fox Space web preview](https://github.com/liseya-studio/foxspace/actions/workflows/preview.yml) and use **Run workflow** on `main`.
+4. When deployment succeeds, open the URL from the run's `github-pages` environment (normally `https://liseya-studio.github.io/foxspace/`).
+
+The deployment workflow already typechecks and builds the correct `/foxspace/` base path. GitHub Pages must first be enabled by a repository administrator; the workflow's default token cannot enable Pages itself. Until then, Actions uploads a standalone static build artifact.
+
+**Local preview (Mac):**
+```bash
+git clone https://github.com/liseya-studio/foxspace.git
+cd foxspace
+npm install
+npm run dev
+```
+Open the local URL printed by Vite (typically `http://localhost:5173/`).
+
+**What to review:** start with the home empty state; use the bottom `+` for screens, tables, notes, tasks, folders and uploads; verify Fox Editor widgets, themes, calendar, search, file preview, notifications and backup. Feed and Messages deliberately show disconnected states until real integrations are built. No fabricated account data is loaded on a fresh browser.
+
+**Automated checks:** `npm run build` checks TypeScript/Vite. `npm run test:e2e` runs Chromium smoke tests and captures screenshots. Screenshots and traces are available as artifacts of [Browser smoke tests and screenshots](https://github.com/liseya-studio/foxspace/actions/workflows/browser.yml).
+
 ## Run locally
 ```bash
 npm install
@@ -53,7 +78,7 @@ npm run dev
 - Table and compact list views
 - CSV export with UTF-8 BOM
 - Automatic localStorage persistence
-- Seeded finance table for interface testing
+- Empty by default; no fabricated finance records
 
 ### Notes & Tasks (interactive prototype)
 - Empty by default; creates tasks and notes with local browser persistence
