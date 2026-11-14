@@ -10,6 +10,16 @@ Desktop-first interactive web prototype for Fox Space. This repository is the wo
 - Browser localStorage for prototype records/settings and IndexedDB for local file blobs
 - read-excel-file for browser-side XLSX import
 
+## Editable ready-made dashboards
+
+The global `+` dialog includes eight local starter templates: **Мои финансы**, **Путешествия**, **Наши отношения**, **Здоровье и тренировки**, **Мои фанфики**, **Контент и статистика**, **Работа и проекты**, and **Книги и фильмы**. Each new screen receives editable Fox Editor widgets and maps to existing imported LISEA table names when possible. If matching tables have not been imported yet, an empty table schema is created locally; no personal values, health readings, dates, income or relationships are invented. Creating another screen does not erase existing screens.
+
+The **Путешествия** screen includes an offline vector world map based on country boundaries and country metadata, supporting click/keyboard country selection, zoom, national flags, imported ISO A3 country codes, visit records and counts of distinct named cities. If no city names/count are provided, the UI reports zero cities in the data rather than guessing.
+
+The **Наши отношения** screen has an independently editable start-date counter (with a blank date initially); its number of days is calculated from the local calendar. **Мои фанфики** contains character-dossier cards bound to the characters table, including work, role, traits, motivations and relationships.
+
+The top search field is wider and centered on desktop, page margins and top spacing are reduced, and the Dock shows icons above short labels. Use a screen's Dock context menu → **Изменить значок** to select from the locally bundled Telegram, VK, YouTube, TikTok SVG marks, compact Kwork/Avito/HH badges, or decorative icons. Screen choices persist locally and are included in the backup.
+
 ## Review the web prototype
 
 The frontend is ready for interactive review without a backend. It stores records locally in your browser. No Telegram or VK account is required to try navigation, tables, notes, tasks, notifications, files or Fox Editor.
