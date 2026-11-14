@@ -24,6 +24,7 @@ type Props = {
   tableId?: string;
   onTableChange: (id: string) => void;
   onOpenTables: () => void;
+  onCreateTable: () => void;
 };
 const STORAGE = "fox-editor-widgets-v1";
 const catalog: { type: WidgetType; title: string; description: string; icon: typeof LayoutGrid; needsTable: boolean }[] = [
@@ -57,7 +58,7 @@ const emptyStore = (): WidgetStore => {
 const newId = () => crypto.randomUUID();
 const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(n);
 
-function WidgetPreview({ widget, table, tables, organizer }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData }) {
+function WidgetPreview({ widget, table, tables, organizer, onConfigure }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData; onConfigure: () => void }) {
   const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
   if (widget.type === "taskcount" || widget.type === "tasklist") {
     const tasks = organizer.tasks.filter(task => !widget.taskStatus || widget.taskStatus==="all" || task.status===widget.taskStatus);
@@ -71,7 +72,7 @@ function WidgetPreview({ widget, table, tables, organizer }: { widget: EditorWid
   if (widget.type === "text") return <div className="fox-widget-text">{widget.body?.trim() || "Добавьте текст в параметрах виджета."}</div>;
   if (widget.type === "heading") return <div className="fox-widget-section-title">{widget.body?.trim() || widget.title}</div>;
   if (widget.type === "divider") return <div className="fox-widget-divider"/>;
-  if (!table) return <div className="fox-widget-empty">Выберите таблицу в разделе «Данные».</div>;
+  if (!table) return <div className="fox-widget-empty fox-widget-connect"><Database size={22}/><strong>Подключите данные</strong><span>Выберите таблицу для «{widget.title}».</span><button type="button" onClick={event=>{event.stopPropagation();onConfigure();}}>Выбрать источник</button></div>;
   const numbers = table.columns.filter(c => c.type === "number" || c.type === "formula");
   const numberCol = numbers.find(c => c.id === widget.columnId) ?? numbers[0];
   const textCol = table.columns.find(c => c.id === widget.labelColumnId) ?? table.columns.find(c => c.type === "text") ?? table.columns[0];
@@ -123,7 +124,7 @@ function WidgetPreview({ widget, table, tables, organizer }: { widget: EditorWid
   return <div className="fox-widget-table-scroll"><table><thead><tr>{table.columns.slice(0,5).map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>{rows.slice(0,maxItems).map(r=><tr key={r.id}>{table.columns.slice(0,5).map(c=><td key={c.id}>{c.type==="checkbox"?(value(r,c)?"Да":"Нет"):formatCell(value(r,c))}</td>)}</tr>)}</tbody></table>{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
 }
 
-export default function FoxEditor({ screenId, tables, tableId, onTableChange, onOpenTables }: Props) {
+export default function FoxEditor({ screenId, tables, tableId, onTableChange, onOpenTables, onCreateTable }: Props) {
   const [store, setStore] = useState<WidgetStore>(emptyStore);
   const [organizer,setOrganizer] = useState<NotesTasksData>(readNotesTasks);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -186,7 +187,6 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
   }
   function addWidget(type: WidgetType) {
     const meta = catalog.find(c => c.type === type)!;
-    if (meta.needsTable && !defaultTable) return;
     const numeric = defaultTable?.columns.find(c => c.type === "number" || c.type === "formula");
     const text = defaultTable?.columns.find(c => c.type === "text");
     const widget: EditorWidget = {
@@ -195,10 +195,9 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
       target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["table","heading","divider"].includes(type) ? 12 : 6, height: type === "table" ? 270 : type === "heading" ? 100 : type === "divider" ? 65 : 205
     };
     updateWidgets(prev => [...prev, widget]);
-    setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data");
+    setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
   }
   function addTemplate(types: WidgetType[]) {
-    if (!defaultTable && types.some(type=>catalog.find(item=>item.type===type)?.needsTable)) return;
     const numeric = defaultTable?.columns.find(c => c.type === "number" || c.type === "formula");
     const text = defaultTable?.columns.find(c => c.type === "text");
     const additions = types.map(type => ({
@@ -207,7 +206,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
       target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["table","heading","divider"].includes(type) ? 12 : 6, height: type === "table" ? 270 : 205
     }));
     updateWidgets(prev => [...prev, ...additions]);
-    setSelectedId(additions[0].id); setRightMode("settings");
+    setSelectedId(additions[0].id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
   }
   function duplicateWidget(id: string) {
     const widget = widgets.find(w=>w.id===id);
@@ -253,7 +252,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
               onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();reorder(e.dataTransfer.getData("text/plain"),widget.id);}}
               onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
               <div className="fox-widget-header">{!previewMode&&<GripVertical size={14} className="fox-widget-grip"/>}<h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>
-              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer}/></div>
+              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer} onConfigure={()=>{setSelectedId(widget.id);setSettingsTab("data");setRightMode("settings");setShowRight(true);}}/></div>
               {!previewMode&&<div className="fox-widget-resize" title="Перетащите для изменения ширины" onPointerDown={event=>{
                 event.stopPropagation(); event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId);
                 event.currentTarget.dataset.startX=String(event.clientX);
@@ -281,7 +280,11 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
                 <label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label>
               </div>}
               {selected.type==="divider" ? <p>Разделитель не требует источника данных.</p> : ["taskcount","tasklist","noteslist"].includes(selected.type) ? <><p>Данные берутся из раздела «Заметки и задачи».</p>{selected.type!=="noteslist"&&<label>Статус задач<select value={selected.taskStatus??"all"} onChange={e=>setWidget(selected.id,{taskStatus:e.target.value as TaskStatus|"all"})}><option value="all">Все</option><option value="todo">К выполнению</option><option value="doing">В работе</option><option value="done">Готово</option></select></label>}<label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label></> : ["text","heading"].includes(selected.type) ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label> : <>
-                <label>Источник<select value={selected.tableId??""} onChange={e=>setWidget(selected.id,{tableId:e.target.value,columnId:undefined,labelColumnId:undefined})}><option value="">Не выбрана</option>{tables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+                <div className="fox-editor-source-picker">
+                  <label>Источник данных<select value={selected.tableId??""} onChange={e=>setWidget(selected.id,{tableId:e.target.value||undefined,columnId:undefined,labelColumnId:undefined,filter:{}})}><option value="">Выбрать таблицу…</option>{tables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+                  {!selectedTable&&<p className="fox-editor-source-message">{tables.length?"Выберите таблицу выше. Виджет уже добавлен и сохранится, даже если источник пока не выбран.":"Пока нет таблиц. Создайте первую таблицу, затем вернитесь сюда и подключите её к виджету."}</p>}
+                  <button type="button" className="fox-editor-create-source" onClick={onCreateTable}><Plus size={15}/> Создать таблицу</button>
+                </div>
                 {["metric","progress","bars","line"].includes(selected.type)&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                 {["bars","list","donut","timeline"].includes(selected.type)&&<label>Подписи<select value={selected.labelColumnId??""} onChange={e=>setWidget(selected.id,{labelColumnId:e.target.value})}><option value="">Автоматически</option>{allFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                 {["metric","progress"].includes(selected.type)&&<label>Расчёт<select value={selected.aggregate??"sum"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="sum">Сумма</option><option value="average">Среднее</option><option value="min">Минимум</option><option value="max">Максимум</option><option value="count">Количество записей</option></select></label>}{selected.type==="progress"&&<label>Целевое значение<input type="number" value={selected.target??100} onChange={e=>setWidget(selected.id,{target:Number(e.target.value)})}/></label>}
@@ -293,8 +296,8 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
           <button className="fox-editor-back" onClick={()=>{setSelectedId(null);setRightMode("library");}}>Вернуться в библиотеку</button>
         </> : <>
           <div className="fox-editor-tabs"><button className={libraryTab==="types"?"active":""} onClick={()=>setLibraryTab("types")}><LayoutGrid size={14}/> Типы</button><button className={libraryTab==="templates"?"active":""} onClick={()=>setLibraryTab("templates")}><Table2 size={14}/> Шаблоны</button></div>
-          {!defaultTable&&<div className="fox-editor-hint">Выберите основную таблицу, чтобы использовать виджеты с данными. Текст доступен сразу.</div>}
-          <div className="fox-editor-library">{libraryTab==="types"?catalog.map(item=><button key={item.type} disabled={item.needsTable&&!defaultTable} onClick={()=>addWidget(item.type)}><div className="fox-editor-item-icon"><item.icon size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>):templates.map(item=><button key={item.title} disabled={!defaultTable&&item.types.some(type=>catalog.find(c=>c.type===type)?.needsTable)} onClick={()=>addTemplate(item.types)}><div className="fox-editor-item-icon"><LayoutGrid size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>)}</div>
+          {!defaultTable&&<div className="fox-editor-hint">Добавьте любой виджет сейчас, а источник выберите в его настройках. Все карточки можно сохранить без таблицы.</div>}
+          <div className="fox-editor-library">{libraryTab==="types"?catalog.map(item=><button key={item.type} onClick={()=>addWidget(item.type)}><div className="fox-editor-item-icon"><item.icon size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>):templates.map(item=><button key={item.title} onClick={()=>addTemplate(item.types)}><div className="fox-editor-item-icon"><LayoutGrid size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>)}</div>
         </>}
       </aside>}
     </div>
