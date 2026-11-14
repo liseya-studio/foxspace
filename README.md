@@ -1,6 +1,6 @@
 # Fox Space
 
-Desktop-first web prototype for Fox Space. This repository is the working source of truth.
+Desktop-first interactive web prototype for Fox Space. This repository is the working source of truth.
 
 ## Stack
 - React + TypeScript
@@ -15,17 +15,32 @@ npm install
 npm run dev
 ```
 
-## Current stage
-- Desktop application shell and navigation
-- Header: profile, search, notifications, messages, settings
+## Implemented
+### Application shell
+- Desktop-first application shell and top navigation
 - Bottom Dock: Files & Tables, Notes & Tasks, user-created screens, one add button
-- Create and navigate user screens
-- Rename screens from the Dock; screen metadata persists in localStorage
-- Light, dark and system appearance modes
+- Create, open, rename and delete user screens
+- Light, dark and system appearance choices
 - Accent color selection
-- Empty states for the first screen, files/tables and notes/tasks
+- Global quick-search dialog (`Cmd/Ctrl + K`)
+- Persistent prototype preferences and user screens in localStorage
+
+### Files & Tables
+- Table library and table switching
+- Create new tables
+- Editable cells
+- Column types: text, number, date, select, checkbox
+- Add and remove columns
+- Add and remove rows
+- Search across table values
+- Filter by select-column values
+- Sort by clicking column headers
+- Table and compact list views
+- CSV export with UTF-8 BOM
+- Automatic localStorage persistence
+- Seeded finance table for interface testing
 
 ## Not implemented yet
-Real table engine, column types, filters, views, widgets, Fox Editor, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
+File browser and upload, advanced relational fields, formulas, grouped and saved views, multi-condition filter builder, table permissions, widgets, Fox Editor, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
 
-The UI is intentionally being built before the full application logic.
+The current build is an interactive UI prototype. Browser localStorage is temporary prototype storage, not the final data architecture.
