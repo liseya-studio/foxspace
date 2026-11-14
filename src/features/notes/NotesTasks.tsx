@@ -31,7 +31,7 @@ const statusOrder:TaskStatus[]=["todo","doing","done"];
 const priorityOrder:Priority[]=["low","medium","high"];
 const markDate = (value:string) => value && value < new Date().toISOString().slice(0,10);
 
-export default function NotesTasks({createAction,onCreateConsumed}:{createAction?:{type:"task"|"note";id:number}|null;onCreateConsumed?:()=>void}) {
+export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onTaskOpened}:{createAction?:{type:"task"|"note";id:number}|null;onCreateConsumed?:()=>void;openTaskId?:string|null;onTaskOpened?:()=>void}) {
   const [data,setData] = useState<NotesTasksData>(readNotesTasks);
   const [area,setArea] = useState<Area>("tasks");
   const [view,setView] = useState<TaskView>("board");
@@ -48,6 +48,7 @@ export default function NotesTasks({createAction,onCreateConsumed}:{createAction
   const noteFileRef=useRef<HTMLInputElement>(null);
   const noteTextareaRef=useRef<HTMLTextAreaElement>(null);
   useEffect(()=>{if(createAction){setArea(createAction.type==="task"?"tasks":"notes");setCreating(createAction.type==="task"?"tasks":"notes");setNewTitle("");onCreateConsumed?.();}},[createAction]);
+  useEffect(()=>{if(openTaskId){const found=data.tasks.some(task=>task.id===openTaskId);if(found){setArea("tasks");setSelection({type:"tasks",id:openTaskId});setCreating(null);}onTaskOpened?.();}},[openTaskId]);
   useEffect(()=>{saveNotesTasks(data);},[data]);
   useEffect(()=>{let mounted=true;const refresh=()=>{void listItems().then(items=>{if(mounted)setFileItems(items);}).catch(()=>{});};refresh();window.addEventListener("fox-files-updated",refresh);return ()=>{mounted=false;window.removeEventListener("fox-files-updated",refresh);};},[]);
 
