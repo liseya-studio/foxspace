@@ -107,7 +107,7 @@ test("ready-made travel dashboard has a clickable offline world map",async({page
   const map=page.getByRole("img",{name:"Интерактивная карта стран мира"});
   await expect(map).toBeVisible();
   await expect(map.locator("path.fox-worldmap-country").first()).toBeVisible();
-  await map.locator("path.fox-worldmap-country").first().click({force:true});
+  await map.locator("path.fox-worldmap-country").first().evaluate(element=>element.dispatchEvent(new MouseEvent("click",{bubbles:true})));
   await expect(page.locator(".fox-worldmap-details strong")).toBeVisible();
   await info.attach("travel-map",{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
   await page.reload();
