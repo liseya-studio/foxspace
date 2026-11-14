@@ -3,7 +3,7 @@ import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, 
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
   AlignLeft, List, Target, GripVertical, Trash2, X, Database,
-  ChevronsRight, PanelRightOpen, Palette, SlidersHorizontal
+  ChevronsRight, PanelRightOpen, Palette, SlidersHorizontal, Download, Upload
 } from "lucide-react";
 
 export type EditorTable = TableData;
@@ -112,12 +112,50 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
   const [libraryTab, setLibraryTab] = useState<LibraryTab>("types");
   const [rightMode, setRightMode] = useState<"library" | "settings">("library");
   const canvasRef = useRef<HTMLDivElement>(null);
+  const importRef = useRef<HTMLInputElement>(null);
+  const [importError, setImportError] = useState("");
   const widgets = useMemo(() => store[screenId] ?? [], [store, screenId]);
   const selected = widgets.find(w => w.id === selectedId);
   const defaultTable = tables.find(t => t.id === tableId);
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
   useEffect(() => { setSelectedId(null); setRightMode("library"); }, [screenId]);
 
+  function exportLayout() {
+    const blob = new Blob([JSON.stringify({format:"fox-space-screen-v1",widgets},null,2)],{type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href=url;link.download="fox-space-screen.json";link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),0);
+  }
+  async function importLayout(file: File | undefined) {
+    if (!file) return;
+    try {
+      const content = JSON.parse(await file.text()) as {format?:string;widgets?:unknown};
+      if (content.format!=="fox-space-screen-v1" || !Array.isArray(content.widgets) || content.widgets.length>80) throw Error("Некорректный формат макета");
+      const safe = content.widgets.map((entry:unknown)=>{
+        if (!entry || typeof entry!=="object") throw Error("Повреждённый виджет");
+        const w=entry as Partial<EditorWidget>;
+        if (!catalog.some(item=>item.type===w.type)) throw Error("Неизвестный тип виджета");
+        return {id:newId(),type:w.type!,title:String(w.title??"Виджет").slice(0,100),
+          tableId:typeof w.tableId==="string"?w.tableId:undefined,
+          columnId:typeof w.columnId==="string"?w.columnId:undefined,
+          labelColumnId:typeof w.labelColumnId==="string"?w.labelColumnId:undefined,
+          width:Math.max(3,Math.min(12,Number(w.width)||6)),
+          height:Math.max(140,Math.min(600,Number(w.height)||205)),
+          target:Number.isFinite(Number(w.target))?Number(w.target):100,
+          limit:Math.max(1,Math.min(30,Number(w.limit)||8)),
+          aggregate:(["sum","average","min","max","count"].includes(String(w.aggregate))?w.aggregate:"sum") as Aggregate,
+          filter: w.filter && typeof w.filter==="object" ? { columnId:String(w.filter.columnId??""), operator:w.filter.operator, value:String(w.filter.value??"") } : {},
+          body:typeof w.body==="string"?w.body.slice(0,10000):"",
+          accent:typeof w.accent==="string"&&/^#[0-9a-f]{6}$/i.test(w.accent)?w.accent:undefined
+        } satisfies EditorWidget;
+      });
+      updateWidgets(()=>safe);
+      setSelectedId(null);setRightMode("library");setImportError("");
+    } catch(error) {
+      setImportError(error instanceof Error?error.message:"Не удалось импортировать макет");
+    } finally {if(importRef.current) importRef.current.value="";}
+  }
   function updateWidgets(updater: (w: EditorWidget[]) => EditorWidget[]) {
     setStore(prev => ({ ...prev, [screenId]: updater(prev[screenId] ?? []) }));
   }
@@ -179,7 +217,8 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
   const allFields = selectedTable?.columns ?? [];
 
   return <div className="fox-editor">
-    <div className="fox-editor-toolbar"><div><span className="fox-editor-overline">FOX EDITOR</span><h2>Редактор экрана</h2><p>Размещайте виджеты на сетке. Они используют данные подключённых таблиц.</p></div><div className="fox-editor-toolbar-actions"><button className="outline-button" onClick={()=>{setPreviewMode(value=>!value);setSelectedId(null);}}>{previewMode?"Редактировать":"Предпросмотр"}</button><button className="outline-button" disabled={previewMode} onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Виджет</button><button className="soft-icon" title="Показать или скрыть панель" onClick={()=>setShowRight(v=>!v)}><PanelRightOpen size={18}/></button></div></div>
+    <div className="fox-editor-toolbar"><div><span className="fox-editor-overline">FOX EDITOR</span><h2>Редактор экрана</h2><p>Размещайте виджеты на сетке. Они используют данные подключённых таблиц.</p></div><div className="fox-editor-toolbar-actions"><button className="outline-button" onClick={()=>{setPreviewMode(value=>!value);setSelectedId(null);}}>{previewMode?"Редактировать":"Предпросмотр"}</button><button className="outline-button" disabled={previewMode} onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Виджет</button><button className="soft-icon" title="Экспортировать макет" onClick={exportLayout}><Download size={17}/></button><button className="soft-icon" title="Импортировать макет" onClick={()=>importRef.current?.click()}><Upload size={17}/></button><input ref={importRef} className="fox-editor-hidden-file" type="file" accept=".json,application/json" onChange={event=>{void importLayout(event.target.files?.[0]);}}/><button className="soft-icon" title="Показать или скрыть панель" onClick={()=>setShowRight(v=>!v)}><PanelRightOpen size={18}/></button></div></div>
+    {importError&&<div className="fox-editor-import-error" role="alert">{importError}<button onClick={()=>setImportError("")}><X size={14}/></button></div>}
     <div className={"fox-editor-layout"+(previewMode?" preview":"")}>
       <div className="fox-editor-workspace">
         <div className="fox-editor-source"><Database size={16}/><span>Основная таблица</span><select value={tableId??""} onChange={e=>onTableChange(e.target.value)}><option value="">Не выбрана</option>{tables.map(t=><option value={t.id} key={t.id}>{t.name}</option>)}</select><button onClick={onOpenTables}>Управление таблицами <ChevronsRight size={14}/></button></div>
