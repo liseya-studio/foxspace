@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 export type EditorTable = TableData;
-type WidgetType = "metric" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text";
+type WidgetType = "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
 type EditorWidget = {
   id: string; type: WidgetType; title: string; tableId?: string;
   columnId?: string; labelColumnId?: string; target?: number;
@@ -26,7 +26,8 @@ type Props = {
 };
 const STORAGE = "fox-editor-widgets-v1";
 const catalog: { type: WidgetType; title: string; description: string; icon: typeof LayoutGrid; needsTable: boolean }[] = [
-  { type: "metric", title: "Показатель", description: "Сумма значений числовой колонки", icon: TrendingUp, needsTable: true },
+  { type: "metric", title: "Показатель", description: "Сумма, среднее, максимум и минимум", icon: TrendingUp, needsTable: true },
+  { type: "counter", title: "Счётчик записей", description: "Количество записей по фильтру", icon: Database, needsTable: true },
   { type: "progress", title: "Прогресс", description: "Значение относительно цели", icon: Target, needsTable: true },
   { type: "bars", title: "Столбчатый график", description: "Сравнение записей по числу", icon: BarChart3, needsTable: true },
   { type: "line", title: "Линейный график", description: "Динамика числового поля", icon: TrendingUp, needsTable: true },
@@ -34,7 +35,9 @@ const catalog: { type: WidgetType; title: string; description: string; icon: typ
   { type: "timeline", title: "Хронология", description: "Единая временная линия событий", icon: LayoutGrid, needsTable: true },
   { type: "table", title: "Таблица", description: "Все записи в компактном виде", icon: Table2, needsTable: true },
   { type: "list", title: "Список", description: "Последние записи из таблицы", icon: List, needsTable: true },
-  { type: "text", title: "Текст", description: "Заголовок и произвольная заметка", icon: AlignLeft, needsTable: false },
+  { type: "text", title: "Текст", description: "Произвольная заметка", icon: AlignLeft, needsTable: false },
+  { type: "heading", title: "Заголовок", description: "Крупный заголовок раздела", icon: AlignLeft, needsTable: false },
+  { type: "divider", title: "Разделитель", description: "Визуально отделить группы", icon: LayoutGrid, needsTable: false },
 ];
 const templates = [
   { title: "Финансовая сводка", description: "Показатель + график", types: ["metric", "bars", "donut"] as WidgetType[] },
@@ -50,6 +53,8 @@ const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigit
 
 function WidgetPreview({ widget, table, tables }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[] }) {
   if (widget.type === "text") return <div className="fox-widget-text">{widget.body?.trim() || "Добавьте текст в параметрах виджета."}</div>;
+  if (widget.type === "heading") return <div className="fox-widget-section-title">{widget.body?.trim() || widget.title}</div>;
+  if (widget.type === "divider") return <div className="fox-widget-divider"/>;
   if (!table) return <div className="fox-widget-empty">Выберите таблицу в разделе «Данные».</div>;
   const numbers = table.columns.filter(c => c.type === "number" || c.type === "formula");
   const numberCol = numbers.find(c => c.id === widget.columnId) ?? numbers[0];
@@ -57,11 +62,11 @@ function WidgetPreview({ widget, table, tables }: { widget: EditorWidget; table?
   const rows = filterRows(table.rows, table, tables, widget.filter ?? {});
   const value = (row: EditorTable["rows"][number], col: EditorTable["columns"][number]) => valueForColumn(row, col, tables);
   const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
-  if (widget.type === "metric" || widget.type === "progress") {
-    const mode = widget.aggregate ?? "sum";
+  if (widget.type === "metric" || widget.type === "counter" || widget.type === "progress") {
+    const mode = widget.type === "counter" ? "count" : widget.aggregate ?? "sum";
     const total = aggregateRows(rows, numberCol, tables, mode);
-    if (!numberCol && (widget.aggregate ?? "sum") !== "count") return <div className="fox-widget-empty">Для показателя нужна числовая колонка.</div>;
-    if (widget.type === "metric") return <div className="fox-widget-kpi"><strong>{fmt(total)}</strong><span>{mode === "count" ? "Количество записей" : (numberCol?.name ?? "Данные") + " · " + ({sum:"Сумма",average:"Среднее",min:"Минимум",max:"Максимум"} as Record<string,string>)[mode]}</span></div>;
+    if (!numberCol && mode !== "count") return <div className="fox-widget-empty">Для показателя нужна числовая колонка.</div>;
+    if (widget.type === "metric" || widget.type === "counter") return <div className="fox-widget-kpi"><strong>{fmt(total)}</strong><span>{mode === "count" ? "Количество записей" : (numberCol?.name ?? "Данные") + " · " + ({sum:"Сумма",average:"Среднее",min:"Минимум",max:"Максимум"} as Record<string,string>)[mode]}</span></div>;
     const target = Math.max(1, widget.target ?? 100);
     const percent = Math.max(0, Math.min(100, total / target * 100));
     return <div className="fox-widget-progress"><div className="fox-widget-progress-value"><strong>{fmt(total)}</strong><span>из {fmt(target)}</span></div><div className="fox-progress-track"><div style={{width:percent+"%", background: widget.accent || "var(--accent)"}}/></div><small>{fmt(total/target*100)}% от цели</small></div>;
@@ -170,7 +175,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
     const widget: EditorWidget = {
       id: newId(), type, title: meta.title, tableId: meta.needsTable ? tableId : undefined,
       columnId: numeric?.id, labelColumnId: type==="donut" ? defaultTable?.columns.find(c=>c.type==="select")?.id : text?.id,
-      target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: type === "table" ? 12 : type === "text" ? 6 : 6, height: type === "table" ? 270 : 205
+      target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["table","heading","divider"].includes(type) ? 12 : 6, height: type === "table" ? 270 : type === "heading" ? 100 : type === "divider" ? 65 : 205
     };
     updateWidgets(prev => [...prev, widget]);
     setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data");
@@ -182,7 +187,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
     const additions = types.map(type => ({
       id: newId(), type, title: catalog.find(c => c.type === type)!.title,
       tableId, columnId: numeric?.id, labelColumnId: text?.id,
-      target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: type === "table" ? 12 : 6, height: type === "table" ? 270 : 205
+      target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["table","heading","divider"].includes(type) ? 12 : 6, height: type === "table" ? 270 : 205
     }));
     updateWidgets(prev => [...prev, ...additions]);
     setSelectedId(additions[0].id); setRightMode("settings");
@@ -251,14 +256,14 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
           <div className="fox-editor-fields">
             {settingsTab==="data" && <>
               <label>Название<input value={selected.title} onChange={e=>setWidget(selected.id,{title:e.target.value})}/></label>
-              {selected.type!=="text" && <div className="fox-editor-filter-options">
+              {!["text","heading","divider"].includes(selected.type) && <div className="fox-editor-filter-options">
                 <h4>Фильтрация записей</h4>
                 <label>Колонка<select value={selected.filter?.columnId??""} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,columnId:e.target.value}})}><option value="">Без фильтра</option>{allFields.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label>
                 <label>Условие<select value={selected.filter?.operator??"contains"} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,operator:e.target.value as RowFilter["operator"]}})}><option value="contains">Содержит</option><option value="equals">Равно</option><option value="not_equals">Не равно</option><option value="gt">Больше</option><option value="lt">Меньше</option><option value="empty">Пусто</option><option value="not_empty">Не пусто</option></select></label>
                 {!["empty","not_empty"].includes(selected.filter?.operator??"") && <label>Значение<input value={selected.filter?.value??""} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,value:e.target.value}})} placeholder="Для сравнения"/></label>}
                 <label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label>
               </div>}
-              {selected.type==="text" ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label> : <>
+              {["text","heading"].includes(selected.type) ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label>) : <>
                 <label>Источник<select value={selected.tableId??""} onChange={e=>setWidget(selected.id,{tableId:e.target.value,columnId:undefined,labelColumnId:undefined})}><option value="">Не выбрана</option>{tables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
                 {["metric","progress","bars","line"].includes(selected.type)&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                 {["bars","list","donut","timeline"].includes(selected.type)&&<label>Подписи<select value={selected.labelColumnId??""} onChange={e=>setWidget(selected.id,{labelColumnId:e.target.value})}><option value="">Автоматически</option>{allFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
