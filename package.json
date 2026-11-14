@@ -16,11 +16,17 @@
     "react": "latest",
     "react-dom": "latest",
     "lucide-react": "latest",
-    "read-excel-file": "^9.3.14"
+    "read-excel-file": "^9.3.14",
+    "world-atlas": "^2.0.2",
+    "topojson-client": "^3.1.0",
+    "d3-geo": "^3.1.1",
+    "world-countries": "^5.1.0"
   },
   "devDependencies": {
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@playwright/test": "^1.58.0"
+    "@playwright/test": "^1.58.0",
+    "@types/topojson-client": "^3.1.5",
+    "@types/d3-geo": "^3.1.12"
   }
 }
