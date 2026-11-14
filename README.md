@@ -50,17 +50,26 @@ npm run dev
 - Custom screens have a configurable grid canvas with locally persisted widgets
 - Right-side library for widget types and ready-to-bind templates
 - Widget inspector with Data, Appearance and Behavior tabs
-- Data widgets: metric, progress, bar, line, donut, single horizontal timeline, table and list
-- Free-text widget does not require a table
-- Per-widget source table and field selection, and primary screen data source
-- Drag-to-reorder, column-span resizing, width/height settings and widget removal
+- Data widgets: metric, row counter, progress, bar, line, donut, single horizontal timeline, table and list
+- Free text, heading and divider widgets do not require a table
+- Per-widget source table, field selection, typed row filters and configurable aggregation (sum/average/min/max/count)
+- Formula and relation columns are resolved in widget previews from actual linked records
+- Configurable record limits (1–30) for table, list, timeline and chart widgets
+- Drag-to-reorder, column-span resizing, width/height settings, duplication and widget removal
+- Editor/preview toggle, responsive grid, JSON screen layout export and validated import
+- Automatic localStorage persistence for each custom screen
 - Templates display user table records rather than fabricated dashboard values
 
 ## Not implemented yet
-File browser and upload, advanced relational aggregation, arbitrary formula expressions, nested multi-condition filter trees, table permissions, fully embedded table editing on custom screens, advanced widgets, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
+File browser and upload, advanced relational aggregation, arbitrary formula expressions, nested multi-condition filter trees, table permissions, fully embedded table editing on custom screens, full widget catalog, fine-grained widget actions, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
 
 The current build is an interactive UI prototype. Browser localStorage is temporary prototype storage, not the final data architecture.
 
 ## Build verification
 
 GitHub Actions `.github/workflows/build.yml` runs `npm install` and `npm run build` for changes to `main` and pull requests. It is the primary CI check; check the Actions tab for pass/fail status.
+
+### Prototype constraints
+- JSON layout import restores the widgets and saved table IDs, but does not import table records. Missing source tables show an empty-state hint.
+- The timeline uses a single chronological line rather than a Gantt grid.
+- This is still a browser-only UI prototype; no remote synchronization or native macOS integration is included.
