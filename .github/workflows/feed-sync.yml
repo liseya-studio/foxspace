@@ -6,11 +6,6 @@ on:
       - scripts/sync_public_feed.py
       - .github/workflows/feed-sync.yml
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - scripts/sync_public_feed.py
-      - .github/workflows/feed-sync.yml
   schedule:
     - cron: '23 */6 * * *'
 permissions:
