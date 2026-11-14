@@ -19,7 +19,9 @@ const types: { value: ColumnType; label: string; icon: typeof Type }[] = [
   { value: "date", label: "Дата", icon: CalendarDays },
   { value: "select", label: "Выбор", icon: Tag },
   { value: "checkbox", label: "Флажок", icon: CheckSquare },
-  { value: "person", label: "Пользователь", icon: UserRound },\n  { value: "relation", label: "Связанная запись", icon: LayoutGrid },\n  { value: "formula", label: "Формула", icon: Hash },
+  { value: "person", label: "Пользователь", icon: UserRound },
+  { value: "relation", label: "Связанная запись", icon: LayoutGrid },
+  { value: "formula", label: "Формула", icon: Hash },
 ];
 
 const initialTables: DataTable[] = [{
@@ -58,7 +60,11 @@ export default function TableWorkspace() {
   const [showFilters, setShowFilters] = useState(false);
   const [columnDialog, setColumnDialog] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
-  const [newColumnType, setNewColumnType] = useState<ColumnType>("text");\n  const [relationTableId, setRelationTableId] = useState("");\n  const [formulaSourceId, setFormulaSourceId] = useState("");\n  const [formulaOperator, setFormulaOperator] = useState("*");\n  const [formulaFactor, setFormulaFactor] = useState("1");
+  const [newColumnType, setNewColumnType] = useState<ColumnType>("text");
+  const [relationTableId, setRelationTableId] = useState("");
+  const [formulaSourceId, setFormulaSourceId] = useState("");
+  const [formulaOperator, setFormulaOperator] = useState("*");
+  const [formulaFactor, setFormulaFactor] = useState("1");
   const [tableDialog, setTableDialog] = useState(false);
   const [newTableName, setNewTableName] = useState("");
   const [view, setView] = useState<"table" | "list">("table");
@@ -129,7 +135,8 @@ export default function TableWorkspace() {
   function exportCsv() {
     if (!activeTable) return;
     const quote = (v: Cell) => '"' + String(v ?? "").replaceAll('"', '""') + '"';
-    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(r.cells[c.id] ?? "")).join(";"))].join("\n");
+    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(r.cells[c.id] ?? "")).join(";"))].join("
+");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = activeTable.name + ".csv"; a.click(); URL.revokeObjectURL(url);
   }
@@ -163,10 +170,22 @@ export default function TableWorkspace() {
   </section>;
 }
 
-function computedCell(column: Column, row: RowData, tables: DataTable[]): Cell | undefined {\n  if (column.type !== "formula" || !column.formulaSourceId) return row.cells[column.id];\n  const source = Number(row.cells[column.formulaSourceId] ?? 0);\n  const factor = Number(column.formulaFactor ?? 1);\n  if (column.formulaOperator === "/") return factor === 0 ? "—" : source / factor;\n  if (column.formulaOperator === "+") return source + factor;\n  if (column.formulaOperator === "-") return source - factor;\n  return source * factor;\n}\n\nfunction FolderIcon() { return <span className="folder-mark"><LayoutGrid size={13}/></span>; }
+function computedCell(column: Column, row: RowData, tables: DataTable[]): Cell | undefined {
+  if (column.type !== "formula" || !column.formulaSourceId) return row.cells[column.id];
+  const source = Number(row.cells[column.formulaSourceId] ?? 0);
+  const factor = Number(column.formulaFactor ?? 1);
+  if (column.formulaOperator === "/") return factor === 0 ? "—" : source / factor;
+  if (column.formulaOperator === "+") return source + factor;
+  if (column.formulaOperator === "-") return source - factor;
+  return source * factor;
+}
+
+function FolderIcon() { return <span className="folder-mark"><LayoutGrid size={13}/></span>; }
 
 function renderCell(column: Column, value: Cell | undefined, onChange: (v: Cell) => void, tables: DataTable[] = []) {
-  if (column.type === "formula") return <span className="formula-value">{value ?? "—"}</span>;\n  if (column.type === "relation") { const target = tables.find(t=>t.id===column.relationTableId); return <select className="cell-select" value={String(value ?? "")} onChange={e=>onChange(e.target.value)}><option value="">—</option>{target?.rows.map(row=><option key={row.id} value={row.id}>{String(row.cells[target.columns[0]?.id] ?? "Запись")}</option>)}</select>; }\n  if (column.type === "checkbox") return <label className="checkbox-cell"><input type="checkbox" checked={Boolean(value)} onChange={e=>onChange(e.target.checked)}/><span>{value?"Да":"Нет"}</span></label>;
+  if (column.type === "formula") return <span className="formula-value">{value ?? "—"}</span>;
+  if (column.type === "relation") { const target = tables.find(t=>t.id===column.relationTableId); return <select className="cell-select" value={String(value ?? "")} onChange={e=>onChange(e.target.value)}><option value="">—</option>{target?.rows.map(row=><option key={row.id} value={row.id}>{String(row.cells[target.columns[0]?.id] ?? "Запись")}</option>)}</select>; }
+  if (column.type === "checkbox") return <label className="checkbox-cell"><input type="checkbox" checked={Boolean(value)} onChange={e=>onChange(e.target.checked)}/><span>{value?"Да":"Нет"}</span></label>;
   if (column.type === "select") return <select className="cell-select" value={String(value ?? "")} onChange={e=>onChange(e.target.value)}><option value="">—</option>{(column.options ?? ["Новый","В работе","Готово"]).map(o=><option key={o}>{o}</option>)}</select>;
   return <input className="cell-input" type={column.type==="number"?"number":column.type==="date"?"date":"text"} value={String(value ?? "")} onChange={e=>onChange(column.type==="number"?(e.target.value===""?0:Number(e.target.value)):e.target.value)} />;
 }
