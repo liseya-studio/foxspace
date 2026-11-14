@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 export type EditorTable = TableData;
-type WidgetType = "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
+type WidgetType = "recordcards" | "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
 type EditorWidget = {
   id: string; type: WidgetType; title: string; tableId?: string; startDate?: string;
   columnId?: string; labelColumnId?: string; target?: number;
@@ -31,6 +31,7 @@ const STORAGE = "fox-editor-widgets-v1";
 const catalog: { type: WidgetType; title: string; description: string; icon: typeof LayoutGrid; needsTable: boolean }[] = [
   { type:"worldmap",title:"Интерактивная карта",description:"Страны мира, флаги и посещённые города",icon:LayoutGrid,needsTable:false },
   { type:"datecount",title:"Дни вместе",description:"Счётчик дней от выбранной даты",icon:Target,needsTable:false },
+  { type:"recordcards",title:"Карточки персонажей",description:"Досье, характер и связи персонажей",icon:AlignLeft,needsTable:true },
   { type: "taskcount", title: "Количество задач", description: "Счётчик задач по статусу", icon: Target, needsTable: false },
   { type: "tasklist", title: "Задачи", description: "Список задач с дедлайнами", icon: List, needsTable: false },
   { type: "noteslist", title: "Заметки", description: "Последние сохранённые заметки", icon: AlignLeft, needsTable: false },
@@ -88,6 +89,21 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure }: { widg
   const textCol = table.columns.find(c => c.id === widget.labelColumnId) ?? table.columns.find(c => c.type === "text") ?? table.columns[0];
   const rows = filterRows(table.rows, table, tables, widget.filter ?? {});
   const value = (row: EditorTable["rows"][number], col: EditorTable["columns"][number]) => valueForColumn(row, col, tables);
+  if(widget.type==="recordcards"){
+    const field=(row:EditorTable["rows"][number],...names:string[])=>{
+      const column=table.columns.find(c=>names.some(n=>c.name.toLocaleLowerCase("ru")===n.toLocaleLowerCase("ru")));
+      return column?String(value(row,column)??"").trim():"";
+    };
+    return <div className="fox-character-grid">{rows.slice(0,maxItems).map(row=>{
+      const name=field(row,"Имя","Имя персонажа","Название")||"Без имени";
+      const work=field(row,"Произведение","Фанфик","Работа");
+      const role=field(row,"Роль","Амплуа");
+      const traits=field(row,"Характер","Описание");
+      const motivation=field(row,"Мотивация");
+      const relations=field(row,"Связи","Отношения");
+      return <article className="fox-character-card" key={row.id}><div className="fox-character-avatar">{name.slice(0,1).toLocaleUpperCase("ru")}</div><div className="fox-character-info"><h4>{name}</h4>{work&&<small>{work}</small>}{role&&<span>{role}</span>}</div>{traits&&<p>{traits}</p>}{motivation&&<p><b>Мотивация:</b> {motivation}</p>}{relations&&<p><b>Связи:</b> {relations}</p>}</article>;
+    })}{!rows.length&&<div className="fox-widget-empty">Заполните таблицу «Персонажи», чтобы здесь появились карточки с характерами, ролями и связями.</div>}</div>;
+  }
   if (widget.type === "metric" || widget.type === "counter" || widget.type === "progress") {
     const mode = widget.type === "counter" ? "count" : widget.aggregate ?? "sum";
     const total = aggregateRows(rows, numberCol, tables, mode);
