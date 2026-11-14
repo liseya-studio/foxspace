@@ -48,6 +48,7 @@ export default function App() {
   const [screenMenuId, setScreenMenuId] = useState<string | null>(null);
   const [fileIndex,setFileIndex] = useState<StoredItem[]>([]);
   const [notificationRevision,setNotificationRevision] = useState(0);
+  const [tableRevision,setTableRevision] = useState(0);
   const [taskToOpen,setTaskToOpen] = useState<string|null>(null);
   const [previousSection,setPreviousSection] = useState<Section>("home");
   const [createAction,setCreateAction] = useState<{type:"task"|"note"|"table"|"folder";id:number}|null>(null);
@@ -63,6 +64,7 @@ export default function App() {
     return ()=>{window.clearInterval(timer);window.removeEventListener("fox-notes-tasks-updated",update);};
   },[]);
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
+  useEffect(()=>{const update=()=>setTableRevision(v=>v+1);window.addEventListener("fox-tables-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-tables-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(()=>{
     const update=()=>setNotificationRevision(current=>current+1);
     window.addEventListener("fox-notifications-updated",update);
@@ -86,6 +88,7 @@ export default function App() {
   const unreadCount = useMemo(()=>unreadNotificationCount(),[notificationRevision]);
   const activeScreen = screens.find(s => s.id === active);
   const availableTables = read<{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:{id:string;cells:Record<string,string|number|boolean>}[]}[]>("fox-tables-v1",[]);
+  void tableRevision;
   const attachedTable = availableTables.find(t => t.id === activeScreen?.tableId);
   const filteredScreens = useMemo(() => screens.filter(s => s.name.toLowerCase().includes(search.toLowerCase())), [screens, search]);
   const organizerSearch = searchOpen ? readNotesTasks() : {tasks:[],notes:[]};
