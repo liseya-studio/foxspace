@@ -159,3 +159,18 @@
 .fox-widget-datecount strong{font-size:43px}
 @media(max-width:850px){.app-shell .topbar-center-search{width:min(340px,35vw)}.app-shell .main-area{padding:20px 18px 108px}.fox-preset-list{grid-template-columns:1fr}}
 @media(max-width:620px){.app-shell .topbar-center-search{position:static;transform:none;flex:1;width:auto;max-width:none;min-width:0}.app-shell .topbar-center-search span{display:none}.app-shell .topbar-center-search kbd{display:none}.app-shell .topbar{gap:8px;padding:0 12px}.app-shell .top-left .workspace-name,.app-shell .top-left .muted-icon{display:none}.app-shell .dock{gap:3px;max-width:calc(100vw - 12px);padding:4px 7px}.app-shell .dock-item,.app-shell .dock-screen-name{min-width:62px;max-width:82px;padding:5px 4px}.app-shell .dock-item span,.app-shell .dock-custom-label{font-size:9px}.fox-screen-presets-heading small{font-size:10px}.fox-worldmap-details{flex-wrap:wrap}}
+
+/* Offline platform icon palette */
+.fox-platform-icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:7px;color:#fff;overflow:hidden;vertical-align:middle}
+.fox-platform-icon b{color:#fff;letter-spacing:-.5px;font-family:Manrope,sans-serif;line-height:1}
+.fox-emoji-icon{display:inline-grid;place-items:center;flex-shrink:0;line-height:1;min-width:22px}
+.fox-icon-picker{width:min(600px,calc(100vw - 32px));max-width:600px}
+.fox-icon-picker h2{margin:9px 0 6px}
+.fox-icon-picker>p{font-size:12px;color:var(--muted);margin-bottom:17px}
+.fox-icon-palette{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0 20px}
+.fox-icon-palette button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:70px;border:1px solid var(--line);border-radius:9px;background:var(--canvas);color:var(--text);cursor:pointer;padding:8px}
+.fox-icon-palette button:hover{border-color:var(--accent);background:var(--surface)}
+.fox-icon-palette small{font-size:10px;color:var(--muted);text-align:center;overflow-wrap:anywhere}
+.fox-symbol-palette{grid-template-columns:repeat(6,minmax(0,1fr))}
+.fox-symbol-palette button{min-height:48px}
+@media(max-width:500px){.fox-icon-palette{grid-template-columns:repeat(3,minmax(0,1fr))}.fox-symbol-palette{grid-template-columns:repeat(4,minmax(0,1fr))}}
