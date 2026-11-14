@@ -7,7 +7,8 @@ Desktop-first interactive web prototype for Fox Space. This repository is the wo
 - Vite
 - Lucide icons
 - CSS variables for light/dark themes and accent colors
-- Browser localStorage for prototype persistence
+- Browser localStorage for prototype records/settings and IndexedDB for local file blobs
+- read-excel-file for browser-side XLSX import
 
 ## Run locally
 ```bash
@@ -26,6 +27,11 @@ npm run dev
 - Persistent prototype preferences and user screens in localStorage
 
 ### Files & Tables
+- Unified **All / Files / Tables** tabs; no workbooks or fake storage quotas
+- IndexedDB file and folder manager: upload, download, search, rename, move and recursive deletion
+- Drag-and-drop file uploading; file sizes reflect actual stored file metadata
+- Import CSV/TSV and XLSX workbooks into editable local tables; each populated XLSX sheet becomes a separate table
+- CSV parser supports quoted delimiters and multiline fields; imported columns infer basic data types
 - Table library and table switching
 - Create new tables
 - Editable cells
@@ -49,9 +55,11 @@ npm run dev
 ### Notes & Tasks (interactive prototype)
 - Empty by default; creates tasks and notes with local browser persistence
 - Tasks: title, description, status, priority, due date, important/urgent flags, tags, checklists with completed subtasks
-- Views: Kanban board (drag/drop status), sortable list, Eisenhower matrix (drag/drop urgency/importance), a single horizontal timeline, and monthly calendar with navigation
+- Views: Kanban board (drag/drop status), sortable list, Eisenhower matrix (drag/drop urgency/importance), a single horizontal timeline, and calendar with day/week/month/schedule modes
+- Drag task cards between calendar days to change due dates
 - Filters for all/active/completed/overdue tasks, text search and priority sorting
-- Notes: editable title and continuous plain-text body, tags, pinning, auto-save and read mode; rich-text formatting is not yet supported
+- Notes: Markdown formatting toolbar (bold, italic, headings, lists, checklists, links and quotes), safe rendered preview, tags, pinning and auto-save
+- Notes can attach actual local files stored in IndexedDB; attachments may be downloaded or unlinked
 - Shared local data model; Fox Editor task counter, task list and notes list widgets reflect current organizer records
 - Tasks and notes can be deleted with confirmation
 
@@ -71,7 +79,7 @@ npm run dev
 - Templates display user table records rather than fabricated dashboard values
 
 ## Not implemented yet
-File browser and upload, advanced relational aggregation, arbitrary formula expressions, nested multi-condition filter trees, table permissions, fully embedded table editing on custom screens, rich-text formatting, recurring tasks/reminders, attachments, full widget catalog, fine-grained widget actions, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
+Advanced relational aggregation, arbitrary formulas, nested multi-condition filters, table permissions, full in-widget editing, WYSIWYG rich-text (Markdown is supported), recurring tasks/reminders, notifications, remote sync, backup/restore for IndexedDB files, full widget catalog, native macOS file access, Telegram authorization, ChatGPT API, feed and multiposting.
 
 The current build is an interactive UI prototype. Browser localStorage is temporary prototype storage, not the final data architecture.
 
@@ -83,3 +91,8 @@ GitHub Actions `.github/workflows/build.yml` runs `npm install` and `npm run bui
 - JSON layout import restores the widgets and saved table IDs, but does not import table records. Missing source tables show an empty-state hint.
 - The timeline uses a single chronological line rather than a Gantt grid.
 - This is still a browser-only UI prototype; no remote synchronization or native macOS integration is included.
+
+### Local data safety
+- The file manager persists blobs in browser IndexedDB; it does **not** access the macOS filesystem directly. Clearing site data, private-browsing expiry or browser storage eviction may delete local files.
+- Notes, tables and widgets still use localStorage; attachments reference IndexedDB file IDs. Removing a file from the file manager can leave a missing attachment in notes.
+- Workbook import reads the cached values of formulas, not live Excel formulas; its current conversion does not preserve workbook styling or formulas. Import is capped at 8 MB and each populated sheet at 10,000 rows / 100 columns.
