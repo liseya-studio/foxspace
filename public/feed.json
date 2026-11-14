@@ -1,8 +1,69 @@
 {
-  "generatedAt": null,
+  "generatedAt": "2026-11-14T12:04:16.664504+00:00",
   "sources": [
-    {"id":"telegram-bulotkaff","platform":"telegram","title":"Telegram · @bulotkaff","url":"https://t.me/bulotkaff","status":"pending","message":"Публичные публикации ещё не загружены."},
-    {"id":"vk-btsah","platform":"vk","title":"ВКонтакте · btsah","url":"https://vk.ru/btsah","status":"pending","message":"Публичные публикации ещё не загружены."}
+    {
+      "id": "telegram-bulotkaff",
+      "platform": "telegram",
+      "title": "Telegram · @bulotkaff",
+      "url": "https://t.me/bulotkaff",
+      "status": "ok",
+      "message": "Загружено публикаций: 3",
+      "updatedAt": "2026-11-14T12:04:16.664504+00:00"
+    },
+    {
+      "id": "vk-btsah",
+      "platform": "vk",
+      "title": "ВКонтакте · btsah",
+      "url": "https://vk.ru/btsah",
+      "status": "unavailable",
+      "message": "Для загрузки постов ВКонтакте требуется серверный токен VK_SERVICE_TOKEN."
+    }
   ],
-  "posts": []
+  "posts": [
+    {
+      "id": "telegram:bulotkaff/18433",
+      "sourceId": "telegram-bulotkaff",
+      "text": "#девочка_с_сюрпризом@bulotkaff\n[47.5]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
+      "url": "https://t.me/bulotkaff/18433",
+      "date": "2026-11-14T10:40:30+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/cXETeJmroyuaH7YQEk7yX7r9KSVw6LDWLS9GUUXB6WGD1qxe6gj1Epq3S9WxxUi89L_pJzCDPp6ZGjPV1ap8ekjIvI2BkeI1g22p54YENMJFjK4qnkS1FHQsweMmEtw7Z2qxUva2uE6n55cD8SzfUlRRb8bp8_rSBwnUdU8IHUvr4AoazdtIq15Z7i3wKXMM-Kcm-DhmfC_0I4jz3CA1gLUH1N_Kj6LF8VKaWIy3tlW8is6K8sNeN9bLGYs1jXd8NPo-H1TqHRCrch7yTs5_Xa9FVk_2Z004oyC0tG7zxE_Ch-bB7p1AHYyN6L-d1oUn6yksOthQTiT5Kdypo50jqA.jpg",
+        "https://cdn4.telesco.pe/file/glyo20mPEn9h_dqbDQF-lB_QpJZcp-8nqh-eTiP3gTHuRwLMQx5J8WJz5Ix87GmX4c5nh456UfOC5TdtgFD5iOCSl7I1URUXZso7uOrDOLh6X-Gw9BEwrL_4BzsSGTKwLvhxUNg7YkfcrGdEPz-dADVIZQYvd4W2Iq8256tPjaqCYxzLeX1-jbIjtTmI0FYZci9WNITGU8FS8EUCaT1I8xgwuRyFWvjqA0BT4lZkfhIlPjoP-fKdj9quI_HhvXrQ7LXeg0KrPbE9Hpdu9Mt7BGnhzkt2PJJQ0_MmU5-UrDOeHvBAhoegSzD1G5lBv5kcidvfJOXzyUk4SWmNatzNsg.jpg",
+        "https://cdn4.telesco.pe/file/c8MUSARkBdzpefFHIgZb4Nxff-zsBiAPcE2HOUcpRUyTDpN9GPK52aA6gKZXdUNdPPWvcRABBiF_0OXtS7_LHIAtV_gm5rtqUmHTq7wthlxFHVSFFrB-a4w0usxSxP7VO5dKMh1WpFdJYQHQQDs6i5NcVpF2nH3wJqwZPvBoGfg_5pkSWSfQ4bFZMf6FM7nqZ4mqny_o9ltC4HtJAkjy603wabvurxQiAo_PVG6la966i724hvOIAEyngGdXhCnf-ZF_-zMYhn9yiiWyAjp5Yaf43-ST5oXM9TGkirss_UtZZaESVL1_sxZDSesqQed5bQ5UOOG6qBnZ3xP8D4Ptmg.jpg",
+        "https://cdn4.telesco.pe/file/uIuTkmW4mHLYBjWBCz9-uQbxCR7pj3zjSm60RbEDfoY_y4GCmpXl4bMwgd_GxERwUliv31GKGqREm0cUOvYoo60RxWw1xmkcR1h_rEaa7sNC8Sx5un2-4gJTBSQeBK8-K571bc3LvuENGX4_V_JGAWtVIduyKNwbbEwRm2eTwg0sEooqxO12zXAAmKA1ebz6ci0FLUHTq1FUCV7cn29zMXfdM8-BxbEcsoh9Wo7AVCoBWwnnVEDzVzdm9XnQ-DirYNvgLaNpY1lAUpKe9B0B-QkVGD-G-pKktA1quaPj1lFx7DpdtmjAT4NuVRXqwPqaWiB96GLaB3aIvEED2RTptg.jpg",
+        "https://cdn4.telesco.pe/file/M2WfCZduyV-fRtFy9HXa2idYTLOgO5QL8aYQIsCNlHjEND9Q0yhAw3c35QXHYPY9BX7Frqf_gMT_Wp4eoj2jgw_4TmzXUESemDspJ40v5aWXNOv_fWkDJKjwMVkHnGNx8JlG5F2TJ80wDChasETuKsL75isVIxllFSUuKUtsFDnqbMwXEhw7D8L7dQyyxGQ_Pv0zJAcGfCyUGTm5THRc_E2O8hjhQ46BCunz-PNwGOzdtnYgH4kftGF11tB9r2h7PEUZKW6LLbAAT8nO0IUZ3r5WJHptUoipXP3lbfqQ2IhLp3TY2U8fgkaYpVEMfkp7jwQ4d0NP2oA4x5Hyf64q_w.jpg",
+        "https://cdn4.telesco.pe/file/VEMbWGukkqPL6ayv1WxpAUoDFk4Z28_tD7SGYWPzW_hDlcp635nEBpd2EGA60oqZ7dHSvNuVjOX6UTB9Hl4knI1yTzEJxGm4vdfKcG9IktTgzCLsND1PC4IchIoGFPzn19Rm1xmKOe1pI74v2ADu5eML5r_IKIEvcCf5DYfuc7rrdz3W9AJ0sJjrh8DRc2uTBV6a2HKekxGWxzL4vFvyBeF-u7T7qDIdnZkIhubrJ6ju2lTMkSbaZzTIgef0tPf7galcRUAD1arL2zU9252xFt3iEaBZNzloHXXzuVaJCsUp8FFIiGUePfjB6rYpuOv9Ym7mvO47izOiA1TdQKCaQw.jpg"
+      ]
+    },
+    {
+      "id": "telegram:bulotkaff/18425",
+      "sourceId": "telegram-bulotkaff",
+      "text": "#девочка_с_сюрпризом@bulotkaff\n[47]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
+      "url": "https://t.me/bulotkaff/18425",
+      "date": "2026-11-14T10:35:40+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/YanzpjAzCbI_ZuRl9LR5FDuFgcZy6p9mTiNRvdusgrjgpWUq2k_6yBxbBC-wwqJ-vzVYIc0xEjA--mIDLk3RRPRI7zFVOirglthaJOVKNALrH4No4EFJPb3fnYHVzD6QrwLFqmabui79M0_z4MQGdXU9LVv-Vp_qwcLHc23uYE5zSAeib3GLBwsDroe-JYHaFAvHzNsTnerw8TbyBRW5hj3uHZ-Q13CsCPgV7B3l0AUwxR6QqD4ghozc6NHFKmM6mldiGJzhvdu5RFIA3iYzBGz9_AOoeomL43Y0onab_CpHdFUJxa98lxbYHoaogsiShrGPMapCVkNL24fnVX7yEw.jpg",
+        "https://cdn4.telesco.pe/file/qHWvvHmLVV3v-0Vhlnr-hKtfZvmmbxeKyuBoDLW8Lnfm6WiyKSGW3paCrwOxa_OW41Smrk86EvY4LaMZb2-IhsTmwekraOWjDdz0wl69frQ7TtsvEWP5zVlLQZyyPJERd1FNCPTOelmzbz6OzoN34wTPPus97dDS5eq1ydlHpLKkoEN9F7CqY3FdL6W3oIXihhJ2lDlUkCHlEEFEPsPRgCl7ET6OEKRukObknDN_oqUaFV_vb6QQapdoZ5uX7C-rUbTzQdxa6TWrmOuMa1L4vOjYEzS8_tm9TADRzI1KSMMNXgPZVKfKaL6Ew6zwC5vJFjJOgLRqpadvIa6oITxnpg.jpg",
+        "https://cdn4.telesco.pe/file/PKKiPUdQXEsmEki1J8nmy2ls7C37iMBjuS_AbszcPH3RMH6O84Ir_7WVMENVfza145H4wfj_MWS141wAOSYa8-PKrUTVrJ6T_5TuIj2x0OwOXkHo2B3Um8LGufYVip8N2IXSawDrdHfH07-QgVxMkHgSBkNy1rytV_S3QKPHkn4ab0wWq51WI6uKH0AVKKFGtglYJ9bEEjiZ8fF0YIlYNXQ69tB5Y7FCIvloVItk7a3z6Aanfmk6r0FmqkJrOpL7UoU15yzFe6Y1sZH3z6tcNlWrrbdpHuaxynEtbRApXIRdG9ZlT-ofpJPVJkTTFhq274KKQQeWTKi2-Hb4e8J1ag.jpg",
+        "https://cdn4.telesco.pe/file/NCBHkRw44K9pmneE_PvtQ59abpv28TMPa9TX0TdqRHXjQ_I2ct_AZLUguH6XFgfh6r_8gP-LP3luH7qIMmGyxdeBJF_m_Fl0tWfyfbbBMicXGkyJGhZXlRWLEWaZrlXKoVsyFeJQknn4StD-BQAWq2tJ7ejZgW03hE_RxxA75xvA_xuqXyhx8A3usQAwhCzU53zmgueb4V7MEcJnjF5_kDSNZ4swxp05mfM8ekPjy5z2_y81X8aWrIf2Ebgnbs3UYlFq9OTab-Agcnl6-kOvFmwtmgR-088mQEfjMmbk6YLH7WHMJ6D4bIhGQlnHzrhXDzkN6Lt63Yxn8JMRnB3oVA.jpg",
+        "https://cdn4.telesco.pe/file/ZyjkKs97RyP6r86B6Gl6K_ELM92P9pCkYLcHXVDAmdFPl2CdxaewuDg_eGM1NJXlXiVMxwTUqsOlsi8Pmu1hbRRPwZbFqVk8UQjaER6x4DsoIs3ZQ5DD23cSe92aYH5v-ijILGxoqjoh3BDN8wEHVOFb910cRwjEFkNIZa6vNkDxJEjXMumBZPHrt4VLmwIMOkfKScijCdlNXEBqWfb5DER2sHBIHXF6A8jG_KAONHAQJa_jh9XT93xAlawj4ITAzl9n3wJpLgw6kZTYG_7Ay6CiuDn-EFX57-nHoy6VKSSV6zyTca-d9bA-HisonME-pgNCzAYYaUCaJgLsbdCRsw.jpg",
+        "https://cdn4.telesco.pe/file/HTy273OTnehlRZ79k8TN7eiGOxnatrhWksFDtmjEKOntw4IzLrJogqoFp2zbVI5B1yKcl9o_9cOiC2tYr58VuOrTimur6wThtk2mLhdMwKShWmcisPKlAg14CitaLBdNEbVMFZrPMj1JFVHUGjLlJr8Mm4AwwvI98hBe0zAReivHcrJyQZhqXjoMXlkasJNrqI0Yvo27Tb5UpGWTtFbLAgL2IIDm6uWFH2NnkXMLq2uo7p9uN0WJs5o1QygI3knLTUlckeVsC_nBLvUxmWEZKIKKwQKYPcFfDvDQjQIlkHdauvlEJjnHhF8MEpz_kJZetSHT3_WYNZnR8cGM1uUQ9w.jpg"
+      ]
+    },
+    {
+      "id": "telegram:bulotkaff/18417",
+      "sourceId": "telegram-bulotkaff",
+      "text": "#тигр_и_дракон@bulotkaff\n「 1/? 」\n☾\nAU, в котором Чимин — первый за несколько поколений маглорождённый ученик единственной магической академии Кореи. Вместо ожидаемого факультета Пом древний ритуал распределяет его на Ён — факультет драконов, веками принадлежавший наследникам влиятельных магических кланов. Теперь ему предстоит освоиться в мире старых традиций, семейных амбиций и магических интриг, где само его появление нарушает привычный порядок вещей.\n✦\nПока это только пробный анонс, старые работы я не забываю, если что. Посмотрю по фидбеку, стоит ли ебаться над таким форматом, потому что по 300 раз выверять схожесть лиц — это издевательство\n💀\n✦\n#jimsu@bulotkaff\n#artau@bulotkaff",
+      "url": "https://t.me/bulotkaff/18417",
+      "date": "2026-11-14T07:39:36+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/TKCrVgsCAo9V5t1PmO7Fdk6NaS5iAhOOO3-_5C7fhLgSx8vw31PS8H8fpz4nQsw1AZ62GEPgY_LSzjdSn9LegxX8oJugUd6LUU7uzRJYff0qoNMyG_NTTw8hvugMIxaH4tM5Ob3K8NYvn1l3WhcFmfNRusVHzzrKLtx7GytZe1j7Oe5ipHy8s1x8-UhLIV5tFi4Q7QsaJq3fcmrAGE9q6KYBqxCrT3F3fOvsLEjH3BQkshISxTWx9GNa3IotTq2OyyZyi9IULey1PSRa1tD7LxMyTPBr2kxuv538aw1dYDSIuwxECkJ3kLXKBwuE0PlhxPx_yLwNrgSdm73x6Y3sJQ.jpg",
+        "https://cdn4.telesco.pe/file/J2duANJnJbuwaH0azBQg18wrb5JmKriWqAS_BfXfSBCU39jEu_USKRWXrLQ6LiSF_qgRio59kKNNQ6sO_bvcuhYCaBhX0GZnjNseBGLNFaUXGOIkjfC6wzDNQ0XEU-0L1ytSFlHDyw26H_AvmG-74zNUIseFpklD1Im6mG_swo4OjqjxtehPxW5J9sVO2SqqQEvzKudKKVIg9bG-Cn-eU_Gzr0d1m85NGffno1CNOTp9_mPEqnmSnF_USv5kpP4OSfxPT2WAuQAKpTLPuKSeHCzJIqhSTqBZbFo8Zwr31FmhXoCHquIGGXTs4HptlyfQ05SFdgF3mXaHY1oNnXwAtw.jpg",
+        "https://cdn4.telesco.pe/file/Co9L5w3tVSC9IkAwBMqilDpcwHTXF8Rc5gZJROzPeuZX7AbeM4b8bUHX3AdL1eOck8boAGTRTUAUt8OXWKp3E58yGiQkpArKDspdPbOSwruoGj0JC2FxEJLwgksTRrBAPqFJphfxy1LP7t480gJpvML2P1Ks-lR3r0AtCyDYVQIO-U-opi7drhoHSVrODOFD6ix9NtUV1IcUJ6zEM1gJLK9sqjWa5M0FEVmhJ8MPkhGcivsvwXQXOovt-CRj3dMLnFj3zzJIF1LuVYRxQ-d_51HtwFSV1wfbuPH3wTc87B8vELPB5YXnRWuloXxYmlbtkglDoELiPG4wd3WpHwGt8A.jpg",
+        "https://cdn4.telesco.pe/file/udqpriiMnGnnV8SowoXvPOrcVxkysZZjs05h8BzUhzFxQOD9VqE6srnhPGrdHDyQY6VzJCvl1XvAKsIEGhi97_5k5jNT7TRS2nehRKoYQJbDTsvHA94ZjiuIlIBECRoRyMXoQzvJZXRpluxo4Czf5UDWXJbosFL5TUPcyoPUhxGMbS4hlHsrX-yumXsMZo7DwI66XcV1Jnf9Do87RDcY8LW1aPfu1U9xLmU5s3BQTzvjoP_wiM_SsgeClQBSDMhGYMW1YvLisdFB3rGvJXx0cyIDJAb1mbE8aFJEszLz3RmjrBbXn9RZgfX4HnbRKHt9NhG6kh4U_adN1Z41csvfSg.jpg",
+        "https://cdn4.telesco.pe/file/lBWo2CiTzc-hbRmGg3PVrGuKdIRbYqfw63FwdZXQI4oe-Jw01G2L6CR0359IwgYoJB95ZUsZ8rVgDWlZUzkJj9dYxJw1ByS0vHhEffhMfxca8ASJb_EOsyoTa19cLPOswnQSWmcdagzcgEFMrpBecQEw-OeWHCRVQC3I4H5ZaUklj_Wl2ntWc0fTz3ilCkhBMvSKA_7MUOT8BcivHgFKa_P7DCt1_qgzMuOB7MnmJ9iXrF0FSTT4uSjKokdgtFGND8jnQODW94oFFCv1-H0ICsgYVs4ZB3UQdTPcwYQsvsSj3jmjhCw1KfpKVsWCFonyPQ2aAo362jTHb-lO0mjWig.jpg",
+        "https://cdn4.telesco.pe/file/PN2a0rJhuZDahYwy3mZu3jVYja7bOHUB5-9Ai9KAaQoYwkwwZ_qIaXwF75giufq_baD3E7TVhgxwwsKZF0RZz3q-NqHTRIb8gJzf5rhPWXCphH8mnu5Fk7vaF3bhchiVOX8YbGqGzDzCMAkh_88QmoJmapfJuGVPrsLwaxa3o3M2KCJ6b4K_he7hPqoYImgls14j60m_BFW9LxtIXVJV3pZyHEpi9sR-ZgSk6rjSOUatjf447fb85vEjf6FlXREi6-Q76tBooShaIub-7k78A0Dfu3Dxdv94jWGgMtKyAyArW0wE3hZbkhw9-KJ6ARFMT1iPap_GenEn7-aa2plsrQ.jpg"
+      ]
+    }
+  ]
 }
