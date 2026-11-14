@@ -78,8 +78,8 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <div className="top-left">
-          <button className="profile-avatar" aria-label="Профиль">L</button>
-          <span className="workspace-name">Личное пространство</span>
+          <button className="profile-avatar" aria-label="Профиль и настройки" onClick={() => setSettingsOpen(true)}>L</button>
+          <span className="workspace-name">Fox Space</span>
           <ChevronDown size={14} className="muted-icon" />
         </div>
         <div className="top-actions">
@@ -122,7 +122,7 @@ export default function App() {
           </section>
         ) : (
           <section className="content-page">
-            <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div><button className="outline-button" onClick={() => setCreateOpen(true)}><Plus size={16}/> Добавить</button></div>
+            <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div></div>
             {activeScreen && <FoxEditor
               screenId={activeScreen.id}
               tables={availableTables}
