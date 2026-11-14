@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import TableWorkspace from "./features/tables/TableWorkspace";
+import FoxEditor from "./features/editor/FoxEditor";
 import {
   Bell, Mail, Search, Plus, ChevronDown, MoreHorizontal, Settings,
   FileSpreadsheet, StickyNote, CheckSquare, LayoutDashboard, X, Sun,
@@ -122,7 +123,13 @@ export default function App() {
         ) : (
           <section className="content-page">
             <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div><button className="outline-button" onClick={() => setCreateOpen(true)}><Plus size={16}/> Добавить</button></div>
-            <div className="screen-table-panel"><h2>Источник данных</h2><p>Подключите таблицу к этому экрану. Изменения в таблице будут доступны в разделе «Файлы и таблицы».</p><select className="form-input" value={activeScreen?.tableId??""} onChange={e=>setScreens(prev=>prev.map(s=>s.id===active?{...s,tableId:e.target.value||undefined}:s))}><option value="">Без таблицы</option>{availableTables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select>{attachedTable && <div className="screen-preview"><h3>{attachedTable.name} <small>{attachedTable.rows.length} записей</small></h3><div className="screen-preview-scroll"><table><thead><tr>{attachedTable.columns.map(col=><th key={col.id}>{col.name}</th>)}</tr></thead><tbody>{attachedTable.rows.slice(0,6).map(row=><tr key={row.id}>{attachedTable.columns.map(col=><td key={col.id}>{col.type==="checkbox"?(row.cells[col.id]?"Да":"Нет"):col.type==="relation"?"Связанная запись":col.type==="formula"?"Вычисляемое поле":String(row.cells[col.id]??"—")}</td>)}</tr>)}</tbody></table></div>{attachedTable.rows.length===0&&<p>В таблице пока нет записей.</p>}</div>}{activeScreen?.tableId && <div className="screen-table-attached"><FileSpreadsheet size={20}/><span>Таблица подключена. Данные доступны на этом экране.</span><button className="outline-button" onClick={()=>setActive("files")}>Редактировать</button></div>}</div>
+            {activeScreen && <FoxEditor
+              screenId={activeScreen.id}
+              tables={availableTables}
+              tableId={activeScreen.tableId}
+              onTableChange={id => setScreens(prev => prev.map(s => s.id===activeScreen.id ? {...s,tableId:id||undefined} : s))}
+              onOpenTables={() => setActive("files")}
+            />}
           </section>
         )}
       </main>
