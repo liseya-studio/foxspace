@@ -37,7 +37,6 @@ test("create custom screen with a local text widget", async ({page},info)=>{
   await page.locator(".dock-add").click();
   await page.locator(".fox-global-create-items button").filter({hasText:"Экран"}).click();
   await expect(page.getByText("FOX EDITOR", {exact:true})).toBeVisible();
-  await page.getByRole("button",{name:"Виджет"}).click();
   await page.locator(".fox-editor-library button").filter({hasText:"Текст"}).click();
   await expect(page.locator(".fox-widget")).toHaveCount(1);
   await info.attach("editor", {body:await page.screenshot({fullPage:true}),contentType:"image/png"});
