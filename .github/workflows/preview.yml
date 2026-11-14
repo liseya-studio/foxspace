@@ -27,6 +27,12 @@ jobs:
         env:
           GITHUB_PAGES: "true"
         run: npm run build
+      - name: Save standalone preview build
+        uses: actions/upload-artifact@v4
+        with:
+          name: fox-space-web-build
+          path: dist
+          retention-days: 14
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
