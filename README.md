@@ -29,7 +29,9 @@ npm run dev
 - Table library and table switching
 - Create new tables
 - Editable cells
-- Column types: text, number, date, select, checkbox
+- Column types: text, number, date, select, checkbox, relation, formula
+- Relation columns can reference records in another local table
+- Formula columns support a numeric source field with multiply/divide/add/subtract by a constant
 - Add and remove columns
 - Add and remove rows
 - Search across table values
