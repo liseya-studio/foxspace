@@ -36,7 +36,7 @@ test("universal creation opens task and saves its content", async ({page},info)=
 test("create custom screen with a local text widget", async ({page},info)=>{
   await page.locator(".dock-add").click();
   await page.locator(".fox-global-create-items button").filter({hasText:"Экран"}).click();
-  await expect(page.getByText("FOX EDITOR")).toBeVisible();
+  await expect(page.getByText("FOX EDITOR", {exact:true})).toBeVisible();
   await page.getByRole("button",{name:"Виджет"}).click();
   await page.locator(".fox-editor-library button").filter({hasText:"Текст"}).click();
   await expect(page.locator(".fox-widget")).toHaveCount(1);
