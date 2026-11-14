@@ -174,3 +174,14 @@
 .fox-symbol-palette{grid-template-columns:repeat(6,minmax(0,1fr))}
 .fox-symbol-palette button{min-height:48px}
 @media(max-width:500px){.fox-icon-palette{grid-template-columns:repeat(3,minmax(0,1fr))}.fox-symbol-palette{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* Story / fanfiction character dossier cards */
+.fox-character-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:11px;align-items:start}
+.fox-character-card{border:1px solid var(--line);border-radius:11px;padding:14px;background:var(--canvas);display:grid;grid-template-columns:42px 1fr;column-gap:10px;row-gap:9px;min-width:0}
+.fox-character-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--accent);font-weight:800;font-size:21px}
+.fox-character-info{display:grid;gap:3px;align-content:center;min-width:0}
+.fox-character-info h4{font-size:13px;margin:0;font-weight:800;overflow-wrap:anywhere}
+.fox-character-info small{color:var(--muted);font-size:10px}
+.fox-character-info span{font-size:10px;color:var(--accent)}
+.fox-character-card p{grid-column:1/-1;font-size:11px;line-height:1.6;margin:0;overflow-wrap:anywhere;color:var(--muted)}
+.fox-character-card p b{color:var(--text);font-weight:700}
