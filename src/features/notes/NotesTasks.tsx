@@ -31,7 +31,7 @@ const statusOrder:TaskStatus[]=["todo","doing","done"];
 const priorityOrder:Priority[]=["low","medium","high"];
 const markDate = (value:string) => value && value < new Date().toISOString().slice(0,10);
 
-export default function NotesTasks({createAction}:{createAction?:{type:"task"|"note";id:number}|null}) {
+export default function NotesTasks({createAction,onCreateConsumed}:{createAction?:{type:"task"|"note";id:number}|null;onCreateConsumed?:()=>void}) {
   const [data,setData] = useState<NotesTasksData>(readNotesTasks);
   const [area,setArea] = useState<Area>("tasks");
   const [view,setView] = useState<TaskView>("board");
@@ -47,7 +47,7 @@ export default function NotesTasks({createAction}:{createAction?:{type:"task"|"n
   const [attachmentError,setAttachmentError] = useState("");
   const noteFileRef=useRef<HTMLInputElement>(null);
   const noteTextareaRef=useRef<HTMLTextAreaElement>(null);
-  useEffect(()=>{if(createAction){setArea(createAction.type==="task"?"tasks":"notes");setCreating(createAction.type==="task"?"tasks":"notes");setNewTitle("");}},[createAction]);
+  useEffect(()=>{if(createAction){setArea(createAction.type==="task"?"tasks":"notes");setCreating(createAction.type==="task"?"tasks":"notes");setNewTitle("");onCreateConsumed?.();}},[createAction]);
   useEffect(()=>{saveNotesTasks(data);},[data]);
   useEffect(()=>{let mounted=true;const refresh=()=>{void listItems().then(items=>{if(mounted)setFileItems(items);}).catch(()=>{});};refresh();window.addEventListener("fox-files-updated",refresh);return ()=>{mounted=false;window.removeEventListener("fox-files-updated",refresh);};},[]);
 
