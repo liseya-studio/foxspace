@@ -1,9 +1,12 @@
 export type TaskStatus = "todo" | "doing" | "done";
 export type Priority = "low" | "medium" | "high";
+export type TaskRepeat = "none" | "daily" | "weekly" | "monthly";
+export const REPEAT_LABELS:Record<TaskRepeat,string>={none:"Не повторять",daily:"Каждый день",weekly:"Каждую неделю",monthly:"Каждый месяц"};
 export type Task = {
   id: string; title: string; description: string; status: TaskStatus;
   priority: Priority; dueDate: string; important: boolean; urgent: boolean;
   tags: string[]; checklist: { id: string; title: string; done: boolean }[];
+  repeat?: TaskRepeat; seriesId?: string;
   createdAt: string; updatedAt: string;
 };
 export type Note = {
