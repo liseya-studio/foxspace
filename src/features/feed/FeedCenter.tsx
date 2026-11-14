@@ -50,7 +50,7 @@ export default function FeedCenter(){
       {!loading&&visible.length>0&&<div className="fox-feed-posts">{visible.map(post=><article className="fox-feed-post" key={post.id}>
         <div className="fox-feed-post-meta"><span className={"fox-feed-post-avatar "+(post.sourceId==="telegram-bulotkaff"?"telegram":"vk")}><MessageCircle size={18}/></span><div><strong>{sourceById(post.sourceId)?.title??sourceName(post.sourceId)}</strong><small>{readableDate(post.date)}</small></div><a href={post.url} target="_blank" rel="noopener noreferrer" aria-label="Открыть оригинал"><ExternalLink size={16}/></a></div>
         {post.text&&<p className="fox-feed-post-text">{post.text}</p>}
-        {!!post.images?.length&&<div className="fox-feed-gallery">{post.images.filter(validLink).slice(0,4).map((url,i)=><a key={url+i} href={post.url} target="_blank" rel="noopener noreferrer"><img src={url} loading="lazy" alt={"Вложение "+(i+1)} onError={event=>event.currentTarget.style.display="none"}/></a>)}</div>}
+        {!!post.images?.length&&<div className="fox-feed-gallery">{post.images.filter(validLink).map((url,i)=><a key={url+i} href={post.url} target="_blank" rel="noopener noreferrer"><img src={url} loading="lazy" alt={"Вложение "+(i+1)} onError={event=>event.currentTarget.style.display="none"}/></a>)}</div>}
         {!post.text&&!post.images?.length&&<div className="fox-feed-no-preview"><ImageIcon size={18}/> Медиа без доступного предпросмотра</div>}
         <a href={post.url} className="fox-feed-post-link" target="_blank" rel="noopener noreferrer">Смотреть оригинал <ExternalLink size={13}/></a>
       </article>)}</div>}
