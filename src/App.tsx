@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import TableWorkspace from "./features/tables/TableWorkspace";
 import {
   Bell, Mail, Search, Plus, ChevronDown, MoreHorizontal, Settings,
   FileSpreadsheet, StickyNote, CheckSquare, LayoutDashboard, X, Sun,
@@ -108,10 +109,7 @@ export default function App() {
             </div>
           </section>
         ) : active === "files" ? (
-          <section className="content-page">
-            <div className="page-heading"><div><div className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</div><h1>Файлы и таблицы</h1><p>Документы и данные в одном месте.</p></div><button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={17}/> Создать</button></div>
-            <div className="empty-panel"><div className="empty-icon"><FileSpreadsheet size={25}/></div><h2>Здесь пока пусто</h2><p>Создайте первую таблицу или добавьте файл. Таблицы можно будет размещать на любых экранах.</p><button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={16}/> Создать таблицу</button></div>
-          </section>
+          <TableWorkspace />
         ) : active === "notes" ? (
           <section className="content-page">
             <div className="page-heading"><div><div className="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО</div><h1>Заметки и задачи</h1><p>Идеи, планы и текущие дела.</p></div><button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={17}/> Создать</button></div>
