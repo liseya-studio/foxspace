@@ -51,7 +51,7 @@ function loadTables(): DataTable[] {
 const id = () => crypto.randomUUID();
 
 
-export default function TableWorkspace() {
+export default function TableWorkspace({openCreate=false}:{openCreate?:boolean}) {
   const [tables, setTables] = useState<DataTable[]>(loadTables);
   const [activeId, setActiveId] = useState<string | null>(() => loadTables()[0]?.id ?? null);
   const [query, setQuery] = useState("");
@@ -65,7 +65,7 @@ export default function TableWorkspace() {
   const [formulaSourceId, setFormulaSourceId] = useState("");
   const [formulaOperator, setFormulaOperator] = useState("*");
   const [formulaFactor, setFormulaFactor] = useState("1");
-  const [tableDialog, setTableDialog] = useState(false);
+  const [tableDialog, setTableDialog] = useState(openCreate);
   const [newTableName, setNewTableName] = useState("");
   const [view, setView] = useState<"table" | "list">("table");
   const [filterColumn, setFilterColumn] = useState("");
