@@ -96,6 +96,8 @@ npm run dev
 ### Fox Editor (interactive prototype)
 - Custom screens have a configurable grid canvas with locally persisted widgets
 - Right-side library for widget types and ready-to-bind templates
+- All data widget types and templates can be placed on a blank screen before any table exists; new widgets prompt the user to select a source or create a table from the inspector
+- Widgets without a source show a clear empty state with a direct "Choose source" action; layouts persist even before data is linked
 - Widget inspector with Data, Appearance and Behavior tabs
 - Data widgets: metric, row counter, progress, bar, line, donut, single horizontal timeline, table and list
 - Additional widgets: task counter, task list and notes list connected to organizer records
