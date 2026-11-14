@@ -9,6 +9,7 @@ import { readNotesTasks } from "./features/notes/data";
 import NotificationCenter from "./features/notifications/NotificationCenter";
 import MessagesCenter from "./features/messages/MessagesCenter";
 import FeedCenter from "./features/feed/FeedCenter";
+import { SCREEN_PRESETS, instantiatePreset } from "./features/templates/screenPresets";
 import { unreadNotificationCount, dispatchDesktopReminders } from "./features/notifications/data";
 import {
   Bell, Mail, Search, Plus, ChevronDown, MoreHorizontal, Settings,
@@ -17,7 +18,7 @@ import {
   CircleHelp, CalendarDays, Folder, Sparkles, SlidersHorizontal, Upload, FolderPlus, Database, ArrowDownToLine, Rss
 } from "lucide-react";
 
-type Screen = { id: string; name: string; tableId?: string };
+type Screen = { id: string; name: string; tableId?: string; icon?: string };
 type Section = "home" | "files" | "notes" | "notifications" | "messages" | "feed" | string;
 
 const starterScreens: Screen[] = [];
@@ -41,6 +42,7 @@ export default function App() {
   const [accent, setAccent] = useState(() => read("fox-accent", "#f06432"));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [templateCategory,setTemplateCategory]=useState<"Все"|"Личное"|"Творчество"|"Работа">("Все");
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [renameId, setRenameId] = useState<string | null>(null);
@@ -125,6 +127,36 @@ export default function App() {
     setActive(item.id);
     setCreateOpen(false);
   }
+  function addTemplateScreen(id:string){
+    const preset=SCREEN_PRESETS.find(item=>item.id===id);
+    if(!preset)return;
+    try{
+      const storedTables=read<{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:unknown[];updatedAt?:string}[]>("fox-tables-v1",[]);
+      const {newTables,widgets,primaryTableId}=instantiatePreset(preset,storedTables);
+      const nextTables=[...storedTables,...newTables];
+      const existingWidgets=read<Record<string,unknown[]>>("fox-editor-widgets-v1",{});
+      const screenId=crypto.randomUUID();
+      const newStore={...existingWidgets,[screenId]:widgets};
+      // Verify both payloads before committing this local-only creation.
+      const oldTables=localStorage.getItem("fox-tables-v1");
+      const oldWidgets=localStorage.getItem("fox-editor-widgets-v1");
+      try {
+        localStorage.setItem("fox-tables-v1",JSON.stringify(nextTables));
+        localStorage.setItem("fox-editor-widgets-v1",JSON.stringify(newStore));
+      } catch(error){
+        if(oldTables===null)localStorage.removeItem("fox-tables-v1");else localStorage.setItem("fox-tables-v1",oldTables);
+        if(oldWidgets===null)localStorage.removeItem("fox-editor-widgets-v1");else localStorage.setItem("fox-editor-widgets-v1",oldWidgets);
+        throw error;
+      }
+      const matching=screens.filter(item=>item.name===preset.name).length;
+      const screen:Screen={id:screenId,name:preset.name+(matching?" ("+(matching+1)+")":""),icon:preset.icon,tableId:primaryTableId};
+      setScreens(prev=>[...prev,screen]);
+      setActive(screenId);
+      setCreateOpen(false);
+      setCreateError("");
+      window.dispatchEvent(new Event("fox-tables-updated"));
+    }catch(error){setCreateError(error instanceof Error?error.message:"Не удалось создать шаблон");setCreateOpen(false);}
+  }
   function saveRename(id: string) {
     const name = renameValue.trim();
     if (name) setScreens(current => current.map(s => s.id === id ? { ...s, name } : s));
@@ -143,8 +175,9 @@ export default function App() {
           <span className="workspace-name">Fox Space</span>
           <ChevronDown size={14} className="muted-icon" />
         </div>
+        <button className="search-trigger topbar-center-search" onClick={() => setSearchOpen(true)}><Search size={16}/><span>Поиск</span><kbd>⌘ K</kbd></button>
         <div className="top-actions">
-          <button className="search-trigger" onClick={() => setSearchOpen(true)}><Search size={16}/><span>Поиск</span><kbd>⌘ K</kbd></button>
+          
           <button className={"icon-button"+(active==="feed"?" active":"")} title="Лента" onClick={()=>openTopSection("feed")}><Rss size={18}/></button>
           <button className={"icon-button"+(active==="notifications"?" active":"")} title="Уведомления" aria-label={"Уведомления: "+unreadCount+" непрочитанных"} onClick={()=>openTopSection("notifications")}><Bell size={18}/>{unreadCount>0&&<span className="fox-bell-count">{unreadCount>99?"99+":unreadCount}</span>}</button>
           <button className={"icon-button"+(active==="messages"?" active":"")} title="Сообщения" onClick={()=>openTopSection("messages")}><Mail size={18}/></button>
@@ -202,14 +235,14 @@ export default function App() {
 
       <nav className="dock" aria-label="Основная навигация">
         <div className="dock-fixed">
-          <button className={active === "files" ? "dock-item active" : "dock-item"} onClick={() => setActive("files")}><FileSpreadsheet size={18}/><span>Файлы и таблицы</span></button>
-          <button className={active === "notes" ? "dock-item active" : "dock-item"} onClick={() => setActive("notes")}><StickyNote size={18}/><span>Заметки и задачи</span></button>
+          <button className={active === "files" ? "dock-item active" : "dock-item"} onClick={() => setActive("files")}><FileSpreadsheet size={19}/><span>Файлы<br/>и таблицы</span></button>
+          <button className={active === "notes" ? "dock-item active" : "dock-item"} onClick={() => setActive("notes")}><StickyNote size={19}/><span>Заметки<br/>и задачи</span></button>
         </div>
         {screens.length > 0 && <div className="dock-divider"/>}
         <div className="dock-screens">
           {screens.map(screen => (
             <div className={active === screen.id ? "dock-screen active" : "dock-screen"} key={screen.id}>
-              {renameId === screen.id ? <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)} onBlur={() => saveRename(screen.id)} onKeyDown={e => e.key === "Enter" && saveRename(screen.id)} /> : <button className="dock-screen-name" onClick={() => setActive(screen.id)}><LayoutDashboard size={17}/>{screen.name}</button>}
+              {renameId === screen.id ? <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)} onBlur={() => saveRename(screen.id)} onKeyDown={e => e.key === "Enter" && saveRename(screen.id)} /> : <button className="dock-screen-name" onClick={() => setActive(screen.id)}>{screen.icon?<span className="dock-screen-emoji">{screen.icon}</span>:<LayoutDashboard size={19}/>}<span className="dock-custom-label">{screen.name}</span></button>}
               <button className="screen-more" title="Действия" onClick={() => setScreenMenuId(current => current===screen.id?null:screen.id)}><MoreHorizontal size={15}/></button>{screenMenuId===screen.id && <div className="screen-context-menu"><button onClick={()=>{setRenameId(screen.id);setRenameValue(screen.name);setScreenMenuId(null);}}>Переименовать</button><button className="danger" onClick={()=>{if(window.confirm("Удалить экран «"+screen.name+"»?"))removeScreen(screen.id);setScreenMenuId(null);}}>Удалить экран</button></div>}
             </div>
           ))}
@@ -226,8 +259,8 @@ export default function App() {
         <button onClick={()=>startCreate("note")}><StickyNote size={19}/><span><strong>Заметка</strong><small>Текст, файлы и идеи</small></span></button>
         <button onClick={()=>startCreate("folder")}><FolderPlus size={19}/><span><strong>Папка</strong><small>Организация файлов</small></span></button>
         <button onClick={()=>startCreate("upload")}><Upload size={19}/><span><strong>Загрузить файлы</strong><small>В локальное хранилище</small></span></button>
-      </div></div></div>}
-
+      </div><div className="fox-screen-presets"><div className="fox-screen-presets-heading"><strong>Готовые экраны</strong><small>Создадим виджеты и пустые таблицы, а ваши данные подключим автоматически по совпадению названий.</small></div><div className="fox-preset-filters">{(["Все","Личное","Творчество","Работа"] as const).map(category=><button key={category} className={templateCategory===category?"selected":""} onClick={()=>setTemplateCategory(category)}>{category}</button>)}</div><div className="fox-preset-list">{SCREEN_PRESETS.filter(preset=>templateCategory==="Все"||preset.group===templateCategory).map(preset=><button key={preset.id} className="fox-preset-card" onClick={()=>addTemplateScreen(preset.id)}><span className="fox-preset-symbol">{preset.icon}</span><span><strong>{preset.name}</strong><small>{preset.description}</small></span><Plus size={16}/></button>)}</div></div></div></div>}
+ 
       {searchOpen && <div className="overlay search-overlay" onMouseDown={e => e.target === e.currentTarget && setSearchOpen(false)}><div className="search-dialog"><div className="search-line"><Search size={19}/><input autoFocus placeholder="Экраны, таблицы, задачи, заметки..." value={search} onChange={e => setSearch(e.target.value)}/><kbd>ESC</kbd><button className="close-button" onClick={() => setSearchOpen(false)}><X size={17}/></button></div><div className="search-results"><button onClick={() => {setActive("home");setSearchOpen(false);}}><LayoutDashboard size={17}/>Главная</button><button onClick={() => {setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/>Файлы и таблицы</button><button onClick={() => {setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/>Заметки и задачи</button><button onClick={()=>{setActive("feed");setSearchOpen(false);}}><Rss size={17}/>Лента</button><button onClick={()=>{setActive("notifications");setSearchOpen(false);}}><Bell size={17}/>Уведомления</button><button onClick={()=>{setActive("messages");setSearchOpen(false);}}><Mail size={17}/>Сообщения</button>{filteredScreens.map(s => <button key={s.id} onClick={() => {setActive(s.id);setSearchOpen(false);}}><LayoutDashboard size={17}/>{s.name}</button>)}{matchingFiles.length>0&&<div className="fox-search-category">Файлы и папки</div>}{matchingFiles.map(item=><button key={item.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><Folder size={17}/><span>{item.name}</span></button>)}{matchingTables.length>0&&<div className="fox-search-category">Таблицы и данные</div>}{matchingTables.map(t=><button key={t.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/><span>{t.name}</span></button>)}{matchingTasks.length>0&&<div className="fox-search-category">Задачи</div>}{matchingTasks.map(t=><button key={t.id} onClick={()=>{navigateToTask(t.id);setSearchOpen(false);}}><CheckSquare size={17}/><span>{t.title}</span></button>)}{matchingNotes.length>0&&<div className="fox-search-category">Заметки</div>}{matchingNotes.map(n=><button key={n.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/><span>{n.title}</span></button>)}</div></div></div>}
 
       {settingsOpen && <div className="overlay settings-overlay" onMouseDown={e => e.target === e.currentTarget && setSettingsOpen(false)}><aside className="settings-panel"><div className="settings-head"><div><div className="eyebrow">ПЕРСОНАЛИЗАЦИЯ</div><h2>Настройки</h2></div><button className="close-button" onClick={() => setSettingsOpen(false)}><X size={18}/></button></div><div className="setting-group"><h3>Тема оформления</h3><div className="theme-options"><button className={theme === "light" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("light")}><Sun size={18}/>Светлая</button><button className={theme === "dark" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("dark")}><Moon size={18}/>Тёмная</button><button className={theme === "system" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("system")}><Monitor size={18}/>Системная</button></div></div><div className="setting-group"><h3>Акцентный цвет</h3><p>Используется для кнопок и активных элементов интерфейса.</p><div className="accent-options">{accents.map(c => <button key={c.value} className={accent === c.value ? "accent-swatch selected" : "accent-swatch"} style={{"--swatch":c.value} as CSSProperties} onClick={() => setAccent(c.value)} title={c.name}/>)}</div></div><BackupPanel /><div className="settings-note"><SlidersHorizontal size={17}/> Дополнительные настройки появятся по мере развития Fox Space.</div></aside></div>}
