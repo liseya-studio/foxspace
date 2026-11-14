@@ -51,3 +51,26 @@ test("table creation saves empty editable table", async ({page},info)=>{
   await expect(page.getByText("Проверка таблицы").first()).toBeVisible();
   await info.attach("tables", {body:await page.screenshot({fullPage:true}),contentType:"image/png"});
 });
+
+test("data widgets can be placed and persisted before a table exists", async ({page},info)=>{
+  await page.locator(".dock-add").click();
+  await page.locator(".fox-global-create-items button").filter({hasText:"Экран"}).click();
+  const editor=page.locator(".fox-editor");
+  await expect(editor).toBeVisible();
+  const types=["Показатель","Счётчик записей","Прогресс","Столбчатый график","Линейный график","Круговая диаграмма","Хронология","Таблица","Список"];
+  for(const type of types){
+    await editor.locator(".fox-editor-toolbar .outline-button").filter({hasText:"Виджет"}).click();
+    const card=editor.locator(".fox-editor-library button").filter({has:page.locator("b",{hasText:type})});
+    await expect(card).toBeEnabled();
+    await card.click();
+  }
+  await expect(page.locator(".fox-widget")).toHaveCount(types.length);
+  await expect(page.getByText("Подключите данные").first()).toBeVisible();
+  await page.reload();
+  await page.locator(".dock-screen-name").first().click();
+  await expect(page.locator(".fox-widget")).toHaveCount(types.length);
+  await page.locator(".fox-widget").first().getByRole("button",{name:"Выбрать источник"}).click();
+  await expect(page.getByText("Источник данных")).toBeVisible();
+  await expect(page.getByRole("button",{name:"Создать таблицу"})).toBeVisible();
+  await info.attach("unconnected-widgets",{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
+});
