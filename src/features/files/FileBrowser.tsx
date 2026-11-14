@@ -24,10 +24,23 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
   const [folderDialog,setFolderDialog]=useState(false);
   const [folderName,setFolderName]=useState("");
   const [moving,setMoving]=useState<StoredItem|null>(null);
+  const [preview,setPreview]=useState<StoredItem|null>(null);
+  const [previewUrl,setPreviewUrl]=useState<string|null>(null);
+  const [previewText,setPreviewText]=useState("");
   const uploadRef=useRef<HTMLInputElement>(null);
   const refresh=async()=>{try{setItems(await listItems());setError("");}catch(e){setError(e instanceof Error?e.message:"Не удалось прочитать файлы");}};
   useEffect(()=>{void refresh();const handler=()=>{void refresh();};window.addEventListener("fox-files-updated",handler);return()=>window.removeEventListener("fox-files-updated",handler);},[]);
   useEffect(()=>{if(createFolderRequest){setFolderDialog(true);setFolderName("");}},[createFolderRequest]);
+  useEffect(()=>{
+    if(!preview?.blob){setPreviewUrl(null);setPreviewText("");return;}
+    const url=URL.createObjectURL(preview.blob);
+    setPreviewUrl(url);
+    let alive=true;
+    if(preview.mime.startsWith("text/")&&preview.size<512*1024)void preview.blob.text().then(text=>{if(alive)setPreviewText(text.slice(0,50000));});
+    else setPreviewText("");
+    return ()=>{alive=false;URL.revokeObjectURL(url);};
+  },[preview]);
+
   const folder=items.find(item=>item.id===folderId);
   const crumbs:StoredItem[]=[];
   let current=folder;
@@ -68,7 +81,7 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
   const validDestinations=moveCandidates.filter(item=>!moving||!isDescendant(item.id,moving.id));
   const tableTile=(t:{id:string;name:string;rows:unknown[]})=><button key={t.id} className="fox-file-tile" onClick={onOpenTables}><div className="fox-file-tile-icon table"><FileText size={23}/></div><strong>{t.name}</strong><small>Таблица · {t.rows.length} записей</small></button>;
   const fileTile=(item:StoredItem)=><div key={item.id} className="fox-file-tile">
-    <button className="fox-file-open" onClick={()=>item.kind==="folder"?setFolderId(item.id):void run(()=>downloadItem(item))}>
+    <button className="fox-file-open" onClick={()=>item.kind==="folder"?setFolderId(item.id):setPreview(item)}>
       <div className={"fox-file-tile-icon "+item.kind}>{fileIcon(item)}</div><strong title={item.name}>{item.name}</strong><small>{item.kind==="folder"?"Папка":sizeLabel(item.size)}</small>
     </button>
     <div className="fox-file-actions">
@@ -87,6 +100,7 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
     {error&&<div className="fox-file-error" role="alert">{error}<button onClick={()=>setError("")}><X size={15}/></button></div>}
     {(mode==="all"||mode==="tables")&& !folderId && !query && <div className="fox-file-table-section"><div className="fox-file-section-heading"><h3>Таблицы</h3><button onClick={onOpenTables}>Открыть редактор <ChevronRight size={15}/></button></div><div className="fox-file-grid">{tables.map(tableTile)}<button className="fox-file-tile create" onClick={onCreateTable}><div className="fox-file-tile-icon"><Plus size={23}/></div><strong>Создать таблицу</strong><small>Новый источник данных</small></button></div></div>}
     {(mode==="all"||mode==="files")&&<div className="fox-file-library"><div className="fox-file-section-heading"><h3>{folder?.name??"Файлы и папки"}</h3><small>{filtered.length} элементов</small></div>{filtered.length>0?<div className="fox-file-grid">{filtered.map(fileTile)}</div>:<div className="fox-file-blank"><FolderOpen size={29}/><h3>{query?"Ничего не найдено":"Папка пуста"}</h3><p>Загрузите файлы или создайте папку. Также можно перетащить файлы сюда.</p><button className="outline-button" onClick={()=>uploadRef.current?.click()}><Upload size={15}/> Выбрать файлы</button></div>}</div>}
+    {preview&&<div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setPreview(null)}><div className="fox-file-preview"><div className="fox-file-preview-header"><div><strong>{preview.name}</strong><small>{sizeLabel(preview.size)} · {preview.mime||"Файл"}</small></div><div><button onClick={()=>void run(()=>downloadItem(preview))}><Download size={16}/> Скачать</button><button onClick={()=>setPreview(null)} title="Закрыть"><X size={18}/></button></div></div><div className="fox-file-preview-body">{preview.mime.startsWith("image/")&&previewUrl?<img src={previewUrl} alt={preview.name}/>:preview.mime.startsWith("video/")&&previewUrl?<video controls src={previewUrl}/>:preview.mime.startsWith("audio/")&&previewUrl?<audio controls src={previewUrl}/>:preview.mime==="application/pdf"&&previewUrl?<iframe src={previewUrl} title={preview.name} sandbox="allow-scripts allow-same-origin"/>:preview.mime.startsWith("text/")&&preview.size<512*1024?<pre>{previewText}</pre>:<div className="fox-file-preview-fallback"><File size={34}/><p>Для этого типа файла предпросмотр недоступен.</p><button className="outline-button" onClick={()=>void run(()=>downloadItem(preview))}>Скачать файл</button></div>}</div></div></div>}
     {folderDialog&&<div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setFolderDialog(false)}><div className="dialog"><button className="close-button" onClick={()=>setFolderDialog(false)}><X size={18}/></button><div className="dialog-icon"><FolderPlus size={21}/></div><h2>Новая папка</h2><label className="form-label">Название<input autoFocus className="form-input" value={folderName} onChange={e=>setFolderName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&void create()}/></label><button className="primary-button full" disabled={!folderName.trim()||busy} onClick={()=>void create()}>Создать</button></div></div>}
     {moving&&<div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setMoving(null)}><div className="dialog"><button className="close-button" onClick={()=>setMoving(null)}><X size={18}/></button><div className="dialog-icon"><MoveRight size={21}/></div><h2>Переместить «{moving.name}»</h2><p>Выберите папку назначения.</p><div className="fox-file-move-list"><button onClick={()=>{void run(()=>editItem(moving.id,{parentId:null}));setMoving(null);}}>Корневая папка</button>{validDestinations.map(item=><button key={item.id} onClick={()=>{void run(()=>editItem(moving.id,{parentId:item.id}));setMoving(null);}}><Folder size={14}/>{item.name}</button>)}</div></div></div>}
   </section>;
