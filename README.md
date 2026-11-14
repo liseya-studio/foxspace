@@ -25,6 +25,9 @@ npm run dev
 - Accent color selection
 - Global quick-search dialog (`Cmd/Ctrl + K`) across screens, tables, table-row values, tasks and notes (results open their section)
 - Persistent prototype preferences and user screens in localStorage
+- Dedicated topbar entry points for Feed, Messages and Notifications (not additional fixed Dock items)
+- Notification bell shows unread task deadline count; task notifications open the exact task
+- Global task search also opens the matching task editor
 
 ### Files & Tables
 - Unified **All / Files / Tables** tabs; no workbooks or fake storage quotas
@@ -55,6 +58,8 @@ npm run dev
 ### Notes & Tasks (interactive prototype)
 - Empty by default; creates tasks and notes with local browser persistence
 - Tasks: title, description, status, priority, due date, important/urgent flags, tags, checklists with completed subtasks
+- Optional daily, weekly or monthly recurrence: completion generates the next task with a fresh due date and reset checklist
+- Today, upcoming 7 days, overdue, active and completed task filters
 - Views: Kanban board (drag/drop status), sortable list, Eisenhower matrix (drag/drop urgency/importance), a single horizontal timeline, and calendar with day/week/month/schedule modes
 - Drag task cards between calendar days to change due dates
 - Filters for all/active/completed/overdue tasks, text search and priority sorting
@@ -78,6 +83,12 @@ npm run dev
 - Automatic localStorage persistence for each custom screen
 - Templates display user table records rather than fabricated dashboard values
 
+### Notifications, messages and feed
+- Notifications are derived from local tasks with due dates: overdue, today and within the next three days
+- Read/unread state and one-day snoozing persist locally; a task can be opened directly from its notification
+- Optional browser desktop reminders for due-today tasks, with explicit permission and a local deduplication record; these work only while the app is open
+- Messages and Feed are distinct topbar screens. Both honestly show a disconnected/empty state because no provider is currently integrated; no fabricated conversations, posts or analytics
+
 ### Backups and restore
 - Settings contain a full workspace export to a single local JSON backup (screens, tables, notes/tasks, editor widgets, preferences, and IndexedDB files with their binary contents encoded)
 - Backup restore validates the format, metadata, file lengths and structural record keys; user confirmation is required before replacing current data
@@ -86,7 +97,7 @@ npm run dev
 - Backups are unencrypted local downloads; users should store them securely and avoid importing untrusted archives
 
 ## Not implemented yet
-Advanced relational aggregation, arbitrary formulas, nested multi-condition filters, table permissions, full in-widget editing, WYSIWYG rich-text (Markdown is supported), recurring tasks/reminders, notifications, remote sync, automatic backup scheduling, incremental archives, full widget catalog, native macOS file access, Telegram authorization, ChatGPT API, feed and multiposting.
+Advanced relational aggregation, arbitrary formulas, nested multi-condition filters, table permissions, full in-widget editing, WYSIWYG rich-text (Markdown is supported), advanced recurring rules, server-side push notifications, remote sync, automatic backup scheduling, incremental archives, full widget catalog, native macOS file access, Telegram and VK authorization, ChatGPT API, actual feed data and multiposting.
 
 The current build is an interactive UI prototype. Browser localStorage is temporary prototype storage, not the final data architecture.
 
@@ -103,3 +114,7 @@ GitHub Actions `.github/workflows/build.yml` runs `npm install` and `npm run bui
 - The file manager persists blobs in browser IndexedDB; it does **not** access the macOS filesystem directly. Clearing site data, private-browsing expiry or browser storage eviction may delete local files. Export regular backups.
 - Notes, tables and widgets still use localStorage; attachments reference IndexedDB file IDs. Removing a file from the file manager can leave a missing attachment in notes.
 - Workbook import reads the cached values of formulas, not live Excel formulas; its current conversion does not preserve workbook styling or formulas. Import is capped at 8 MB and each populated sheet at 10,000 rows / 100 columns.
+
+### Notification limitations
+- In-app notifications are calculated on screen from task deadlines and do not require a server. Browser desktop reminders are opt-in, run while the web application is open, and depend on browser notification permission; they are not push notifications.
+- Updating a task due date changes its notification identity so earlier read status does not accidentally hide the new deadline.
