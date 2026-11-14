@@ -194,6 +194,7 @@ export default function App() {
               tableId={activeScreen.tableId}
               onTableChange={id => setScreens(prev => prev.map(s => s.id===activeScreen.id ? {...s,tableId:id||undefined} : s))}
               onOpenTables={() => setActive("files")}
+              onCreateTable={() => {setCreateAction({type:"table",id:Date.now()});setActive("files");}}
             />}
           </section>
         )}
