@@ -22,7 +22,7 @@ npm run dev
 - Create, open, rename and delete user screens
 - Light, dark and system appearance choices
 - Accent color selection
-- Global quick-search dialog (`Cmd/Ctrl + K`)
+- Global quick-search dialog (`Cmd/Ctrl + K`) across screens, tables, table-row values, tasks and notes (results open their section)
 - Persistent prototype preferences and user screens in localStorage
 
 ### Files & Tables
@@ -49,9 +49,9 @@ npm run dev
 ### Notes & Tasks (interactive prototype)
 - Empty by default; creates tasks and notes with local browser persistence
 - Tasks: title, description, status, priority, due date, important/urgent flags, tags, checklists with completed subtasks
-- Views: Kanban board (drag/drop status), sortable list, Eisenhower matrix (drag/drop urgency/importance), a single horizontal timeline, and monthly calendar
+- Views: Kanban board (drag/drop status), sortable list, Eisenhower matrix (drag/drop urgency/importance), a single horizontal timeline, and monthly calendar with navigation
 - Filters for all/active/completed/overdue tasks, text search and priority sorting
-- Notes: editable title and continuous plain-text body, tags, pinning, auto-save and read mode
+- Notes: editable title and continuous plain-text body, tags, pinning, auto-save and read mode; rich-text formatting is not yet supported
 - Shared local data model; Fox Editor task counter, task list and notes list widgets reflect current organizer records
 - Tasks and notes can be deleted with confirmation
 
