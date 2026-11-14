@@ -53,3 +53,39 @@ export function listNotifications(now=new Date()):LocalNotification[]{
   })).filter(entry=>!entry.snoozedUntil||entry.snoozedUntil<=day).sort((a,b)=>b.priority-a.priority||a.date.localeCompare(b.date));
 }
 export function unreadNotificationCount():number{return listNotifications().filter(x=>!x.isRead).length;}
+
+const REMINDER_KEY="fox-desktop-reminders-v1";
+type ReminderPreferences={enabled:boolean;notified:string[]};
+export function getReminderPreferences():ReminderPreferences{
+  try{const parsed=JSON.parse(localStorage.getItem(REMINDER_KEY)??"{}") as Partial<ReminderPreferences>;
+    return {enabled:parsed.enabled===true,notified:Array.isArray(parsed.notified)?parsed.notified:[]};
+  }catch{return {enabled:false,notified:[]};}
+}
+export async function enableDesktopReminders():Promise<boolean>{
+  if(!("Notification" in window))return false;
+  const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+  const prefs=getReminderPreferences();prefs.enabled=permission==="granted";
+  localStorage.setItem(REMINDER_KEY,JSON.stringify(prefs));
+  window.dispatchEvent(new Event("fox-notifications-updated"));
+  return prefs.enabled;
+}
+export function disableDesktopReminders():void{
+  const prefs=getReminderPreferences();prefs.enabled=false;
+  localStorage.setItem(REMINDER_KEY,JSON.stringify(prefs));
+  window.dispatchEvent(new Event("fox-notifications-updated"));
+}
+export function dispatchDesktopReminders():void{
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  const prefs=getReminderPreferences();
+  if(!prefs.enabled)return;
+  // Desktop reminders are intentionally only delivered for due-today tasks, not all historic overdue items.
+  const today=listNotifications().filter(item=>item.kind==="today"&&!item.isRead);
+  let changed=false;
+  for(const item of today){
+    if(prefs.notified.includes(item.id))continue;
+    try{new Notification("Срок задачи сегодня",{body:item.title,tag:"fox-space-"+item.id});
+      prefs.notified.push(item.id);changed=true;
+    }catch{/* some browsers block desktop notifications */}
+  }
+  if(changed){prefs.notified=prefs.notified.slice(-500);localStorage.setItem(REMINDER_KEY,JSON.stringify(prefs));}
+}
