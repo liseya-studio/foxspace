@@ -49,7 +49,7 @@ def telegram_posts():
         if not text and not images and not node.select_one(".tgme_widget_message_video_player"):
             continue
         posts.append({"id": "telegram:" + ident, "sourceId": SOURCE_IDS[0], "text": text[:15000],
-                      "url": post_url, "date": date, "images": images[:6]})
+                      "url": post_url, "date": date, "images": images})
     if not posts:
         raise ValueError("Публичная страница Telegram не вернула доступных постов.")
     return posts[-MAX_PER_SOURCE:]
@@ -80,7 +80,7 @@ def vk_posts():
         posts.append({"id": f"vk:{owner}_{ident}", "sourceId": SOURCE_IDS[1],
                       "text": entry.get("text", "")[:15000], "url": f"https://vk.com/wall{owner}_{ident}",
                       "date": datetime.fromtimestamp(entry.get("date", 0), timezone.utc).isoformat(),
-                      "images": photos[:6]})
+                      "images": photos})
     if not posts:
         raise ValueError("Сообщество ВКонтакте не вернуло доступных публикаций.")
     return posts
