@@ -146,6 +146,11 @@ test("a workbook-style import fills an existing empty travel template without lo
   await page.locator(".fox-file-header input[type=file]").first().setInputFiles({name:"Путешествия (поездки).csv",mimeType:"text/csv",buffer:Buffer.from(sample.replaceAll("\\\\n","\\n"))});
   await expect(page.getByText("Путешествия (поездки).csv")).toBeVisible();
   await page.getByTitle("Импортировать как таблицу").click();
+  await expect.poll(async()=>page.evaluate(()=>{
+    const tables=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]");
+    const screens=JSON.parse(localStorage.getItem("fox-screens")??"[]");
+    return tables.find((t:{id:string})=>t.id===screens[0].tableId)?.rows.length??0;
+  }),{timeout:10000}).toBe(1);
   const after=await page.evaluate(()=>{
     const tables=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]");
     const screens=JSON.parse(localStorage.getItem("fox-screens")??"[]");
