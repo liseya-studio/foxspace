@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
 import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type TaskStatus } from "../notes/data";
+import WorldTravelMap from "./WorldTravelMap";
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
   AlignLeft, List, Target, GripVertical, Trash2, X, Database,
@@ -8,9 +9,9 @@ import {
 } from "lucide-react";
 
 export type EditorTable = TableData;
-type WidgetType = "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
+type WidgetType = "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
 type EditorWidget = {
-  id: string; type: WidgetType; title: string; tableId?: string;
+  id: string; type: WidgetType; title: string; tableId?: string; startDate?: string;
   columnId?: string; labelColumnId?: string; target?: number;
   body?: string; width: number; height: number; accent?: string;
   aggregate?: Aggregate; filter?: RowFilter; limit?: number; hideTitle?: boolean; taskStatus?: TaskStatus | "all";
@@ -28,6 +29,8 @@ type Props = {
 };
 const STORAGE = "fox-editor-widgets-v1";
 const catalog: { type: WidgetType; title: string; description: string; icon: typeof LayoutGrid; needsTable: boolean }[] = [
+  { type:"worldmap",title:"Интерактивная карта",description:"Страны мира, флаги и посещённые города",icon:LayoutGrid,needsTable:false },
+  { type:"datecount",title:"Дни вместе",description:"Счётчик дней от выбранной даты",icon:Target,needsTable:false },
   { type: "taskcount", title: "Количество задач", description: "Счётчик задач по статусу", icon: Target, needsTable: false },
   { type: "tasklist", title: "Задачи", description: "Список задач с дедлайнами", icon: List, needsTable: false },
   { type: "noteslist", title: "Заметки", description: "Последние сохранённые заметки", icon: AlignLeft, needsTable: false },
@@ -60,6 +63,13 @@ const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigit
 
 function WidgetPreview({ widget, table, tables, organizer, onConfigure }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData; onConfigure: () => void }) {
   const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
+  if(widget.type==="worldmap")return <WorldTravelMap table={table}/>;
+  if(widget.type==="datecount"){
+    const start=widget.startDate?new Date(widget.startDate+"T00:00:00"):null;
+    const valid=Boolean(start&&!Number.isNaN(start.getTime())&&start.getTime()<=Date.now());
+    const days=valid&&start?Math.floor((Date.now()-start.getTime())/86400000)+1:null;
+    return <div className="fox-widget-kpi fox-widget-datecount"><strong>{days===null?"—":fmt(days)}</strong><span>{days===null?"Выберите дату начала в настройках":"дней вместе · с "+start!.toLocaleDateString("ru-RU")}</span></div>;
+  }
   if (widget.type === "taskcount" || widget.type === "tasklist") {
     const tasks = organizer.tasks.filter(task => !widget.taskStatus || widget.taskStatus==="all" || task.status===widget.taskStatus);
     if (widget.type === "taskcount") return <div className="fox-widget-kpi"><strong>{tasks.length}</strong><span>{widget.taskStatus&&widget.taskStatus!=="all"?STATUS_LABELS[widget.taskStatus]:"Всего задач"}</span></div>;
@@ -170,6 +180,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
           aggregate:(["sum","average","min","max","count"].includes(String(w.aggregate))?w.aggregate:"sum") as Aggregate,
           filter: w.filter && typeof w.filter==="object" ? { columnId:String(w.filter.columnId??""), operator:w.filter.operator, value:String(w.filter.value??"") } : {},
           body:typeof w.body==="string"?w.body.slice(0,10000):"",
+          startDate:typeof w.startDate==="string"?w.startDate:undefined,
           accent:typeof w.accent==="string"&&/^#[0-9a-f]{6}$/i.test(w.accent)?w.accent:undefined
         } satisfies EditorWidget;
       });
@@ -192,7 +203,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
     const widget: EditorWidget = {
       id: newId(), type, title: meta.title, tableId: meta.needsTable ? tableId : undefined,
       columnId: numeric?.id, labelColumnId: type==="donut" ? defaultTable?.columns.find(c=>c.type==="select")?.id : text?.id,
-      target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["table","heading","divider"].includes(type) ? 12 : 6, height: type === "table" ? 270 : type === "heading" ? 100 : type === "divider" ? 65 : 205
+      target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : type === "heading" ? 100 : type === "divider" ? 65 : 205
     };
     updateWidgets(prev => [...prev, widget]);
     setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
@@ -203,7 +214,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
     const additions = types.map(type => ({
       id: newId(), type, title: catalog.find(c => c.type === type)!.title,
       tableId: defaultTable?.id, columnId: numeric?.id, labelColumnId: text?.id,
-      target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["table","heading","divider"].includes(type) ? 12 : 6, height: type === "table" ? 270 : 205
+      target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : 205
     }));
     updateWidgets(prev => [...prev, ...additions]);
     setSelectedId(additions[0].id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
@@ -272,14 +283,15 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
           <div className="fox-editor-fields">
             {settingsTab==="data" && <>
               <label>Название<input value={selected.title} onChange={e=>setWidget(selected.id,{title:e.target.value})}/></label>
-              {!["text","heading","divider","taskcount","tasklist","noteslist"].includes(selected.type) && <div className="fox-editor-filter-options">
+              {!["text","heading","divider","datecount","taskcount","tasklist","noteslist","worldmap"].includes(selected.type) && <div className="fox-editor-filter-options">
                 <h4>Фильтрация записей</h4>
                 <label>Колонка<select value={selected.filter?.columnId??""} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,columnId:e.target.value}})}><option value="">Без фильтра</option>{allFields.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label>
                 <label>Условие<select value={selected.filter?.operator??"contains"} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,operator:e.target.value as RowFilter["operator"]}})}><option value="contains">Содержит</option><option value="equals">Равно</option><option value="not_equals">Не равно</option><option value="gt">Больше</option><option value="lt">Меньше</option><option value="empty">Пусто</option><option value="not_empty">Не пусто</option></select></label>
                 {!["empty","not_empty"].includes(selected.filter?.operator??"") && <label>Значение<input value={selected.filter?.value??""} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,value:e.target.value}})} placeholder="Для сравнения"/></label>}
                 <label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label>
               </div>}
-              {selected.type==="divider" ? <p>Разделитель не требует источника данных.</p> : ["taskcount","tasklist","noteslist"].includes(selected.type) ? <><p>Данные берутся из раздела «Заметки и задачи».</p>{selected.type!=="noteslist"&&<label>Статус задач<select value={selected.taskStatus??"all"} onChange={e=>setWidget(selected.id,{taskStatus:e.target.value as TaskStatus|"all"})}><option value="all">Все</option><option value="todo">К выполнению</option><option value="doing">В работе</option><option value="done">Готово</option></select></label>}<label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label></> : ["text","heading"].includes(selected.type) ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label> : <>
+              {selected.type==="divider" ? <p>Разделитель не требует источника данных.</p> : selected.type==="datecount" ? <label>Дата начала отношений<input type="date" value={selected.startDate??""} onChange={e=>setWidget(selected.id,{startDate:e.target.value})}/></label> : ["taskcount","tasklist","noteslist"].includes(selected.type) ? <><p>Данные берутся из раздела «Заметки и задачи».</p>{selected.type!=="noteslist"&&<label>Статус задач<select value={selected.taskStatus??"all"} onChange={e=>setWidget(selected.id,{taskStatus:e.target.value as TaskStatus|"all"})}><option value="all">Все</option><option value="todo">К выполнению</option><option value="doing">В работе</option><option value="done">Готово</option></select></label>}<label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label></> : ["text","heading"].includes(selected.type) ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label> : <>
+                {selected.type==="worldmap"&&<p className="fox-editor-source-message">Выберите таблицу поездок со столбцами «ISO A3» или «Страна». Можно менять масштаб и нажимать на страны.</p>}
                 <div className="fox-editor-source-picker">
                   <label>Источник данных<select value={selected.tableId??""} onChange={e=>setWidget(selected.id,{tableId:e.target.value||undefined,columnId:undefined,labelColumnId:undefined,filter:{}})}><option value="">Выбрать таблицу…</option>{tables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
                   {!selectedTable&&<p className="fox-editor-source-message">{tables.length?"Выберите таблицу выше. Виджет уже добавлен и сохранится, даже если источник пока не выбран.":"Пока нет таблиц. Создайте первую таблицу, затем вернитесь сюда и подключите её к виджету."}</p>}
