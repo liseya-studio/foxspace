@@ -8,9 +8,9 @@ import {
   AlertCircle, Tags, ClipboardList, Rows3, ArrowUpDown, Paperclip, Bold, Italic, Heading1, ListChecks, Link2, Quote
 } from "lucide-react";
 import {
-  dateLabel, newId, PRIORITY_LABELS, readNotesTasks, saveNotesTasks,
+  dateLabel, newId, PRIORITY_LABELS, REPEAT_LABELS, readNotesTasks, saveNotesTasks,
   STATUS_LABELS, type NotesTasksData, type Note, type Priority,
-  type Task, type TaskStatus
+  type Task, type TaskStatus, type TaskRepeat
 } from "./data";
 
 type Area = "tasks" | "notes";
@@ -30,6 +30,21 @@ function TagsInput({ tags, onCommit }: { tags: string[]; onCommit: (next: string
 const statusOrder:TaskStatus[]=["todo","doing","done"];
 const priorityOrder:Priority[]=["low","medium","high"];
 const markDate = (value:string) => value && value < new Date().toISOString().slice(0,10);
+const dateStamp=(date:Date)=>date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
+function nextRepeatDate(value:string,repeat:TaskRepeat):string{
+  const date=/^\d{4}-\d{2}-\d{2}$/.test(value)?new Date(value+"T12:00:00"):new Date();
+  const today=new Date();today.setHours(12,0,0,0);
+  // Skip missed occurrences rather than generating dozens of overdue copies.
+  let attempts=0;
+  do {
+    if(repeat==="daily")date.setDate(date.getDate()+1);
+    else if(repeat==="weekly")date.setDate(date.getDate()+7);
+    else if(repeat==="monthly"){const originalDay=date.getDate();date.setDate(1);date.setMonth(date.getMonth()+1);const last=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();date.setDate(Math.min(originalDay,last));}
+    else break;
+    attempts++;
+  }while(date<=today&&attempts<500);
+  return dateStamp(date);
+}
 
 export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onTaskOpened}:{createAction?:{type:"task"|"note";id:number}|null;onCreateConsumed?:()=>void;openTaskId?:string|null;onTaskOpened?:()=>void}) {
   const [data,setData] = useState<NotesTasksData>(readNotesTasks);
@@ -53,7 +68,23 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
   useEffect(()=>{let mounted=true;const refresh=()=>{void listItems().then(items=>{if(mounted)setFileItems(items);}).catch(()=>{});};refresh();window.addEventListener("fox-files-updated",refresh);return ()=>{mounted=false;window.removeEventListener("fox-files-updated",refresh);};},[]);
 
   function updateTask(id:string, patch:Partial<Task>) {
-    setData(prev=>({...prev,tasks:prev.tasks.map(task=>task.id===id?{...task,...patch,updatedAt:new Date().toISOString()}:task)}));
+    setData(prev=>{
+      const now=new Date().toISOString();
+      const tasks=prev.tasks.map(task=>task.id===id?{...task,...patch,updatedAt:now}:task);
+      const original=prev.tasks.find(task=>task.id===id);
+      if(original && patch.status==="done" && original.status!=="done" && original.repeat && original.repeat!=="none"){
+        const scheduled=nextRepeatDate(original.dueDate,original.repeat);
+        const seriesId=original.seriesId??original.id;
+        const duplicate=tasks.some(task=>task.status!=="done"&&task.seriesId===seriesId&&task.dueDate===scheduled);
+        if(!duplicate){
+          const next:Task={...original,id:newId(),seriesId,status:"todo",dueDate:scheduled,
+            checklist:(original.checklist??[]).map(item=>({...item,id:newId(),done:false})),
+            createdAt:now,updatedAt:now};
+          return {...prev,tasks:[...tasks,next]};
+        }
+      }
+      return {...prev,tasks};
+    });
   }
   function updateNote(id:string, patch:Partial<Note>) {
     setData(prev=>({...prev,notes:prev.notes.map(note=>note.id===id?{...note,...patch,updatedAt:new Date().toISOString()}:note)}));
@@ -63,7 +94,7 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
     if(!name)return;
     const timestamp=new Date().toISOString();
     if (creating==="tasks") {
-      const task:Task={id:newId(),title:name,description:"",status:"todo",priority:"medium",dueDate:"",urgent:false,important:false,tags:[],checklist:[],createdAt:timestamp,updatedAt:timestamp};
+      const task:Task={id:newId(),title:name,description:"",status:"todo",priority:"medium",dueDate:"",urgent:false,important:false,repeat:"none",tags:[],checklist:[],createdAt:timestamp,updatedAt:timestamp};
       setData(prev=>({...prev,tasks:[...prev.tasks,task]})); setSelection({type:"tasks",id:task.id}); setArea("tasks");
     } else if (creating==="notes") {
       const note:Note={id:newId(),title:name,body:"",pinned:false,tags:[],createdAt:timestamp,updatedAt:timestamp};
@@ -175,7 +206,7 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
         <label className="fox-item-title-label">Название<input value={selectedTask.title} onChange={e=>updateTask(selectedTask.id,{title:e.target.value})}/></label>
         <label>Описание<textarea rows={5} value={selectedTask.description} onChange={e=>updateTask(selectedTask.id,{description:e.target.value})} placeholder="Подробности задачи"/></label>
         <div className="fox-item-editor-pair"><label>Статус<select value={selectedTask.status} onChange={e=>updateTask(selectedTask.id,{status:e.target.value as TaskStatus})}>{statusOrder.map(s=><option key={s} value={s}>{STATUS_LABELS[s]}</option>)}</select></label><label>Приоритет<select value={selectedTask.priority} onChange={e=>updateTask(selectedTask.id,{priority:e.target.value as Priority})}>{priorityOrder.map(p=><option key={p} value={p}>{PRIORITY_LABELS[p]}</option>)}</select></label></div>
-        <label>Срок<input type="date" value={selectedTask.dueDate} onChange={e=>updateTask(selectedTask.id,{dueDate:e.target.value})}/></label>
+        <label>Срок<input type="date" value={selectedTask.dueDate} onChange={e=>updateTask(selectedTask.id,{dueDate:e.target.value})}/></label><label>Повторение<select value={selectedTask.repeat??"none"} onChange={e=>updateTask(selectedTask.id,{repeat:e.target.value as TaskRepeat})}>{(Object.keys(REPEAT_LABELS) as TaskRepeat[]).map(key=><option key={key} value={key}>{REPEAT_LABELS[key]}</option>)}</select></label>
         <div className="fox-item-editor-pair fox-task-flags"><label><input type="checkbox" checked={selectedTask.important} onChange={e=>updateTask(selectedTask.id,{important:e.target.checked})}/> Важно</label><label><input type="checkbox" checked={selectedTask.urgent} onChange={e=>updateTask(selectedTask.id,{urgent:e.target.checked})}/> Срочно</label></div>
         <label>Теги (через запятую)<TagsInput key={selectedTask.id} tags={selectedTask.tags} onCommit={tags=>updateTask(selectedTask.id,{tags})}/></label>
         <div className="fox-checklist"><h4>Подзадачи <small>{selectedTask.checklist.filter(c=>c.done).length}/{selectedTask.checklist.length}</small></h4>{selectedTask.checklist.map(sub=><div key={sub.id}><input type="checkbox" checked={sub.done} onChange={e=>updateTask(selectedTask.id,{checklist:selectedTask.checklist.map(s=>s.id===sub.id?{...s,done:e.target.checked}:s)})}/><span>{sub.title}</span><button onClick={()=>updateTask(selectedTask.id,{checklist:selectedTask.checklist.filter(s=>s.id!==sub.id)})}><X size={13}/></button></div>)}<div className="fox-add-subtask"><input placeholder="Новая подзадача" value={checklistText} onChange={e=>setChecklistText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&checklistText.trim()){updateTask(selectedTask.id,{checklist:[...selectedTask.checklist,{id:newId(),title:checklistText.trim(),done:false}]});setChecklistText("");}}}/><button onClick={()=>{if(!checklistText.trim())return;updateTask(selectedTask.id,{checklist:[...selectedTask.checklist,{id:newId(),title:checklistText.trim(),done:false}]});setChecklistText("");}}><Plus size={16}/></button></div></div>
