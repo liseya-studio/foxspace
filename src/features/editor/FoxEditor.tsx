@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
+import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type TaskStatus } from "../notes/data";
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
   AlignLeft, List, Target, GripVertical, Trash2, X, Database,
@@ -7,12 +8,12 @@ import {
 } from "lucide-react";
 
 export type EditorTable = TableData;
-type WidgetType = "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
+type WidgetType = "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
 type EditorWidget = {
   id: string; type: WidgetType; title: string; tableId?: string;
   columnId?: string; labelColumnId?: string; target?: number;
   body?: string; width: number; height: number; accent?: string;
-  aggregate?: Aggregate; filter?: RowFilter; limit?: number; hideTitle?: boolean;
+  aggregate?: Aggregate; filter?: RowFilter; limit?: number; hideTitle?: boolean; taskStatus?: TaskStatus | "all";
 };
 type WidgetStore = Record<string, EditorWidget[]>;
 type SettingsTab = "data" | "appearance" | "behavior";
@@ -26,6 +27,9 @@ type Props = {
 };
 const STORAGE = "fox-editor-widgets-v1";
 const catalog: { type: WidgetType; title: string; description: string; icon: typeof LayoutGrid; needsTable: boolean }[] = [
+  { type: "taskcount", title: "Количество задач", description: "Счётчик задач по статусу", icon: Target, needsTable: false },
+  { type: "tasklist", title: "Задачи", description: "Список задач с дедлайнами", icon: List, needsTable: false },
+  { type: "noteslist", title: "Заметки", description: "Последние сохранённые заметки", icon: AlignLeft, needsTable: false },
   { type: "metric", title: "Показатель", description: "Сумма, среднее, максимум и минимум", icon: TrendingUp, needsTable: true },
   { type: "counter", title: "Счётчик записей", description: "Количество записей по фильтру", icon: Database, needsTable: true },
   { type: "progress", title: "Прогресс", description: "Значение относительно цели", icon: Target, needsTable: true },
@@ -40,6 +44,8 @@ const catalog: { type: WidgetType; title: string; description: string; icon: typ
   { type: "divider", title: "Разделитель", description: "Визуально отделить группы", icon: LayoutGrid, needsTable: false },
 ];
 const templates = [
+  { title: "Мои дела", description: "Счётчик и список задач", types: ["taskcount", "tasklist"] as WidgetType[] },
+  { title: "Заметки и задачи", description: "Список задач и заметок", types: ["tasklist", "noteslist"] as WidgetType[] },
   { title: "Финансовая сводка", description: "Показатель + график", types: ["metric", "bars", "donut"] as WidgetType[] },
   { title: "Контроль цели", description: "Показатель + прогресс", types: ["metric", "progress"] as WidgetType[] },
   { title: "Реестр проекта", description: "Список + таблица", types: ["list", "table"] as WidgetType[] },
@@ -51,7 +57,17 @@ const emptyStore = (): WidgetStore => {
 const newId = () => crypto.randomUUID();
 const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(n);
 
-function WidgetPreview({ widget, table, tables }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[] }) {
+function WidgetPreview({ widget, table, tables, organizer }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData }) {
+  const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
+  if (widget.type === "taskcount" || widget.type === "tasklist") {
+    const tasks = organizer.tasks.filter(task => !widget.taskStatus || widget.taskStatus==="all" || task.status===widget.taskStatus);
+    if (widget.type === "taskcount") return <div className="fox-widget-kpi"><strong>{tasks.length}</strong><span>{widget.taskStatus&&widget.taskStatus!=="all"?STATUS_LABELS[widget.taskStatus]:"Всего задач"}</span></div>;
+    return <div className="fox-widget-list">{tasks.slice(0,maxItems).map(task=><div key={task.id}><span className={"fox-priority "+task.priority}>{STATUS_LABELS[task.status]}</span><strong>{task.title}</strong><small>{task.dueDate?dateLabel(task.dueDate):"Без срока"}</small></div>)}{!tasks.length&&<div className="fox-widget-empty">Задач пока нет. Добавьте их в «Заметки и задачи».</div>}</div>;
+  }
+  if (widget.type === "noteslist") {
+    const notes=[...organizer.notes].sort((a,b)=>Number(b.pinned)-Number(a.pinned)||b.updatedAt.localeCompare(a.updatedAt));
+    return <div className="fox-widget-list">{notes.slice(0,maxItems).map(note=><div key={note.id}><span>✎</span><strong>{note.title}</strong><small>{new Date(note.updatedAt).toLocaleDateString("ru-RU")}</small></div>)}{!notes.length&&<div className="fox-widget-empty">Заметок пока нет.</div>}</div>;
+  }
   if (widget.type === "text") return <div className="fox-widget-text">{widget.body?.trim() || "Добавьте текст в параметрах виджета."}</div>;
   if (widget.type === "heading") return <div className="fox-widget-section-title">{widget.body?.trim() || widget.title}</div>;
   if (widget.type === "divider") return <div className="fox-widget-divider"/>;
@@ -61,7 +77,6 @@ function WidgetPreview({ widget, table, tables }: { widget: EditorWidget; table?
   const textCol = table.columns.find(c => c.id === widget.labelColumnId) ?? table.columns.find(c => c.type === "text") ?? table.columns[0];
   const rows = filterRows(table.rows, table, tables, widget.filter ?? {});
   const value = (row: EditorTable["rows"][number], col: EditorTable["columns"][number]) => valueForColumn(row, col, tables);
-  const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
   if (widget.type === "metric" || widget.type === "counter" || widget.type === "progress") {
     const mode = widget.type === "counter" ? "count" : widget.aggregate ?? "sum";
     const total = aggregateRows(rows, numberCol, tables, mode);
@@ -110,6 +125,7 @@ function WidgetPreview({ widget, table, tables }: { widget: EditorWidget; table?
 
 export default function FoxEditor({ screenId, tables, tableId, onTableChange, onOpenTables }: Props) {
   const [store, setStore] = useState<WidgetStore>(emptyStore);
+  const [organizer,setOrganizer] = useState<NotesTasksData>(readNotesTasks);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRight, setShowRight] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
@@ -123,6 +139,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
   const selected = widgets.find(w => w.id === selectedId);
   const defaultTable = tables.find(t => t.id === tableId);
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
+  useEffect(()=>{const update=()=>setOrganizer(readNotesTasks());window.addEventListener("fox-notes-tasks-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(() => { setSelectedId(null); setRightMode("library"); }, [screenId]);
 
   function exportLayout() {
@@ -181,12 +198,12 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
     setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data");
   }
   function addTemplate(types: WidgetType[]) {
-    if (!defaultTable) return;
-    const numeric = defaultTable.columns.find(c => c.type === "number" || c.type === "formula");
-    const text = defaultTable.columns.find(c => c.type === "text");
+    if (!defaultTable && types.some(type=>catalog.find(item=>item.type===type)?.needsTable)) return;
+    const numeric = defaultTable?.columns.find(c => c.type === "number" || c.type === "formula");
+    const text = defaultTable?.columns.find(c => c.type === "text");
     const additions = types.map(type => ({
       id: newId(), type, title: catalog.find(c => c.type === type)!.title,
-      tableId, columnId: numeric?.id, labelColumnId: text?.id,
+      tableId: defaultTable?.id, columnId: numeric?.id, labelColumnId: text?.id,
       target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["table","heading","divider"].includes(type) ? 12 : 6, height: type === "table" ? 270 : 205
     }));
     updateWidgets(prev => [...prev, ...additions]);
@@ -236,7 +253,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
               onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();reorder(e.dataTransfer.getData("text/plain"),widget.id);}}
               onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
               <div className="fox-widget-header">{!previewMode&&<GripVertical size={14} className="fox-widget-grip"/>}<h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>
-              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables}/></div>
+              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer}/></div>
               {!previewMode&&<div className="fox-widget-resize" title="Перетащите для изменения ширины" onPointerDown={event=>{
                 event.stopPropagation(); event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId);
                 event.currentTarget.dataset.startX=String(event.clientX);
@@ -256,14 +273,14 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
           <div className="fox-editor-fields">
             {settingsTab==="data" && <>
               <label>Название<input value={selected.title} onChange={e=>setWidget(selected.id,{title:e.target.value})}/></label>
-              {!["text","heading","divider"].includes(selected.type) && <div className="fox-editor-filter-options">
+              {!["text","heading","divider","taskcount","tasklist","noteslist"].includes(selected.type) && <div className="fox-editor-filter-options">
                 <h4>Фильтрация записей</h4>
                 <label>Колонка<select value={selected.filter?.columnId??""} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,columnId:e.target.value}})}><option value="">Без фильтра</option>{allFields.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label>
                 <label>Условие<select value={selected.filter?.operator??"contains"} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,operator:e.target.value as RowFilter["operator"]}})}><option value="contains">Содержит</option><option value="equals">Равно</option><option value="not_equals">Не равно</option><option value="gt">Больше</option><option value="lt">Меньше</option><option value="empty">Пусто</option><option value="not_empty">Не пусто</option></select></label>
                 {!["empty","not_empty"].includes(selected.filter?.operator??"") && <label>Значение<input value={selected.filter?.value??""} onChange={e=>setWidget(selected.id,{filter:{...selected.filter,value:e.target.value}})} placeholder="Для сравнения"/></label>}
                 <label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label>
               </div>}
-              {selected.type==="divider" ? <p>Разделитель не требует источника данных.</p> : ["text","heading"].includes(selected.type) ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label> : <>
+              {selected.type==="divider" ? <p>Разделитель не требует источника данных.</p> : ["taskcount","tasklist","noteslist"].includes(selected.type) ? <><p>Данные берутся из раздела «Заметки и задачи».</p>{selected.type!=="noteslist"&&<label>Статус задач<select value={selected.taskStatus??"all"} onChange={e=>setWidget(selected.id,{taskStatus:e.target.value as TaskStatus|"all"})}><option value="all">Все</option><option value="todo">К выполнению</option><option value="doing">В работе</option><option value="done">Готово</option></select></label>}<label>Максимум записей<input type="number" min={1} max={30} value={selected.limit??8} onChange={e=>setWidget(selected.id,{limit:Math.max(1,Math.min(30,Number(e.target.value)||1))})}/></label></> : ["text","heading"].includes(selected.type) ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label> : <>
                 <label>Источник<select value={selected.tableId??""} onChange={e=>setWidget(selected.id,{tableId:e.target.value,columnId:undefined,labelColumnId:undefined})}><option value="">Не выбрана</option>{tables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
                 {["metric","progress","bars","line"].includes(selected.type)&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                 {["bars","list","donut","timeline"].includes(selected.type)&&<label>Подписи<select value={selected.labelColumnId??""} onChange={e=>setWidget(selected.id,{labelColumnId:e.target.value})}><option value="">Автоматически</option>{allFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
@@ -277,7 +294,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
         </> : <>
           <div className="fox-editor-tabs"><button className={libraryTab==="types"?"active":""} onClick={()=>setLibraryTab("types")}><LayoutGrid size={14}/> Типы</button><button className={libraryTab==="templates"?"active":""} onClick={()=>setLibraryTab("templates")}><Table2 size={14}/> Шаблоны</button></div>
           {!defaultTable&&<div className="fox-editor-hint">Выберите основную таблицу, чтобы использовать виджеты с данными. Текст доступен сразу.</div>}
-          <div className="fox-editor-library">{libraryTab==="types"?catalog.map(item=><button key={item.type} disabled={item.needsTable&&!defaultTable} onClick={()=>addWidget(item.type)}><div className="fox-editor-item-icon"><item.icon size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>):templates.map(item=><button key={item.title} disabled={!defaultTable} onClick={()=>addTemplate(item.types)}><div className="fox-editor-item-icon"><LayoutGrid size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>)}</div>
+          <div className="fox-editor-library">{libraryTab==="types"?catalog.map(item=><button key={item.type} disabled={item.needsTable&&!defaultTable} onClick={()=>addWidget(item.type)}><div className="fox-editor-item-icon"><item.icon size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>):templates.map(item=><button key={item.title} disabled={!defaultTable&&item.types.some(type=>catalog.find(c=>c.type===type)?.needsTable)} onClick={()=>addTemplate(item.types)}><div className="fox-editor-item-icon"><LayoutGrid size={18}/></div><div><b>{item.title}</b><small>{item.description}</small></div><Plus size={16}/></button>)}</div>
         </>}
       </aside>}
     </div>
