@@ -46,11 +46,21 @@ npm run dev
 - Automatic localStorage persistence
 - Seeded finance table for interface testing
 
+### Notes & Tasks (interactive prototype)
+- Empty by default; creates tasks and notes with local browser persistence
+- Tasks: title, description, status, priority, due date, important/urgent flags, tags, checklists with completed subtasks
+- Views: Kanban board (drag/drop status), sortable list, Eisenhower matrix (drag/drop urgency/importance), a single horizontal timeline, and monthly calendar
+- Filters for all/active/completed/overdue tasks, text search and priority sorting
+- Notes: editable title and continuous plain-text body, tags, pinning, auto-save and read mode
+- Shared local data model; Fox Editor task counter, task list and notes list widgets reflect current organizer records
+- Tasks and notes can be deleted with confirmation
+
 ### Fox Editor (interactive prototype)
 - Custom screens have a configurable grid canvas with locally persisted widgets
 - Right-side library for widget types and ready-to-bind templates
 - Widget inspector with Data, Appearance and Behavior tabs
 - Data widgets: metric, row counter, progress, bar, line, donut, single horizontal timeline, table and list
+- Additional widgets: task counter, task list and notes list connected to organizer records
 - Free text, heading and divider widgets do not require a table
 - Per-widget source table, field selection, typed row filters and configurable aggregation (sum/average/min/max/count)
 - Formula and relation columns are resolved in widget previews from actual linked records
@@ -61,7 +71,7 @@ npm run dev
 - Templates display user table records rather than fabricated dashboard values
 
 ## Not implemented yet
-File browser and upload, advanced relational aggregation, arbitrary formula expressions, nested multi-condition filter trees, table permissions, fully embedded table editing on custom screens, full widget catalog, fine-grained widget actions, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
+File browser and upload, advanced relational aggregation, arbitrary formula expressions, nested multi-condition filter trees, table permissions, fully embedded table editing on custom screens, rich-text formatting, recurring tasks/reminders, attachments, full widget catalog, fine-grained widget actions, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
 
 The current build is an interactive UI prototype. Browser localStorage is temporary prototype storage, not the final data architecture.
 
