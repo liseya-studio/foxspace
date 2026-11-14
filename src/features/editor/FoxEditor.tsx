@@ -11,7 +11,7 @@ export type EditorTable = {
   columns: { id: string; name: string; type: string }[];
   rows: { id: string; cells: Record<string, Cell> }[];
 };
-type WidgetType = "metric" | "progress" | "bars" | "table" | "list" | "text";
+type WidgetType = "metric" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text";
 type EditorWidget = {
   id: string; type: WidgetType; title: string; tableId?: string;
   columnId?: string; labelColumnId?: string; target?: number;
@@ -32,12 +32,15 @@ const catalog: { type: WidgetType; title: string; description: string; icon: typ
   { type: "metric", title: "Показатель", description: "Сумма значений числовой колонки", icon: TrendingUp, needsTable: true },
   { type: "progress", title: "Прогресс", description: "Значение относительно цели", icon: Target, needsTable: true },
   { type: "bars", title: "Столбчатый график", description: "Сравнение записей по числу", icon: BarChart3, needsTable: true },
+  { type: "line", title: "Линейный график", description: "Динамика числового поля", icon: TrendingUp, needsTable: true },
+  { type: "donut", title: "Круговая диаграмма", description: "Распределение записей по категории", icon: Target, needsTable: true },
+  { type: "timeline", title: "Хронология", description: "Единая временная линия событий", icon: LayoutGrid, needsTable: true },
   { type: "table", title: "Таблица", description: "Все записи в компактном виде", icon: Table2, needsTable: true },
   { type: "list", title: "Список", description: "Последние записи из таблицы", icon: List, needsTable: true },
   { type: "text", title: "Текст", description: "Заголовок и произвольная заметка", icon: AlignLeft, needsTable: false },
 ];
 const templates = [
-  { title: "Финансовая сводка", description: "Показатель + график", types: ["metric", "bars"] as WidgetType[] },
+  { title: "Финансовая сводка", description: "Показатель + график", types: ["metric", "bars", "donut"] as WidgetType[] },
   { title: "Контроль цели", description: "Показатель + прогресс", types: ["metric", "progress"] as WidgetType[] },
   { title: "Реестр проекта", description: "Список + таблица", types: ["list", "table"] as WidgetType[] },
 ];
@@ -71,6 +74,31 @@ function WidgetPreview({ widget, table }: { widget: EditorWidget; table?: Editor
     const max = Math.max(1, ...vals.map(Math.abs));
     return <div className="fox-widget-bars">{sample.map((row, i) => <div className="fox-widget-bar-row" key={row.id}><span title={String(row.cells[textCol?.id] ?? "")}>{String(row.cells[textCol?.id] ?? "Запись "+(i+1))}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(vals[i])/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(vals[i])}</b></div>)}</div>;
   }
+  if (widget.type === "line") {
+    if (!numberCol) return <div className="fox-widget-empty">Выберите числовую колонку.</div>;
+    const data = rows.slice(0, 12).map(row => Number(row.cells[numberCol.id]) || 0);
+    if (!data.length) return <div className="fox-widget-empty">Для графика нужны записи.</div>;
+    const min = Math.min(...data), max = Math.max(...data), spread = Math.max(1, max-min);
+    const points = data.map((value,i) => (10 + (i/Math.max(1,data.length-1))*280).toFixed(1)+","+(110-(value-min)/spread*90).toFixed(1)).join(" ");
+    return <div className="fox-widget-line"><svg viewBox="0 0 300 130" role="img" aria-label="График значений"><path d="M10 20H290M10 65H290M10 110H290" fill="none" stroke="currentColor" strokeOpacity=".1"/><polyline points={points} fill="none" stroke={widget.accent||"var(--accent)"} strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round"/>{data.map((value,i)=><circle key={i} cx={10+(i/Math.max(1,data.length-1))*280} cy={110-(value-min)/spread*90} r="3.3" fill={widget.accent||"var(--accent)"}/>)}</svg><div className="fox-widget-line-caption"><span>{fmt(min)} мин.</span><span>{fmt(max)} макс.</span></div></div>;
+  }
+  if (widget.type === "donut") {
+    const groupCol = table.columns.find(col=>col.id===widget.labelColumnId) ?? table.columns.find(col=>col.type==="select"||col.type==="text");
+    if (!groupCol) return <div className="fox-widget-empty">Выберите поле для группировки.</div>;
+    const counts = new Map<string, number>();
+    rows.forEach(row=>{const label=String(row.cells[groupCol.id]??"Без значения")||"Без значения";counts.set(label,(counts.get(label)||0)+1);});
+    const palette = ["#f06432","#4779d5","#388b69","#8864c8","#d1a34a","#c96b93"];
+    let offset=0;
+    const gradient = Array.from(counts.values()).map((count,i)=>{const start=offset;offset+=count/Math.max(1,rows.length)*100;return palette[i%palette.length]+" "+start+"% "+offset+"%";}).join(",");
+    return <div className="fox-widget-donut"><div className="fox-donut-ring" style={{background:gradient?"conic-gradient("+gradient+")":"var(--canvas)"}}><div><strong>{rows.length}</strong><small>записей</small></div></div><div className="fox-donut-legend">{Array.from(counts.entries()).slice(0,6).map(([name,count],i)=><div key={name}><i style={{background:palette[i%palette.length]}}/><span title={name}>{name}</span><b>{count}</b></div>)}</div></div>;
+  }
+  if (widget.type === "timeline") {
+    const dateCol = table.columns.find(col=>col.id===widget.columnId&&col.type==="date") ?? table.columns.find(col=>col.type==="date");
+    if (!dateCol) return <div className="fox-widget-empty">Для хронологии нужно поле «Дата».</div>;
+    const dated = rows.filter(row=>/^\\d{4}-\\d{2}-\\d{2}/.test(String(row.cells[dateCol.id]??""))).sort((a,b)=>String(a.cells[dateCol.id]).localeCompare(String(b.cells[dateCol.id]))).slice(0,6);
+    if (!dated.length) return <div className="fox-widget-empty">Пока нет событий с датой.</div>;
+    return <div className="fox-widget-timeline"><div className="fox-timeline-line"/>{dated.map((row,i)=><div key={row.id} className="fox-timeline-event"><span className="fox-timeline-date">{new Date(String(row.cells[dateCol.id])+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"short"})}</span><i style={{borderColor:widget.accent||"var(--accent)"}}/><strong title={String(row.cells[textCol?.id]??"")}>{String(row.cells[textCol?.id]??"Событие "+(i+1))}</strong></div>)}</div>;
+  }
   if (widget.type === "list") return <div className="fox-widget-list">{rows.slice(0, 6).map((row,i) => <div key={row.id}><span>{String(i+1).padStart(2,"0")}</span><strong>{String(row.cells[textCol?.id] ?? "Запись")}</strong>{numberCol && <small>{fmt(Number(row.cells[numberCol.id])||0)}</small>}</div>)}{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
   return <div className="fox-widget-table-scroll"><table><thead><tr>{table.columns.slice(0,5).map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>{rows.slice(0,8).map(r=><tr key={r.id}>{table.columns.slice(0,5).map(c=><td key={c.id}>{c.type==="checkbox"?(r.cells[c.id]?"Да":"Нет"):String(r.cells[c.id]??"—")}</td>)}</tr>)}</tbody></table>{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
 }
@@ -102,7 +130,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
     const text = defaultTable?.columns.find(c => c.type === "text");
     const widget: EditorWidget = {
       id: newId(), type, title: meta.title, tableId: meta.needsTable ? tableId : undefined,
-      columnId: numeric?.id, labelColumnId: text?.id,
+      columnId: numeric?.id, labelColumnId: type==="donut" ? defaultTable?.columns.find(c=>c.type==="select")?.id : text?.id,
       target: 100, body: "", width: type === "table" ? 12 : type === "text" ? 6 : 6, height: type === "table" ? 270 : 205
     };
     updateWidgets(prev => [...prev, widget]);
@@ -175,8 +203,8 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
               <label>Название<input value={selected.title} onChange={e=>setWidget(selected.id,{title:e.target.value})}/></label>
               {selected.type==="text" ? <label>Текст<textarea rows={6} value={selected.body??""} onChange={e=>setWidget(selected.id,{body:e.target.value})}/></label> : <>
                 <label>Источник<select value={selected.tableId??""} onChange={e=>setWidget(selected.id,{tableId:e.target.value,columnId:undefined,labelColumnId:undefined})}><option value="">Не выбрана</option>{tables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
-                {["metric","progress","bars"].includes(selected.type)&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
-                {["bars","list"].includes(selected.type)&&<label>Подписи<select value={selected.labelColumnId??""} onChange={e=>setWidget(selected.id,{labelColumnId:e.target.value})}><option value="">Автоматически</option>{allFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                {["metric","progress","bars","line"].includes(selected.type)&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                {["bars","list","donut","timeline"].includes(selected.type)&&<label>Подписи<select value={selected.labelColumnId??""} onChange={e=>setWidget(selected.id,{labelColumnId:e.target.value})}><option value="">Автоматически</option>{allFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                 {selected.type==="progress"&&<label>Целевое значение<input type="number" value={selected.target??100} onChange={e=>setWidget(selected.id,{target:Number(e.target.value)})}/></label>}
               </>}
             </>}
