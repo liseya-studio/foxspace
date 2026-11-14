@@ -15,7 +15,7 @@ import {
 
 type Area = "tasks" | "notes";
 type TaskView = "board" | "list" | "matrix" | "timeline" | "calendar";
-type TaskFilter = "all" | "active" | "done" | "overdue";
+type TaskFilter = "all" | "active" | "done" | "overdue" | "today" | "upcoming";
 function TagsInput({ tags, onCommit }: { tags: string[]; onCommit: (next: string[]) => void }) {
   const [draft,setDraft] = useState(tags.join(", "));
   return <input
@@ -29,7 +29,7 @@ function TagsInput({ tags, onCommit }: { tags: string[]; onCommit: (next: string
 
 const statusOrder:TaskStatus[]=["todo","doing","done"];
 const priorityOrder:Priority[]=["low","medium","high"];
-const markDate = (value:string) => value && value < new Date().toISOString().slice(0,10);
+const markDate = (value:string) => value && value < dateStamp(new Date());
 const dateStamp=(date:Date)=>date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
 function nextRepeatDate(value:string,repeat:TaskRepeat):string{
   const date=/^\d{4}-\d{2}-\d{2}$/.test(value)?new Date(value+"T12:00:00"):new Date();
@@ -141,6 +141,8 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
       if(filter==="active")return task.status!=="done";
       if(filter==="done")return task.status==="done";
       if(filter==="overdue")return task.status!=="done"&&markDate(task.dueDate);
+      if(filter==="today")return task.status!=="done"&&task.dueDate===dateStamp(new Date());
+      if(filter==="upcoming"){const today=dateStamp(new Date());const end=new Date();end.setDate(end.getDate()+7);return task.status!=="done"&&Boolean(task.dueDate)&&task.dueDate>=today&&task.dueDate<=dateStamp(end);}
       return true;
     });
     return [...selected].sort((a,b)=>{
@@ -157,7 +159,7 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
   const card=(task:Task)=><button key={task.id} className={"fox-task-card"+(task.status==="done"?" done":"")} draggable onDragStart={e=>{e.dataTransfer.setData("text/fox-task",task.id);e.dataTransfer.effectAllowed="move";}} onClick={()=>setSelection({type:"tasks",id:task.id})}>
     <span className="fox-task-card-title">{task.title}</span>
     {task.description&&<span className="fox-task-description">{task.description}</span>}
-    <div className="fox-task-meta"><span className={"fox-priority "+task.priority}>{PRIORITY_LABELS[task.priority]}</span>{task.dueDate&&<span className={task.status!=="done"&&markDate(task.dueDate)?"late":""}><CalendarDays size={12}/>{dateLabel(task.dueDate)}</span>}{task.checklist?.length>0&&<span><CheckSquare size={12}/>{task.checklist.filter(c=>c.done).length}/{task.checklist.length}</span>}</div>
+    <div className="fox-task-meta"><span className={"fox-priority "+task.priority}>{PRIORITY_LABELS[task.priority]}</span>{task.dueDate&&<span className={task.status!=="done"&&markDate(task.dueDate)?"late":""}><CalendarDays size={12}/>{dateLabel(task.dueDate)}</span>}{task.checklist?.length>0&&<span><CheckSquare size={12}/>{task.checklist.filter(c=>c.done).length}/{task.checklist.length}</span>}{task.repeat&&task.repeat!=="none"&&<span title="Повторяющаяся задача">{REPEAT_LABELS[task.repeat]}</span>}</div>
   </button>;
 
   return <section className="fox-organizer">
@@ -184,7 +186,7 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
             <button className={view==="matrix"?"active":""} onClick={()=>setView("matrix")}><Target size={15}/> Матрица</button>
             <button className={view==="timeline"?"active":""} onClick={()=>setView("timeline")}><Clock3 size={15}/> Хронология</button><button className={view==="calendar"?"active":""} onClick={()=>setView("calendar")}><CalendarDays size={15}/> Календарь</button>
           </div>
-          <select aria-label="Фильтр задач" value={filter} onChange={e=>setFilter(e.target.value as TaskFilter)}><option value="all">Все задачи</option><option value="active">Активные</option><option value="done">Завершённые</option><option value="overdue">Просроченные</option></select>
+          <select aria-label="Фильтр задач" value={filter} onChange={e=>setFilter(e.target.value as TaskFilter)}><option value="all">Все задачи</option><option value="active">Активные</option><option value="done">Завершённые</option><option value="overdue">Просроченные</option><option value="today">На сегодня</option><option value="upcoming">Ближайшие 7 дней</option></select>
           <select aria-label="Сортировка задач" value={sort} onChange={e=>setSort(e.target.value as "date"|"priority"|"created")}><option value="date">По дате</option><option value="priority">По приоритету</option><option value="created">По созданию</option></select>
         </div>
         {view==="board"&&<div className="fox-kanban">{statusOrder.map(status=><div className="fox-kanban-column" key={status} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const id=e.dataTransfer.getData("text/fox-task");if(data.tasks.some(t=>t.id===id))updateTask(id,{status});}}><div className="fox-kanban-title"><span>{STATUS_LABELS[status]}</span><small>{filteredTasks.filter(t=>t.status===status).length}</small></div><div className="fox-kanban-items">{filteredTasks.filter(t=>t.status===status).map(card)}{filteredTasks.filter(t=>t.status===status).length===0&&<div className="fox-kanban-empty">Перетащите задачу сюда</div>}</div></div>)}</div>}
