@@ -24,25 +24,7 @@ const types: { value: ColumnType; label: string; icon: typeof Type }[] = [
   { value: "formula", label: "Формула", icon: Hash },
 ];
 
-const initialTables: DataTable[] = [{
-  id: "finance-demo",
-  name: "Финансовые операции",
-  updatedAt: new Date().toISOString(),
-  columns: [
-    { id: "title", name: "Операция", type: "text" },
-    { id: "category", name: "Категория", type: "select", options: ["Доход", "Расход", "Перевод"] },
-    { id: "amount", name: "Сумма", type: "number" },
-    { id: "date", name: "Дата", type: "date" },
-    { id: "paid", name: "Оплачено", type: "checkbox" },
-  ],
-  rows: [
-    { id: "r1", cells: { title: "Оплата проекта", category: "Доход", amount: 45000, date: "2026-11-12", paid: true } },
-    { id: "r2", cells: { title: "Аренда", category: "Расход", amount: 28000, date: "2026-11-10", paid: true } },
-    { id: "r3", cells: { title: "Подписки и сервисы", category: "Расход", amount: 2490, date: "2026-11-08", paid: false } },
-    { id: "r4", cells: { title: "Монтаж ролика", category: "Доход", amount: 12000, date: "2026-11-06", paid: true } },
-    { id: "r5", cells: { title: "Продукты", category: "Расход", amount: 3650, date: "2026-11-04", paid: true } },
-  ],
-}];
+const initialTables: DataTable[] = [];
 
 function loadTables(): DataTable[] {
   try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) as DataTable[] : initialTables; }
@@ -80,7 +62,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
 
 
   useEffect(()=>{if(openCreate)onCreateConsumed?.();},[openCreate]);
-  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(tables)); }, [tables]);
+  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(tables)); window.dispatchEvent(new Event("fox-tables-updated")); }, [tables]);
   const activeTable = tables.find(t => t.id === activeId) ?? null;
 
   function updateTable(updater: (table: DataTable) => DataTable) {
