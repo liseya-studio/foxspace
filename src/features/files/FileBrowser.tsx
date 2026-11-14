@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Folder, File, FileText, Image, Video, Music2, Archive, FolderPlus, Upload, Download, Trash2, Pencil, Search, ChevronRight, HardDrive, FolderOpen, MoveRight, X, Plus } from "lucide-react";
 import { createFolder, deleteItem, downloadItem, editItem, listItems, sizeLabel, uploadFiles, type StoredItem } from "./storage";
+import { importDelimitedFile } from "./importDelimited";
 
 type Mode = "all" | "files" | "tables";
 type Props={mode:Mode;onOpenTables:()=>void;onCreateTable:()=>void;tables:{id:string;name:string;rows:unknown[]}[]};
@@ -70,6 +71,7 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables}:Pro
     </button>
     <div className="fox-file-actions">
       {item.kind==="file"&&<button onClick={()=>void run(()=>downloadItem(item))} title="Скачать"><Download size={14}/></button>}
+      {item.kind==="file"&&/\.(csv|tsv)$/i.test(item.name)&&<button onClick={()=>void run(async()=>{await importDelimitedFile(item);onOpenTables();})} title="Импортировать как таблицу"><FileText size={14}/></button>}
       <button onClick={()=>rename(item)} title="Переименовать"><Pencil size={14}/></button>
       <button onClick={()=>setMoving(item)} title="Переместить"><MoveRight size={14}/></button>
       <button onClick={()=>remove(item)} title="Удалить"><Trash2 size={14}/></button>
