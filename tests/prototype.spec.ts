@@ -142,15 +142,15 @@ test("a workbook-style import fills an existing empty travel template without lo
     return {id:screens[0].tableId,tables:JSON.parse(localStorage.getItem("fox-tables-v1")??"[]").length};
   });
   await page.getByRole("button",{name:"Файлы и таблицы"}).click();
-  const sample="ISO A3;Страна;Город;Количество городов;Дата въезда\\nFRA;France;Paris;1;2024-08-01\\n";
-  await page.locator(".fox-file-header input[type=file]").first().setInputFiles({name:"Путешествия (поездки).csv",mimeType:"text/csv",buffer:Buffer.from(sample.replaceAll("\\\\n","\\n"))});
+  const sample=["ISO A3;Страна;Город;Количество городов;Дата въезда","FRA;France;Paris;1;2024-08-01",""].join(String.fromCharCode(10));
+  await page.locator(".fox-file-header input[type=file]").first().setInputFiles({name:"Путешествия (поездки).csv",mimeType:"text/csv",buffer:Buffer.from(sample)});
   await expect(page.getByText("Путешествия (поездки).csv")).toBeVisible();
   await page.getByTitle("Импортировать как таблицу").click();
-  await expect.poll(async()=>page.evaluate(()=>{
+  await expect.poll(async()=>{ const issue=await page.locator(".fox-file-error").allInnerTexts(); if(issue.length)throw Error("Ошибка импорта: "+issue.join("; ")); return page.evaluate(()=>{
     const tables=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]");
     const screens=JSON.parse(localStorage.getItem("fox-screens")??"[]");
     return tables.find((t:{id:string})=>t.id===screens[0].tableId)?.rows.length??0;
-  }),{timeout:10000}).toBe(1);
+  }); },{timeout:10000}).toBe(1);
   const after=await page.evaluate(()=>{
     const tables=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]");
     const screens=JSON.parse(localStorage.getItem("fox-screens")??"[]");
