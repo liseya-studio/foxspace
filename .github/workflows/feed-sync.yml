@@ -1,5 +1,8 @@
 name: Sync public feed sources
 on:
+  push:
+    branches: [main]
+    paths: [scripts/sync_public_feed.py, .github/workflows/feed-sync.yml]
   workflow_dispatch:
   schedule:
     - cron: '23 */6 * * *'
