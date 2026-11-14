@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import TableWorkspace from "./features/tables/TableWorkspace";
+import FilesHub from "./features/files/FilesHub";
 import FoxEditor from "./features/editor/FoxEditor";
 import NotesTasks from "./features/notes/NotesTasks";
 import { readNotesTasks } from "./features/notes/data";
@@ -121,7 +121,7 @@ export default function App() {
             </div>
           </section>
         ) : active === "files" ? (
-          <TableWorkspace />
+          <FilesHub />
         ) : active === "notes" ? (
           <NotesTasks />
         ) : (
