@@ -26,7 +26,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@playwright/test": "^1.58.0",
-    "@types/topojson-client": "^3.1.5",
-    "@types/d3-geo": "^3.1.12"
+    "@types/topojson-client": "^3.1.0",
+    "@types/d3-geo": "^3.0.0"
   }
 }
