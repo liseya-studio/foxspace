@@ -13,6 +13,17 @@ import {
 type Area = "tasks" | "notes";
 type TaskView = "board" | "list" | "matrix" | "timeline" | "calendar";
 type TaskFilter = "all" | "active" | "done" | "overdue";
+function TagsInput({ tags, onCommit }: { tags: string[]; onCommit: (next: string[]) => void }) {
+  const [draft,setDraft] = useState(tags.join(", "));
+  return <input
+    value={draft}
+    onChange={e=>setDraft(e.target.value)}
+    onBlur={()=>onCommit(Array.from(new Set(draft.split(",").map(x=>x.trim()).filter(Boolean))))}
+    onKeyDown={e=>{if(e.key==="Enter"){e.currentTarget.blur();}}}
+    placeholder="Работа, личное"
+  />;
+}
+
 const statusOrder:TaskStatus[]=["todo","doing","done"];
 const priorityOrder:Priority[]=["low","medium","high"];
 const markDate = (value:string) => value && value < new Date().toISOString().slice(0,10);
@@ -149,7 +160,7 @@ export default function NotesTasks() {
         <div className="fox-item-editor-pair"><label>Статус<select value={selectedTask.status} onChange={e=>updateTask(selectedTask.id,{status:e.target.value as TaskStatus})}>{statusOrder.map(s=><option key={s} value={s}>{STATUS_LABELS[s]}</option>)}</select></label><label>Приоритет<select value={selectedTask.priority} onChange={e=>updateTask(selectedTask.id,{priority:e.target.value as Priority})}>{priorityOrder.map(p=><option key={p} value={p}>{PRIORITY_LABELS[p]}</option>)}</select></label></div>
         <label>Срок<input type="date" value={selectedTask.dueDate} onChange={e=>updateTask(selectedTask.id,{dueDate:e.target.value})}/></label>
         <div className="fox-item-editor-pair fox-task-flags"><label><input type="checkbox" checked={selectedTask.important} onChange={e=>updateTask(selectedTask.id,{important:e.target.checked})}/> Важно</label><label><input type="checkbox" checked={selectedTask.urgent} onChange={e=>updateTask(selectedTask.id,{urgent:e.target.checked})}/> Срочно</label></div>
-        <label>Теги (через запятую)<input value={selectedTask.tags.join(", ")} onChange={e=>updateTask(selectedTask.id,{tags:e.target.value.split(",").map(x=>x.trim()).filter(Boolean)})} placeholder="Работа, личное"/></label>
+        <label>Теги (через запятую)<TagsInput key={selectedTask.id} tags={selectedTask.tags} onCommit={tags=>updateTask(selectedTask.id,{tags})}/></label>
         <div className="fox-checklist"><h4>Подзадачи <small>{selectedTask.checklist.filter(c=>c.done).length}/{selectedTask.checklist.length}</small></h4>{selectedTask.checklist.map(sub=><div key={sub.id}><input type="checkbox" checked={sub.done} onChange={e=>updateTask(selectedTask.id,{checklist:selectedTask.checklist.map(s=>s.id===sub.id?{...s,done:e.target.checked}:s)})}/><span>{sub.title}</span><button onClick={()=>updateTask(selectedTask.id,{checklist:selectedTask.checklist.filter(s=>s.id!==sub.id)})}><X size={13}/></button></div>)}<div className="fox-add-subtask"><input placeholder="Новая подзадача" value={checklistText} onChange={e=>setChecklistText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&checklistText.trim()){updateTask(selectedTask.id,{checklist:[...selectedTask.checklist,{id:newId(),title:checklistText.trim(),done:false}]});setChecklistText("");}}}/><button onClick={()=>{if(!checklistText.trim())return;updateTask(selectedTask.id,{checklist:[...selectedTask.checklist,{id:newId(),title:checklistText.trim(),done:false}]});setChecklistText("");}}><Plus size={16}/></button></div></div>
         <button className="fox-remove-item" onClick={()=>removeTask(selectedTask)}><Trash2 size={15}/> Удалить задачу</button>
       </div>}
@@ -157,7 +168,7 @@ export default function NotesTasks() {
         <label className="fox-item-title-label">Название<input value={selectedNote.title} onChange={e=>updateNote(selectedNote.id,{title:e.target.value})}/></label>
         <div className="fox-note-tools"><button onClick={()=>updateNote(selectedNote.id,{pinned:!selectedNote.pinned})}>{selectedNote.pinned?<PinOff size={15}/>:<Pin size={15}/>} {selectedNote.pinned?"Открепить":"Закрепить"}</button><span>Автосохранение</span></div>
         <div className="fox-note-edit-controls"><button className={!notePreview?"active":""} onClick={()=>setNotePreview(false)}>Редактировать</button><button className={notePreview?"active":""} onClick={()=>setNotePreview(true)}>Просмотр</button></div>{notePreview?<div className="fox-note-preview">{selectedNote.body.split("\n").map((line,i)=><p key={i}>{line||" "}</p>)}</div>:<label>Текст<textarea className="fox-note-body-input" value={selectedNote.body} onChange={e=>updateNote(selectedNote.id,{body:e.target.value})} placeholder="Начните писать..."/></label>}
-        <label>Теги (через запятую)<input value={selectedNote.tags.join(", ")} onChange={e=>updateNote(selectedNote.id,{tags:e.target.value.split(",").map(x=>x.trim()).filter(Boolean)})}/></label>
+        <label>Теги (через запятую)<TagsInput key={selectedNote.id} tags={selectedNote.tags} onCommit={tags=>updateNote(selectedNote.id,{tags})}/></label>
         <button className="fox-remove-item" onClick={()=>removeNote(selectedNote)}><Trash2 size={15}/> Удалить заметку</button>
       </div>}
     </aside></div>}
