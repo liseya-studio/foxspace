@@ -27,7 +27,7 @@ test("universal creation opens task and saves its content", async ({page},info)=
   await expect(page.getByRole("heading",{name:"Новая задача"})).toBeVisible();
   await page.getByPlaceholder("Введите название").fill("Проверить макет");
   await page.locator(".dialog .primary-button").click();
-  await expect(page.getByDisplayValue("Проверить макет")).toBeVisible();
+  await expect(page.locator(".fox-item-title-label input")).toHaveValue("Проверить макет");
   await page.getByRole("button",{name:"Закрыть"}).last().click();
   await expect(page.getByText("Проверить макет").first()).toBeVisible();
   await info.attach("tasks", {body:await page.screenshot({fullPage:true}),contentType:"image/png"});
