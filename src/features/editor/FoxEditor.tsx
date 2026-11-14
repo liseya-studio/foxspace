@@ -68,7 +68,8 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure }: { widg
   if(widget.type==="datecount"){
     const start=widget.startDate?new Date(widget.startDate+"T00:00:00"):null;
     const valid=Boolean(start&&!Number.isNaN(start.getTime())&&start.getTime()<=Date.now());
-    const days=valid&&start?Math.floor((Date.now()-start.getTime())/86400000)+1:null;
+    const today=new Date();
+    const days=valid&&start?Math.floor((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(start.getFullYear(),start.getMonth(),start.getDate()))/86400000)+1:null;
     return <div className="fox-widget-kpi fox-widget-datecount"><strong>{days===null?"—":fmt(days)}</strong><span>{days===null?"Выберите дату начала в настройках":"дней вместе · с "+start!.toLocaleDateString("ru-RU")}</span></div>;
   }
   if (widget.type === "taskcount" || widget.type === "tasklist") {
