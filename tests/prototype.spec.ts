@@ -98,3 +98,38 @@ test("real feed sources show Telegram and VK source states", async ({page},info)
   await expect(page.getByRole("link",{name:/Открыть источник/})).toHaveCount(2);
   await info.attach("feed",{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
 });
+
+test("ready-made travel dashboard has a clickable offline world map",async({page},info)=>{
+  await page.locator(".dock-add").click();
+  await expect(page.getByText("Готовые экраны")).toBeVisible();
+  await page.getByRole("button",{name:/Путешествия/}).click();
+  await expect(page.getByRole("heading",{name:"Путешествия",exact:true}).first()).toBeVisible();
+  const map=page.getByRole("img",{name:"Интерактивная карта стран мира"});
+  await expect(map).toBeVisible();
+  await expect(map.locator("path.fox-worldmap-country").first()).toBeVisible();
+  await map.locator("path.fox-worldmap-country").first().click({force:true});
+  await expect(page.locator(".fox-worldmap-details strong")).toBeVisible();
+  await info.attach("travel-map",{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
+  await page.reload();
+  await page.locator(".dock-screen-name").first().click();
+  await expect(map).toBeVisible();
+});
+
+test("relationship template starts without invented personal dates",async({page})=>{
+  await page.locator(".dock-add").click();
+  await page.getByRole("button",{name:/Наши отношения/}).click();
+  await expect(page.getByText("Выберите дату начала в настройках")).toBeVisible();
+  await expect(page.locator(".fox-widget")).toHaveCount(6);
+});
+
+test("platform icon gallery can change a screen dock icon",async({page})=>{
+  await page.locator(".dock-add").click();
+  await page.locator(".fox-global-create-items button").filter({hasText:"Экран"}).click();
+  await page.locator(".dock-screen .screen-more").first().click();
+  await page.getByRole("button",{name:"Изменить значок"}).click();
+  await expect(page.getByRole("heading",{name:"Выберите значок"})).toBeVisible();
+  await page.getByRole("button",{name:"Telegram"}).click();
+  await expect(page.locator(".dock-screen .fox-platform-icon")).toHaveCount(1);
+  await page.reload();
+  await expect(page.locator(".dock-screen .fox-platform-icon")).toHaveCount(1);
+});
