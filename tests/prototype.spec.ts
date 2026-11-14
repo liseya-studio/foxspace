@@ -162,3 +162,15 @@ test("a workbook-style import fills an existing empty travel template without lo
   await page.locator(".dock-screen-name").first().click();
   await expect(page.getByText("1 стран с записями")).toBeVisible();
 });
+
+test("feed gallery keeps every image in a multi-photo album",async({page})=>{
+  const media=Array.from({length:9},(_,index)=>"https://example.com/image-"+index+".jpg");
+  await page.route("**/feed.json?*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({
+    generatedAt:"2026-11-14T15:00:00Z",
+    sources:[{id:"telegram-bulotkaff",platform:"telegram",title:"Telegram · @bulotkaff",url:"https://t.me/bulotkaff",status:"ok",message:"Загружено публикаций: 1"}],
+    posts:[{id:"tg:gallery",sourceId:"telegram-bulotkaff",text:"Альбом из девяти изображений",url:"https://t.me/bulotkaff/1",date:"2026-11-14T15:00:00Z",images:media}]
+  })}));
+  await page.getByRole("button",{name:"Лента",exact:true}).click();
+  await expect(page.locator(".fox-feed-gallery img")).toHaveCount(9);
+  await expect(page.locator(".fox-feed-gallery a")).toHaveCount(9);
+});
