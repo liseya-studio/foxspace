@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import NoteMarkdown from "./NoteMarkdown";
+import TaskCalendar from "./TaskCalendar";
 import { downloadItem, listItems, sizeLabel, uploadFiles, type StoredItem } from "../files/storage";
 import {
   Plus, Search, StickyNote, CheckSquare, LayoutGrid, List, CalendarDays,
@@ -41,7 +42,6 @@ export default function NotesTasks() {
   const [newTitle,setNewTitle] = useState("");
   const [checklistText,setChecklistText] = useState("");
   const [sort,setSort] = useState<"date"|"priority"|"created">("date");
-  const [month,setMonth] = useState(()=>new Date().toISOString().slice(0,7));
   const [notePreview,setNotePreview] = useState(false);
   const [fileItems,setFileItems] = useState<StoredItem[]>([]);
   const [attachmentError,setAttachmentError] = useState("");
@@ -162,21 +162,7 @@ export default function NotesTasks() {
           {id:"nu",important:false,urgent:true,name:"Не важно, срочно",hint:"Решить быстрее"},
           {id:"nn",important:false,urgent:false,name:"Не важно, не срочно",hint:"Отложить"}
         ].map(q=><div className="fox-matrix-quadrant" key={q.id} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const id=e.dataTransfer.getData("text/fox-task");if(data.tasks.some(t=>t.id===id))updateTask(id,{urgent:q.urgent,important:q.important});}}><div className="fox-matrix-title"><b>{q.name}</b><span>{q.hint}</span></div><div className="fox-matrix-items">{filteredTasks.filter(t=>t.urgent===q.urgent&&t.important===q.important).map(card)}</div></div>)}</div>}
-        {view==="calendar"&&<div className="fox-task-calendar">
-          <div className="fox-task-calendar-head"><button onClick={()=>setMonth(m=>{const d=new Date(m+"-01T12:00:00");d.setMonth(d.getMonth()-1);return d.toISOString().slice(0,7);})}>←</button><strong>{new Date(month+"-01T12:00:00").toLocaleDateString("ru-RU",{month:"long",year:"numeric"})}</strong><button onClick={()=>setMonth(m=>{const d=new Date(m+"-01T12:00:00");d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,7);})}>→</button></div>
-          <div className="fox-task-calendar-grid">{["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map(day=><div className="fox-task-calendar-weekday" key={day}>{day}</div>)}{(()=>{
-            const first=new Date(month+"-01T12:00:00");
-            const offset=(first.getDay()+6)%7;
-            const length=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();
-            return Array.from({length:Math.ceil((length+offset)/7)*7},(_,i)=>{
-              const day=i-offset+1;
-              if(day<1||day>length)return <div className="fox-task-calendar-day muted" key={"blank"+i}/>;
-              const date=month+"-"+String(day).padStart(2,"0");
-              const dayTasks=filteredTasks.filter(task=>task.dueDate===date);
-              return <div className="fox-task-calendar-day" key={date}><span className={date===new Date().toISOString().slice(0,10)?"today":""}>{day}</span>{dayTasks.slice(0,3).map(task=><button key={task.id} className={task.status==="done"?"complete":""} onClick={()=>setSelection({type:"tasks",id:task.id})} title={task.title}>{task.title}</button>)}{dayTasks.length>3&&<small>+{dayTasks.length-3}</small>}</div>;
-            });
-          })()}</div>
-        </div>}
+        {view==="calendar"&&<TaskCalendar tasks={filteredTasks} onOpen={id=>setSelection({type:"tasks",id})} onReschedule={(id,dueDate)=>updateTask(id,{dueDate})}/>}
         {view==="timeline"&&<div className="fox-task-chronology"><div className="fox-task-timeline-line"/>{filteredTasks.filter(t=>t.dueDate).sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).map(task=><button key={task.id} className="fox-task-timeline-event" onClick={()=>setSelection({type:"tasks",id:task.id})}><small>{dateLabel(task.dueDate)}</small><i/><strong>{task.title}</strong><span>{STATUS_LABELS[task.status]}</span></button>)}{!filteredTasks.some(t=>t.dueDate)&&<div className="fox-task-timeline-empty">Укажите сроки задач, чтобы они появились на временной линии.</div>}</div>}
         {!filteredTasks.length&&<div className="fox-organizer-empty"><ClipboardList size={29}/><h3>Задач пока нет</h3><p>Создайте первую задачу или измените условия поиска.</p><button className="outline-button" onClick={()=>{setCreating("tasks");setNewTitle("");}}><Plus size={15}/> Создать задачу</button></div>}
       </> : <div className="fox-notes-grid">{filteredNotes.map(note=><button className="fox-note-card" key={note.id} onClick={()=>setSelection({type:"notes",id:note.id})}><div>{note.pinned&&<Pin size={15}/>}<h3>{note.title}</h3></div><p>{note.body||"Откройте заметку, чтобы добавить текст."}</p><small>Изменена {new Date(note.updatedAt).toLocaleDateString("ru-RU")}</small></button>)}{!filteredNotes.length&&<div className="fox-organizer-empty"><StickyNote size={29}/><h3>Заметок пока нет</h3><p>Создайте заметку для идей, планов или черновиков.</p><button className="outline-button" onClick={()=>{setCreating("notes");setNewTitle("");}}><Plus size={15}/> Создать заметку</button></div>}</div>}
