@@ -89,3 +89,12 @@ test("public feed has the requested Telegram and VK sources and verified posts",
     expect(post.url.startsWith("https://")).toBeTruthy();
   }
 });
+
+test("real feed sources show Telegram and VK source states", async ({page},info)=>{
+  await page.getByRole("button",{name:"Лента",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"Лента"})).toBeVisible();
+  await expect(page.getByText("Telegram · @bulotkaff").first()).toBeVisible();
+  await expect(page.getByText("ВКонтакте · btsah").first()).toBeVisible();
+  await expect(page.getByRole("link",{name:/Открыть источник/})).toHaveCount(2);
+  await info.attach("feed",{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
+});
