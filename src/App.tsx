@@ -7,7 +7,7 @@ import {
   CircleHelp, CalendarDays, Folder, Sparkles, SlidersHorizontal
 } from "lucide-react";
 
-type Screen = { id: string; name: string };
+type Screen = { id: string; name: string; tableId?: string };
 type Section = "home" | "files" | "notes" | string;
 
 const starterScreens: Screen[] = [];
@@ -35,6 +35,7 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [tableRevision, setTableRevision] = useState(0);
 
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
   useEffect(() => { localStorage.setItem("fox-theme", JSON.stringify(theme)); }, [theme]);
@@ -118,7 +119,7 @@ export default function App() {
         ) : (
           <section className="content-page">
             <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div><button className="outline-button" onClick={() => setCreateOpen(true)}><Plus size={16}/> Добавить</button></div>
-            <div className="canvas-empty"><div className="canvas-plus"><Plus size={22}/></div><h2>Начните с таблицы</h2><p>Создайте новую таблицу или подключите существующую. После этого можно будет добавить графики, диаграммы и другие виджеты на основе её данных.</p><button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={16}/> Добавить таблицу</button></div>
+            <div className="screen-table-panel"><h2>Источник данных</h2><p>Подключите таблицу к этому экрану. Изменения в таблице будут доступны в разделе «Файлы и таблицы».</p><select className="form-input" value={activeScreen?.tableId??""} onChange={e=>setScreens(prev=>prev.map(s=>s.id===active?{...s,tableId:e.target.value||undefined}:s))}><option value="">Без таблицы</option>{read<{id:string;name:string}[]>("fox-tables-v1",[]).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select>{activeScreen?.tableId && <div className="screen-table-attached"><FileSpreadsheet size={20}/><span>Таблица подключена. Откройте редактор, чтобы изменить данные.</span><button className="outline-button" onClick={()=>setActive("files")}>Открыть таблицы</button></div>}</div>
           </section>
         )}
       </main>
