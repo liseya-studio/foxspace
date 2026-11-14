@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Bell, CheckCheck, Clock3, CalendarDays, AlertCircle, Check, RotateCcw, ArrowUpRight, Inbox, Monitor, BellOff } from "lucide-react";
-import { listNotifications, markAllNotifications, markNotification, snoozeNotification, enableDesktopReminders, disableDesktopReminders, getReminderPreferences, type LocalNotification } from "./data";
+import { listNotifications, markAllNotifications, markNotification, snoozeNotification, enableDesktopReminders, disableDesktopReminders, dispatchDesktopReminders, getReminderPreferences, type LocalNotification } from "./data";
 
 type Props={onOpenTask:(taskId:string)=>void};
 type Filter="all"|"unread";
@@ -32,7 +32,7 @@ export default function NotificationCenter({onOpenTask}:Props){
       {!visible.length&&<div className="fox-comm-empty"><Inbox size={32}/><h2>{filter==="unread"?"Всё прочитано":"Уведомлений нет"}</h2><p>{filter==="unread"?"Новых уведомлений пока нет.":"Здесь появятся задачи со сроком сегодня, просроченные и задачи на ближайшие три дня."}</p></div>}
       </div>
     </div>
-    <div className="fox-notification-desktop"><div><Monitor size={17}/><span><strong>Напоминания на рабочем столе</strong><small>По желанию браузер показывает уведомление о задачах со сроком сегодня, пока Fox Space открыт.</small></span></div><button onClick={async()=>{if(getReminderPreferences().enabled){disableDesktopReminders();setVersion(v=>v+1);}else{const ok=await enableDesktopReminders();setPermissionMessage(ok?"Уведомления включены.":"Браузер не разрешил показывать уведомления.");setVersion(v=>v+1);}}}>{getReminderPreferences().enabled?<BellOff size={15}/>:<Bell size={15}/>} {getReminderPreferences().enabled?"Отключить":"Включить"}</button></div>
+    <div className="fox-notification-desktop"><div><Monitor size={17}/><span><strong>Напоминания на рабочем столе</strong><small>По желанию браузер показывает уведомление о задачах со сроком сегодня, пока Fox Space открыт.</small></span></div><button onClick={async()=>{if(getReminderPreferences().enabled){disableDesktopReminders();setVersion(v=>v+1);}else{const ok=await enableDesktopReminders();setPermissionMessage(ok?"Уведомления включены.":"Браузер не разрешил показывать уведомления.");if(ok)dispatchDesktopReminders();setVersion(v=>v+1);}}}>{getReminderPreferences().enabled?<BellOff size={15}/>:<Bell size={15}/>} {getReminderPreferences().enabled?"Отключить":"Включить"}</button></div>
     {permissionMessage&&<p className="fox-comm-footnote" role="status">{permissionMessage}</p>}
     <p className="fox-comm-footnote">Уведомления внутри приложения работают локально. Системные оповещения требуют разрешения браузера и не доставляются при закрытом Fox Space.</p>
   </section>;
