@@ -143,9 +143,9 @@ export default function App() {
             </div>
           </section>
         ) : active === "files" ? (
-          <FilesHub createAction={createAction?.type==="table"||createAction?.type==="folder"?createAction:null}/>
+          <FilesHub createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null}/>
         ) : active === "notes" ? (
-          <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?createAction:null}/>
+          <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?{type:createAction.type,id:createAction.id}:null}/>
         ) : (
           <section className="content-page">
             <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div></div>
