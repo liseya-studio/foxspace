@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T12:05:39.455054+00:00",
+  "generatedAt": "2026-11-14T17:21:04.281397+00:00",
   "sources": [
     {
       "id": "telegram-bulotkaff",
@@ -7,8 +7,8 @@
       "title": "Telegram · @bulotkaff",
       "url": "https://t.me/bulotkaff",
       "status": "ok",
-      "message": "Загружено публикаций: 3",
-      "updatedAt": "2026-11-14T12:05:39.455054+00:00"
+      "message": "Загружено публикаций: 5",
+      "updatedAt": "2026-11-14T17:21:04.281397+00:00"
     },
     {
       "id": "vk-btsah",
@@ -21,6 +21,24 @@
   ],
   "posts": [
     {
+      "id": "telegram:bulotkaff/18441",
+      "sourceId": "telegram-bulotkaff",
+      "text": "Истории Юнги ☾ | AU, fanfiction\npinned a photo",
+      "url": "https://t.me/bulotkaff/18441",
+      "date": "2026-11-14T15:35:35+00:00",
+      "images": []
+    },
+    {
+      "id": "telegram:bulotkaff/18440",
+      "sourceId": "telegram-bulotkaff",
+      "text": "16.11 - 22.11 РАСПИСАНИЕ ПОСТОВ\nВ NSFW AUшке будет всего 7 глав, они уже написаны и раскиданы в отложку, так что ждите)))\nЯ пока в ресурсе, контентика выйдет прилично, это примерное расписание, возможно работ будет больше (но не меньше).\nКак обычно, всё платное будет в пончике ВК или 1 глава = 1\n⭐️\n\"Девочка с сюрпризом\" тут выходит в открытом доступе.",
+      "url": "https://t.me/bulotkaff/18440",
+      "date": "2026-11-14T15:35:32+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/rnTOyLazehTtSSR4zLEhPzmlp1mJpXJ9_jqeti7JZhEvzQmv_BX054YGAjeJA7E9p5pSiKkyZg-etqoClKtCjyJ1nJwEDyZWvUesbzl2C8JObQ7AsgOQL6haw5TzNGjZeeMEQjcqXKv1NwUvi-UHcQlikTehS16gnI_WSVc64ac9WqjW9zEDU7RVRbqgw4JsDHlUzrzTVS7JivgUtILXWDV9M9qGSrwCS_zhfqq5vYwcOu1UZ4mvv5EAVkJ25-MQOV8X43EAfz87SYV-t2ob66TcOqkm8k7OYIs0eCEx-UjL3-bP7jjyLEgyf47H40H3n31H0y509SQe71mrNUZ1XQ.jpg"
+      ]
+    },
+    {
       "id": "telegram:bulotkaff/18433",
       "sourceId": "telegram-bulotkaff",
       "text": "#девочка_с_сюрпризом@bulotkaff\n[47.5]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
@@ -32,7 +50,8 @@
         "https://cdn4.telesco.pe/file/c8MUSARkBdzpefFHIgZb4Nxff-zsBiAPcE2HOUcpRUyTDpN9GPK52aA6gKZXdUNdPPWvcRABBiF_0OXtS7_LHIAtV_gm5rtqUmHTq7wthlxFHVSFFrB-a4w0usxSxP7VO5dKMh1WpFdJYQHQQDs6i5NcVpF2nH3wJqwZPvBoGfg_5pkSWSfQ4bFZMf6FM7nqZ4mqny_o9ltC4HtJAkjy603wabvurxQiAo_PVG6la966i724hvOIAEyngGdXhCnf-ZF_-zMYhn9yiiWyAjp5Yaf43-ST5oXM9TGkirss_UtZZaESVL1_sxZDSesqQed5bQ5UOOG6qBnZ3xP8D4Ptmg.jpg",
         "https://cdn4.telesco.pe/file/uIuTkmW4mHLYBjWBCz9-uQbxCR7pj3zjSm60RbEDfoY_y4GCmpXl4bMwgd_GxERwUliv31GKGqREm0cUOvYoo60RxWw1xmkcR1h_rEaa7sNC8Sx5un2-4gJTBSQeBK8-K571bc3LvuENGX4_V_JGAWtVIduyKNwbbEwRm2eTwg0sEooqxO12zXAAmKA1ebz6ci0FLUHTq1FUCV7cn29zMXfdM8-BxbEcsoh9Wo7AVCoBWwnnVEDzVzdm9XnQ-DirYNvgLaNpY1lAUpKe9B0B-QkVGD-G-pKktA1quaPj1lFx7DpdtmjAT4NuVRXqwPqaWiB96GLaB3aIvEED2RTptg.jpg",
         "https://cdn4.telesco.pe/file/M2WfCZduyV-fRtFy9HXa2idYTLOgO5QL8aYQIsCNlHjEND9Q0yhAw3c35QXHYPY9BX7Frqf_gMT_Wp4eoj2jgw_4TmzXUESemDspJ40v5aWXNOv_fWkDJKjwMVkHnGNx8JlG5F2TJ80wDChasETuKsL75isVIxllFSUuKUtsFDnqbMwXEhw7D8L7dQyyxGQ_Pv0zJAcGfCyUGTm5THRc_E2O8hjhQ46BCunz-PNwGOzdtnYgH4kftGF11tB9r2h7PEUZKW6LLbAAT8nO0IUZ3r5WJHptUoipXP3lbfqQ2IhLp3TY2U8fgkaYpVEMfkp7jwQ4d0NP2oA4x5Hyf64q_w.jpg",
-        "https://cdn4.telesco.pe/file/VEMbWGukkqPL6ayv1WxpAUoDFk4Z28_tD7SGYWPzW_hDlcp635nEBpd2EGA60oqZ7dHSvNuVjOX6UTB9Hl4knI1yTzEJxGm4vdfKcG9IktTgzCLsND1PC4IchIoGFPzn19Rm1xmKOe1pI74v2ADu5eML5r_IKIEvcCf5DYfuc7rrdz3W9AJ0sJjrh8DRc2uTBV6a2HKekxGWxzL4vFvyBeF-u7T7qDIdnZkIhubrJ6ju2lTMkSbaZzTIgef0tPf7galcRUAD1arL2zU9252xFt3iEaBZNzloHXXzuVaJCsUp8FFIiGUePfjB6rYpuOv9Ym7mvO47izOiA1TdQKCaQw.jpg"
+        "https://cdn4.telesco.pe/file/VEMbWGukkqPL6ayv1WxpAUoDFk4Z28_tD7SGYWPzW_hDlcp635nEBpd2EGA60oqZ7dHSvNuVjOX6UTB9Hl4knI1yTzEJxGm4vdfKcG9IktTgzCLsND1PC4IchIoGFPzn19Rm1xmKOe1pI74v2ADu5eML5r_IKIEvcCf5DYfuc7rrdz3W9AJ0sJjrh8DRc2uTBV6a2HKekxGWxzL4vFvyBeF-u7T7qDIdnZkIhubrJ6ju2lTMkSbaZzTIgef0tPf7galcRUAD1arL2zU9252xFt3iEaBZNzloHXXzuVaJCsUp8FFIiGUePfjB6rYpuOv9Ym7mvO47izOiA1TdQKCaQw.jpg",
+        "https://cdn4.telesco.pe/file/rsAf1LlGKEabXo7mIUNNaDPKQeFG97Q20sakEM03dTZHUs4CAnExV2_BiIO7tmAv7tQx3Q-9uqXOhMantFUvRGL_2eFrVESyFHOzU8aTk7hKuS8-HCjSzKvtrtbMbQ1nr1e4pgoDOhKScKo3zfKILWFg1yktBY2JYIRGpFZjekfSFlvOXe6c1jatLF0yNcrKIdJbXfPg_DlX8IoLeDoguSGdPs99TZ12w75-G4RZtddM0009rqkU40YEB6j8Zg0QYPUoisjx9E6eYMGBKMkQ31nTiOASXyY_XmMg7vSuPhattbj0qAbHDWeozO_aqxsIdZyEthpMezk7vkZGQsmD2w.jpg"
       ]
     },
     {
@@ -47,7 +66,9 @@
         "https://cdn4.telesco.pe/file/PKKiPUdQXEsmEki1J8nmy2ls7C37iMBjuS_AbszcPH3RMH6O84Ir_7WVMENVfza145H4wfj_MWS141wAOSYa8-PKrUTVrJ6T_5TuIj2x0OwOXkHo2B3Um8LGufYVip8N2IXSawDrdHfH07-QgVxMkHgSBkNy1rytV_S3QKPHkn4ab0wWq51WI6uKH0AVKKFGtglYJ9bEEjiZ8fF0YIlYNXQ69tB5Y7FCIvloVItk7a3z6Aanfmk6r0FmqkJrOpL7UoU15yzFe6Y1sZH3z6tcNlWrrbdpHuaxynEtbRApXIRdG9ZlT-ofpJPVJkTTFhq274KKQQeWTKi2-Hb4e8J1ag.jpg",
         "https://cdn4.telesco.pe/file/NCBHkRw44K9pmneE_PvtQ59abpv28TMPa9TX0TdqRHXjQ_I2ct_AZLUguH6XFgfh6r_8gP-LP3luH7qIMmGyxdeBJF_m_Fl0tWfyfbbBMicXGkyJGhZXlRWLEWaZrlXKoVsyFeJQknn4StD-BQAWq2tJ7ejZgW03hE_RxxA75xvA_xuqXyhx8A3usQAwhCzU53zmgueb4V7MEcJnjF5_kDSNZ4swxp05mfM8ekPjy5z2_y81X8aWrIf2Ebgnbs3UYlFq9OTab-Agcnl6-kOvFmwtmgR-088mQEfjMmbk6YLH7WHMJ6D4bIhGQlnHzrhXDzkN6Lt63Yxn8JMRnB3oVA.jpg",
         "https://cdn4.telesco.pe/file/ZyjkKs97RyP6r86B6Gl6K_ELM92P9pCkYLcHXVDAmdFPl2CdxaewuDg_eGM1NJXlXiVMxwTUqsOlsi8Pmu1hbRRPwZbFqVk8UQjaER6x4DsoIs3ZQ5DD23cSe92aYH5v-ijILGxoqjoh3BDN8wEHVOFb910cRwjEFkNIZa6vNkDxJEjXMumBZPHrt4VLmwIMOkfKScijCdlNXEBqWfb5DER2sHBIHXF6A8jG_KAONHAQJa_jh9XT93xAlawj4ITAzl9n3wJpLgw6kZTYG_7Ay6CiuDn-EFX57-nHoy6VKSSV6zyTca-d9bA-HisonME-pgNCzAYYaUCaJgLsbdCRsw.jpg",
-        "https://cdn4.telesco.pe/file/HTy273OTnehlRZ79k8TN7eiGOxnatrhWksFDtmjEKOntw4IzLrJogqoFp2zbVI5B1yKcl9o_9cOiC2tYr58VuOrTimur6wThtk2mLhdMwKShWmcisPKlAg14CitaLBdNEbVMFZrPMj1JFVHUGjLlJr8Mm4AwwvI98hBe0zAReivHcrJyQZhqXjoMXlkasJNrqI0Yvo27Tb5UpGWTtFbLAgL2IIDm6uWFH2NnkXMLq2uo7p9uN0WJs5o1QygI3knLTUlckeVsC_nBLvUxmWEZKIKKwQKYPcFfDvDQjQIlkHdauvlEJjnHhF8MEpz_kJZetSHT3_WYNZnR8cGM1uUQ9w.jpg"
+        "https://cdn4.telesco.pe/file/HTy273OTnehlRZ79k8TN7eiGOxnatrhWksFDtmjEKOntw4IzLrJogqoFp2zbVI5B1yKcl9o_9cOiC2tYr58VuOrTimur6wThtk2mLhdMwKShWmcisPKlAg14CitaLBdNEbVMFZrPMj1JFVHUGjLlJr8Mm4AwwvI98hBe0zAReivHcrJyQZhqXjoMXlkasJNrqI0Yvo27Tb5UpGWTtFbLAgL2IIDm6uWFH2NnkXMLq2uo7p9uN0WJs5o1QygI3knLTUlckeVsC_nBLvUxmWEZKIKKwQKYPcFfDvDQjQIlkHdauvlEJjnHhF8MEpz_kJZetSHT3_WYNZnR8cGM1uUQ9w.jpg",
+        "https://cdn4.telesco.pe/file/pka7IvLHZTiw1FZW47XTWIEsPMGPCyPuM5xoVnAvG6Uk4y2yu5wWIWZYfrXe8KohIAtmJAwNP7Ao5RhwhOjPAr_8PTw_6K192XZdiHLb-4gg-5WfqRvPDcVQzqnBkFfz82z5hQ5HUMeQy5MzzWJc1yi9bRoFbccLCFaceutztPA8f23gv_sPdxDytdLiPsekzLWqg3Xf5fRlQMqfBs-2vI9ZywFi-xtBRV0ZsSvjOJir_A31FnJOEPWEbNzAbzDo9_i3wt86mmdf-R9GhwrXMkkFrp7yr7OkgrggvjK1VUI5Kj5V_lDo00tAQrfxcOYE6vSsoA8wURMVs4szSRBl5w.jpg",
+        "https://cdn4.telesco.pe/file/PnN15StITGMQ10eQrB1MToqjIqleRIYoe0WQ7ZyqV3ObKFg3DA1VIgkrG2BAotf1QaYv8EeqWER1Ff-he1zc-9VrhGwGXx1qHBu0WQ1e9T-nhWh8wQflyhv6JJBJOF4WjtirGBeK1UNVIXjNar1f58awhhikuKMGtIoArclqXUblm5mE3BKkzrcfm2Li3ne_BUlAZNTKIBgoIShnbKh-G9HkOboVMJlvluHrALeNjxjquFk6_QSYuPDvXaFD77zV_6SwMS6NgXrG9uFEFK6zrnSnhwbnBYEVuRtGrKhsdzHi6O-TPPXZVlH2Kv_hkLpnb8vAk7Ia8QKsmCF6lpWyrQ.jpg"
       ]
     },
     {
@@ -62,7 +83,9 @@
         "https://cdn4.telesco.pe/file/Co9L5w3tVSC9IkAwBMqilDpcwHTXF8Rc5gZJROzPeuZX7AbeM4b8bUHX3AdL1eOck8boAGTRTUAUt8OXWKp3E58yGiQkpArKDspdPbOSwruoGj0JC2FxEJLwgksTRrBAPqFJphfxy1LP7t480gJpvML2P1Ks-lR3r0AtCyDYVQIO-U-opi7drhoHSVrODOFD6ix9NtUV1IcUJ6zEM1gJLK9sqjWa5M0FEVmhJ8MPkhGcivsvwXQXOovt-CRj3dMLnFj3zzJIF1LuVYRxQ-d_51HtwFSV1wfbuPH3wTc87B8vELPB5YXnRWuloXxYmlbtkglDoELiPG4wd3WpHwGt8A.jpg",
         "https://cdn4.telesco.pe/file/udqpriiMnGnnV8SowoXvPOrcVxkysZZjs05h8BzUhzFxQOD9VqE6srnhPGrdHDyQY6VzJCvl1XvAKsIEGhi97_5k5jNT7TRS2nehRKoYQJbDTsvHA94ZjiuIlIBECRoRyMXoQzvJZXRpluxo4Czf5UDWXJbosFL5TUPcyoPUhxGMbS4hlHsrX-yumXsMZo7DwI66XcV1Jnf9Do87RDcY8LW1aPfu1U9xLmU5s3BQTzvjoP_wiM_SsgeClQBSDMhGYMW1YvLisdFB3rGvJXx0cyIDJAb1mbE8aFJEszLz3RmjrBbXn9RZgfX4HnbRKHt9NhG6kh4U_adN1Z41csvfSg.jpg",
         "https://cdn4.telesco.pe/file/lBWo2CiTzc-hbRmGg3PVrGuKdIRbYqfw63FwdZXQI4oe-Jw01G2L6CR0359IwgYoJB95ZUsZ8rVgDWlZUzkJj9dYxJw1ByS0vHhEffhMfxca8ASJb_EOsyoTa19cLPOswnQSWmcdagzcgEFMrpBecQEw-OeWHCRVQC3I4H5ZaUklj_Wl2ntWc0fTz3ilCkhBMvSKA_7MUOT8BcivHgFKa_P7DCt1_qgzMuOB7MnmJ9iXrF0FSTT4uSjKokdgtFGND8jnQODW94oFFCv1-H0ICsgYVs4ZB3UQdTPcwYQsvsSj3jmjhCw1KfpKVsWCFonyPQ2aAo362jTHb-lO0mjWig.jpg",
-        "https://cdn4.telesco.pe/file/PN2a0rJhuZDahYwy3mZu3jVYja7bOHUB5-9Ai9KAaQoYwkwwZ_qIaXwF75giufq_baD3E7TVhgxwwsKZF0RZz3q-NqHTRIb8gJzf5rhPWXCphH8mnu5Fk7vaF3bhchiVOX8YbGqGzDzCMAkh_88QmoJmapfJuGVPrsLwaxa3o3M2KCJ6b4K_he7hPqoYImgls14j60m_BFW9LxtIXVJV3pZyHEpi9sR-ZgSk6rjSOUatjf447fb85vEjf6FlXREi6-Q76tBooShaIub-7k78A0Dfu3Dxdv94jWGgMtKyAyArW0wE3hZbkhw9-KJ6ARFMT1iPap_GenEn7-aa2plsrQ.jpg"
+        "https://cdn4.telesco.pe/file/PN2a0rJhuZDahYwy3mZu3jVYja7bOHUB5-9Ai9KAaQoYwkwwZ_qIaXwF75giufq_baD3E7TVhgxwwsKZF0RZz3q-NqHTRIb8gJzf5rhPWXCphH8mnu5Fk7vaF3bhchiVOX8YbGqGzDzCMAkh_88QmoJmapfJuGVPrsLwaxa3o3M2KCJ6b4K_he7hPqoYImgls14j60m_BFW9LxtIXVJV3pZyHEpi9sR-ZgSk6rjSOUatjf447fb85vEjf6FlXREi6-Q76tBooShaIub-7k78A0Dfu3Dxdv94jWGgMtKyAyArW0wE3hZbkhw9-KJ6ARFMT1iPap_GenEn7-aa2plsrQ.jpg",
+        "https://cdn4.telesco.pe/file/ENffK93XsNyNjzAd1CBAUeLmFZ9neeQpeG6Q5F1lGbPFqsUwzTDHtawIIdBuC_LunuGs8MCLyDyJj89uuN1zWUmiAC-yLEWr8rB30q2e_xQES1X_AyCO7Ulpxkginb69h10XUxhcFJKBis-sA7Wtb1CB8RYoDcXf0JdI8hgLSvORKdMvKPL3v84aZ6nFHqZUsn7qFklLGhdflpXkJYAt0JOsEi4nXENfCUmsDaAXzKKm1q6r8thQKlkEuwbPoOjSumw82B-LY3HWrkNkn628aGifwLCLW5Rzn76AjQPWfd-ab7sZYo3qRyDbbzHd2AFpnuypgNR1JWgc2hw_xksyzQ.jpg",
+        "https://cdn4.telesco.pe/file/jAh80GpUTXTZTCGLVjIlwcMhjmmgmUYfP7NTDMR_HsDoPUYjPK6iQu14jjA47enj-KdSwnErVzTR-K53r-0NjVFB-McVAOU-PiXKdUIkTmPZJkoE1I1LzwwKJOLpFZKKPdc51zfS5pYY9gcW-caNiSLMQVr-2YnJkfT5TYcZOYdIn3H_QMuTzExl8e98nqFCOi-KrHxEWx0F3ps7n5Yg8o7Mxv4M1w4QZdHMmmkvZcXDYu4g37EoW25QErPAzVjNNPGBtoFDr8R8_zUTQtNPHKZl4YV4HU2y2YhZNqhe7DKjoKwVfggnQm5Jb9daa2g5rcwcESN_CB8BQAf0HVXL4A.jpg"
       ]
     }
   ]
