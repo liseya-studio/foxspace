@@ -6,6 +6,9 @@ import { listItems, type StoredItem } from "./features/files/storage";
 import FoxEditor from "./features/editor/FoxEditor";
 import NotesTasks from "./features/notes/NotesTasks";
 import { readNotesTasks } from "./features/notes/data";
+import NotificationCenter from "./features/notifications/NotificationCenter";
+import MessagesCenter from "./features/messages/MessagesCenter";
+import { unreadNotificationCount } from "./features/notifications/data";
 import {
   Bell, Mail, Search, Plus, ChevronDown, MoreHorizontal, Settings,
   FileSpreadsheet, StickyNote, CheckSquare, LayoutDashboard, X, Sun,
@@ -14,7 +17,7 @@ import {
 } from "lucide-react";
 
 type Screen = { id: string; name: string; tableId?: string };
-type Section = "home" | "files" | "notes" | string;
+type Section = "home" | "files" | "notes" | "notifications" | "messages" | string;
 
 const starterScreens: Screen[] = [];
 const accents = [
@@ -43,12 +46,22 @@ export default function App() {
   const [renameValue, setRenameValue] = useState("");
   const [screenMenuId, setScreenMenuId] = useState<string | null>(null);
   const [fileIndex,setFileIndex] = useState<StoredItem[]>([]);
+  const [notificationRevision,setNotificationRevision] = useState(0);
+  const [taskToOpen,setTaskToOpen] = useState<string|null>(null);
+  const [previousSection,setPreviousSection] = useState<Section>("home");
   const [createAction,setCreateAction] = useState<{type:"task"|"note"|"table"|"folder";id:number}|null>(null);
   const [createError,setCreateError] = useState("");
   const uploadInput=useRef<HTMLInputElement>(null);
 
 
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
+  useEffect(()=>{
+    const update=()=>setNotificationRevision(current=>current+1);
+    window.addEventListener("fox-notifications-updated",update);
+    window.addEventListener("fox-notes-tasks-updated",update);
+    window.addEventListener("storage",update);
+    return ()=>{window.removeEventListener("fox-notifications-updated",update);window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};
+  },[]);
   useEffect(()=>{if(!searchOpen)return;let active=true;void listItems().then(items=>{if(active)setFileIndex(items);}).catch(()=>{if(active)setFileIndex([]);});return()=>{active=false;};},[searchOpen]);
   useEffect(() => { localStorage.setItem("fox-theme", JSON.stringify(theme)); }, [theme]);
   useEffect(() => { localStorage.setItem("fox-accent", JSON.stringify(accent)); }, [accent]);
@@ -62,6 +75,7 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  const unreadCount = useMemo(()=>unreadNotificationCount(),[notificationRevision]);
   const activeScreen = screens.find(s => s.id === active);
   const availableTables = read<{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:{id:string;cells:Record<string,string|number|boolean>}[]}[]>("fox-tables-v1",[]);
   const attachedTable = availableTables.find(t => t.id === activeScreen?.tableId);
@@ -73,6 +87,13 @@ export default function App() {
   const matchingTasks = searchTerm ? organizerSearch.tasks.filter(t=>(t.title+" "+t.description+" "+t.tags.join(" ")).toLocaleLowerCase("ru").includes(searchTerm)).slice(0,8) : [];
   const matchingNotes = searchTerm ? organizerSearch.notes.filter(n=>(n.title+" "+n.body).toLocaleLowerCase("ru").includes(searchTerm)).slice(0,8) : [];
 
+  function openTopSection(section:"notifications"|"messages"){
+    setSearchOpen(false);setSettingsOpen(false);
+    if(active===section){setActive(previousSection);return;}
+    if(active!=="notifications"&&active!=="messages")setPreviousSection(active);
+    setActive(section);
+  }
+  function navigateToTask(taskId:string){setTaskToOpen(taskId);setActive("notes");}
   function startCreate(type:"task"|"note"|"table"|"folder"|"screen"|"upload"){
     setCreateOpen(false);setCreateError("");
     if(type==="screen"){addScreen();return;}
@@ -113,8 +134,8 @@ export default function App() {
         </div>
         <div className="top-actions">
           <button className="search-trigger" onClick={() => setSearchOpen(true)}><Search size={16}/><span>Поиск</span><kbd>⌘ K</kbd></button>
-          <button className="icon-button" title="Уведомления"><Bell size={18}/><i className="notification-dot"/></button>
-          <button className="icon-button" title="Сообщения"><Mail size={18}/></button>
+          <button className={"icon-button"+(active==="notifications"?" active":"")} title="Уведомления" aria-label={"Уведомления: "+unreadCount+" непрочитанных"} onClick={()=>openTopSection("notifications")}><Bell size={18}/>{unreadCount>0&&<span className="fox-bell-count">{unreadCount>99?"99+":unreadCount}</span>}</button>
+          <button className={"icon-button"+(active==="messages"?" active":"")} title="Сообщения" onClick={()=>openTopSection("messages")}><Mail size={18}/></button>
           <button className="icon-button" title="Настройки" onClick={() => setSettingsOpen(true)}><Settings size={18}/></button>
         </div>
       </header>
@@ -142,10 +163,14 @@ export default function App() {
               <div className="art-float float-three"><StickyNote size={19}/></div>
             </div>
           </section>
+        ) : active === "notifications" ? (
+          <NotificationCenter onOpenTask={navigateToTask}/>
+        ) : active === "messages" ? (
+          <MessagesCenter />
         ) : active === "files" ? (
           <FilesHub createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
         ) : active === "notes" ? (
-          <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
+          <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)} openTaskId={taskToOpen} onTaskOpened={()=>setTaskToOpen(null)}/>
         ) : (
           <section className="content-page">
             <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div></div>
@@ -188,7 +213,7 @@ export default function App() {
         <button onClick={()=>startCreate("upload")}><Upload size={19}/><span><strong>Загрузить файлы</strong><small>В локальное хранилище</small></span></button>
       </div></div></div>}
 
-      {searchOpen && <div className="overlay search-overlay" onMouseDown={e => e.target === e.currentTarget && setSearchOpen(false)}><div className="search-dialog"><div className="search-line"><Search size={19}/><input autoFocus placeholder="Экраны, таблицы, задачи, заметки..." value={search} onChange={e => setSearch(e.target.value)}/><kbd>ESC</kbd><button className="close-button" onClick={() => setSearchOpen(false)}><X size={17}/></button></div><div className="search-results"><button onClick={() => {setActive("home");setSearchOpen(false);}}><LayoutDashboard size={17}/>Главная</button><button onClick={() => {setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/>Файлы и таблицы</button><button onClick={() => {setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/>Заметки и задачи</button>{filteredScreens.map(s => <button key={s.id} onClick={() => {setActive(s.id);setSearchOpen(false);}}><LayoutDashboard size={17}/>{s.name}</button>)}{matchingFiles.length>0&&<div className="fox-search-category">Файлы и папки</div>}{matchingFiles.map(item=><button key={item.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><Folder size={17}/><span>{item.name}</span></button>)}{matchingTables.length>0&&<div className="fox-search-category">Таблицы и данные</div>}{matchingTables.map(t=><button key={t.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/><span>{t.name}</span></button>)}{matchingTasks.length>0&&<div className="fox-search-category">Задачи</div>}{matchingTasks.map(t=><button key={t.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><CheckSquare size={17}/><span>{t.title}</span></button>)}{matchingNotes.length>0&&<div className="fox-search-category">Заметки</div>}{matchingNotes.map(n=><button key={n.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/><span>{n.title}</span></button>)}</div></div></div>}
+      {searchOpen && <div className="overlay search-overlay" onMouseDown={e => e.target === e.currentTarget && setSearchOpen(false)}><div className="search-dialog"><div className="search-line"><Search size={19}/><input autoFocus placeholder="Экраны, таблицы, задачи, заметки..." value={search} onChange={e => setSearch(e.target.value)}/><kbd>ESC</kbd><button className="close-button" onClick={() => setSearchOpen(false)}><X size={17}/></button></div><div className="search-results"><button onClick={() => {setActive("home");setSearchOpen(false);}}><LayoutDashboard size={17}/>Главная</button><button onClick={() => {setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/>Файлы и таблицы</button><button onClick={() => {setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/>Заметки и задачи</button><button onClick={()=>{setActive("notifications");setSearchOpen(false);}}><Bell size={17}/>Уведомления</button><button onClick={()=>{setActive("messages");setSearchOpen(false);}}><Mail size={17}/>Сообщения</button>{filteredScreens.map(s => <button key={s.id} onClick={() => {setActive(s.id);setSearchOpen(false);}}><LayoutDashboard size={17}/>{s.name}</button>)}{matchingFiles.length>0&&<div className="fox-search-category">Файлы и папки</div>}{matchingFiles.map(item=><button key={item.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><Folder size={17}/><span>{item.name}</span></button>)}{matchingTables.length>0&&<div className="fox-search-category">Таблицы и данные</div>}{matchingTables.map(t=><button key={t.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/><span>{t.name}</span></button>)}{matchingTasks.length>0&&<div className="fox-search-category">Задачи</div>}{matchingTasks.map(t=><button key={t.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><CheckSquare size={17}/><span>{t.title}</span></button>)}{matchingNotes.length>0&&<div className="fox-search-category">Заметки</div>}{matchingNotes.map(n=><button key={n.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/><span>{n.title}</span></button>)}</div></div></div>}
 
       {settingsOpen && <div className="overlay settings-overlay" onMouseDown={e => e.target === e.currentTarget && setSettingsOpen(false)}><aside className="settings-panel"><div className="settings-head"><div><div className="eyebrow">ПЕРСОНАЛИЗАЦИЯ</div><h2>Настройки</h2></div><button className="close-button" onClick={() => setSettingsOpen(false)}><X size={18}/></button></div><div className="setting-group"><h3>Тема оформления</h3><div className="theme-options"><button className={theme === "light" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("light")}><Sun size={18}/>Светлая</button><button className={theme === "dark" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("dark")}><Moon size={18}/>Тёмная</button><button className={theme === "system" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("system")}><Monitor size={18}/>Системная</button></div></div><div className="setting-group"><h3>Акцентный цвет</h3><p>Используется для кнопок и активных элементов интерфейса.</p><div className="accent-options">{accents.map(c => <button key={c.value} className={accent === c.value ? "accent-swatch selected" : "accent-swatch"} style={{"--swatch":c.value} as CSSProperties} onClick={() => setAccent(c.value)} title={c.name}/>)}</div></div><BackupPanel /><div className="settings-note"><SlidersHorizontal size={17}/> Дополнительные настройки появятся по мере развития Fox Space.</div></aside></div>}
     </div>
