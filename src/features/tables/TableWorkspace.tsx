@@ -51,7 +51,7 @@ function loadTables(): DataTable[] {
 const id = () => crypto.randomUUID();
 
 
-export default function TableWorkspace({openCreate=false}:{openCreate?:boolean}) {
+export default function TableWorkspace({openCreate=false,onCreateConsumed}:{openCreate?:boolean;onCreateConsumed?:()=>void}) {
   const [tables, setTables] = useState<DataTable[]>(loadTables);
   const [activeId, setActiveId] = useState<string | null>(() => loadTables()[0]?.id ?? null);
   const [query, setQuery] = useState("");
@@ -79,6 +79,7 @@ export default function TableWorkspace({openCreate=false}:{openCreate?:boolean})
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
 
 
+  useEffect(()=>{if(openCreate)onCreateConsumed?.();},[openCreate]);
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify(tables)); }, [tables]);
   const activeTable = tables.find(t => t.id === activeId) ?? null;
 
