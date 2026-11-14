@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import NoteMarkdown from "./NoteMarkdown";
+import { downloadItem, listItems, sizeLabel, uploadFiles, type StoredItem } from "../files/storage";
 import {
   Plus, Search, StickyNote, CheckSquare, LayoutGrid, List, CalendarDays,
   Clock3, Trash2, X, Pin, PinOff, ChevronRight, Check, Target,
-  AlertCircle, Tags, ClipboardList, Rows3, ArrowUpDown
+  AlertCircle, Tags, ClipboardList, Rows3, ArrowUpDown, Paperclip, Bold, Italic, Heading1, ListChecks, Link2, Quote
 } from "lucide-react";
 import {
   dateLabel, newId, PRIORITY_LABELS, readNotesTasks, saveNotesTasks,
@@ -41,7 +43,12 @@ export default function NotesTasks() {
   const [sort,setSort] = useState<"date"|"priority"|"created">("date");
   const [month,setMonth] = useState(()=>new Date().toISOString().slice(0,7));
   const [notePreview,setNotePreview] = useState(false);
+  const [fileItems,setFileItems] = useState<StoredItem[]>([]);
+  const [attachmentError,setAttachmentError] = useState("");
+  const noteFileRef=useRef<HTMLInputElement>(null);
+  const noteTextareaRef=useRef<HTMLTextAreaElement>(null);
   useEffect(()=>{saveNotesTasks(data);},[data]);
+  useEffect(()=>{let mounted=true;const refresh=()=>{void listItems().then(items=>{if(mounted)setFileItems(items);}).catch(()=>{});};refresh();window.addEventListener("fox-files-updated",refresh);return ()=>{mounted=false;window.removeEventListener("fox-files-updated",refresh);};},[]);
 
   function updateTask(id:string, patch:Partial<Task>) {
     setData(prev=>({...prev,tasks:prev.tasks.map(task=>task.id===id?{...task,...patch,updatedAt:new Date().toISOString()}:task)}));
@@ -61,6 +68,28 @@ export default function NotesTasks() {
       setData(prev=>({...prev,notes:[...prev.notes,note]})); setSelection({type:"notes",id:note.id}); setArea("notes");
     }
     setCreating(null);setNewTitle("");
+  }
+  function applyNoteFormat(before:string,after:string=before,placeholder="текст") {
+    const note=selection?.type==="notes"?data.notes.find(n=>n.id===selection.id):undefined;
+    if(!note)return;
+    const input=noteTextareaRef.current;
+    const start=input?.selectionStart??note.body.length;
+    const end=input?.selectionEnd??start;
+    const picked=note.body.slice(start,end)||placeholder;
+    const next=note.body.slice(0,start)+before+picked+after+note.body.slice(end);
+    updateNote(note.id,{body:next});
+    requestAnimationFrame(()=>{input?.focus();input?.setSelectionRange(start+before.length,start+before.length+picked.length);});
+  }
+  async function attachNoteFiles(files:FileList|null) {
+    const note=selection?.type==="notes"?data.notes.find(n=>n.id===selection.id):undefined;
+    if(!note||!files?.length)return;
+    setAttachmentError("");
+    try{
+      const uploaded=await uploadFiles(files,null);
+      updateNote(note.id,{attachments:[...(note.attachments??[]),...uploaded.map(item=>item.id)]});
+      setFileItems(await listItems());
+    }catch(error){setAttachmentError(error instanceof Error?error.message:"Не удалось добавить вложения");}
+    if(noteFileRef.current)noteFileRef.current.value="";
   }
   function removeTask(task:Task) {
     if(!window.confirm("Удалить задачу «"+task.title+"»?"))return;
@@ -167,7 +196,21 @@ export default function NotesTasks() {
       {selectedNote&&<div className="fox-item-editor-body">
         <label className="fox-item-title-label">Название<input value={selectedNote.title} onChange={e=>updateNote(selectedNote.id,{title:e.target.value})}/></label>
         <div className="fox-note-tools"><button onClick={()=>updateNote(selectedNote.id,{pinned:!selectedNote.pinned})}>{selectedNote.pinned?<PinOff size={15}/>:<Pin size={15}/>} {selectedNote.pinned?"Открепить":"Закрепить"}</button><span>Автосохранение</span></div>
-        <div className="fox-note-edit-controls"><button className={!notePreview?"active":""} onClick={()=>setNotePreview(false)}>Редактировать</button><button className={notePreview?"active":""} onClick={()=>setNotePreview(true)}>Просмотр</button></div>{notePreview?<div className="fox-note-preview">{selectedNote.body.split("\n").map((line,i)=><p key={i}>{line||" "}</p>)}</div>:<label>Текст<textarea className="fox-note-body-input" value={selectedNote.body} onChange={e=>updateNote(selectedNote.id,{body:e.target.value})} placeholder="Начните писать..."/></label>}
+        <div className="fox-note-edit-controls"><button className={!notePreview?"active":""} onClick={()=>setNotePreview(false)}>Редактировать</button><button className={notePreview?"active":""} onClick={()=>setNotePreview(true)}>Просмотр</button></div>
+        {!notePreview&&<div className="fox-note-format-toolbar">
+          <button title="Жирный" onClick={()=>applyNoteFormat("**")}><Bold size={16}/></button>
+          <button title="Курсив" onClick={()=>applyNoteFormat("*")}><Italic size={16}/></button>
+          <button title="Заголовок" onClick={()=>applyNoteFormat("## ","","Заголовок")}><Heading1 size={16}/></button>
+          <button title="Список" onClick={()=>applyNoteFormat("- ","","Пункт списка")}><List size={16}/></button>
+          <button title="Чек-лист" onClick={()=>applyNoteFormat("- [ ] ","","Задача")}><ListChecks size={16}/></button>
+          <button title="Цитата" onClick={()=>applyNoteFormat("> ","","Цитата")}><Quote size={16}/></button>
+          <button title="Ссылка" onClick={()=>applyNoteFormat("[","](https://example.com)","текст ссылки")}><Link2 size={16}/></button>
+        </div>}
+        {notePreview?<div className="fox-note-preview"><NoteMarkdown body={selectedNote.body}/></div>:<label>Текст<textarea ref={noteTextareaRef} className="fox-note-body-input" value={selectedNote.body} onChange={e=>updateNote(selectedNote.id,{body:e.target.value})} placeholder="Начните писать..."/></label>}
+        <div className="fox-note-attachments"><div className="fox-note-attachments-heading"><strong>Вложения</strong><input ref={noteFileRef} type="file" multiple hidden onChange={e=>{void attachNoteFiles(e.target.files);}}/><button onClick={()=>noteFileRef.current?.click()}><Paperclip size={15}/> Прикрепить</button></div>
+          {(selectedNote.attachments??[]).map(id=>{const item=fileItems.find(f=>f.id===id);return <div className="fox-note-attachment" key={id}><Paperclip size={14}/><span>{item?.name??"Файл недоступен"}</span>{item&&<small>{sizeLabel(item.size)}</small>}{item&&<button title="Скачать" onClick={()=>{void downloadItem(item).catch(error=>setAttachmentError(String(error)));}}>Скачать</button>}<button title="Убрать вложение" onClick={()=>updateNote(selectedNote.id,{attachments:(selectedNote.attachments??[]).filter(fileId=>fileId!==id)})}><X size={13}/></button></div>;})}
+          {attachmentError&&<p className="fox-file-error">{attachmentError}</p>}
+        </div>
         <label>Теги (через запятую)<TagsInput key={selectedNote.id} tags={selectedNote.tags} onCommit={tags=>updateNote(selectedNote.id,{tags})}/></label>
         <button className="fox-remove-item" onClick={()=>removeNote(selectedNote)}><Trash2 size={15}/> Удалить заметку</button>
       </div>}
