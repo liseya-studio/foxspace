@@ -74,3 +74,18 @@ test("data widgets can be placed and persisted before a table exists", async ({p
   await expect(page.getByRole("button",{name:"Создать таблицу"})).toBeVisible();
   await info.attach("unconnected-widgets",{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
 });
+
+test("public feed has the requested Telegram and VK sources and verified posts", async ({page})=>{
+  await page.getByRole("button",{name:"Лента"}).click();
+  await expect(page.getByRole("heading",{name:"Лента"})).toBeVisible();
+  await expect(page.getByText("Telegram · @bulotkaff").first()).toBeVisible();
+  await expect(page.getByText("ВКонтакте · btsah").first()).toBeVisible();
+  const api=await page.request.get("/feed.json");
+  expect(api.ok()).toBeTruthy();
+  const payload=await api.json() as {sources:{id:string;status:string}[];posts:{sourceId:string;url:string}[]};
+  expect(payload.sources).toHaveLength(2);
+  for(const post of payload.posts) {
+    expect(["telegram-bulotkaff","vk-btsah"]).toContain(post.sourceId);
+    expect(post.url.startsWith("https://")).toBeTruthy();
+  }
+});
