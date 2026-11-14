@@ -46,8 +46,18 @@ npm run dev
 - Automatic localStorage persistence
 - Seeded finance table for interface testing
 
+### Fox Editor (interactive prototype)
+- Custom screens have a configurable grid canvas with locally persisted widgets
+- Right-side library for widget types and ready-to-bind templates
+- Widget inspector with Data, Appearance and Behavior tabs
+- Data widgets: metric, progress, bar, line, donut, single horizontal timeline, table and list
+- Free-text widget does not require a table
+- Per-widget source table and field selection, and primary screen data source
+- Drag-to-reorder, column-span resizing, width/height settings and widget removal
+- Templates display user table records rather than fabricated dashboard values
+
 ## Not implemented yet
-File browser and upload, advanced relational aggregation, arbitrary formula expressions, nested multi-condition filter trees, table permissions, fully embedded editing on custom screens, widgets, Fox Editor, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
+File browser and upload, advanced relational aggregation, arbitrary formula expressions, nested multi-condition filter trees, table permissions, fully embedded table editing on custom screens, advanced widgets, backend, Telegram authorization, ChatGPT API, feed/multiposting and real notifications/messages.
 
 The current build is an interactive UI prototype. Browser localStorage is temporary prototype storage, not the final data architecture.
 
