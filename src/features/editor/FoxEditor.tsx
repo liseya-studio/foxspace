@@ -1,21 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
   AlignLeft, List, Target, GripVertical, Trash2, X, Database,
   ChevronsRight, PanelRightOpen, Palette, SlidersHorizontal
 } from "lucide-react";
 
-type Cell = string | number | boolean;
-export type EditorTable = {
-  id: string; name: string;
-  columns: { id: string; name: string; type: string }[];
-  rows: { id: string; cells: Record<string, Cell> }[];
-};
+export type EditorTable = TableData;
 type WidgetType = "metric" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text";
 type EditorWidget = {
   id: string; type: WidgetType; title: string; tableId?: string;
   columnId?: string; labelColumnId?: string; target?: number;
   body?: string; width: number; height: number; accent?: string;
+  aggregate?: Aggregate; filter?: RowFilter; limit?: number; hideTitle?: boolean;
 };
 type WidgetStore = Record<string, EditorWidget[]>;
 type SettingsTab = "data" | "appearance" | "behavior";
@@ -51,32 +48,35 @@ const emptyStore = (): WidgetStore => {
 const newId = () => crypto.randomUUID();
 const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(n);
 
-function WidgetPreview({ widget, table }: { widget: EditorWidget; table?: EditorTable }) {
+function WidgetPreview({ widget, table, tables }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[] }) {
   if (widget.type === "text") return <div className="fox-widget-text">{widget.body?.trim() || "Добавьте текст в параметрах виджета."}</div>;
   if (!table) return <div className="fox-widget-empty">Выберите таблицу в разделе «Данные».</div>;
   const numbers = table.columns.filter(c => c.type === "number" || c.type === "formula");
   const numberCol = numbers.find(c => c.id === widget.columnId) ?? numbers[0];
   const textCol = table.columns.find(c => c.id === widget.labelColumnId) ?? table.columns.find(c => c.type === "text") ?? table.columns[0];
-  const rows = table.rows;
+  const rows = filterRows(table.rows, table, tables, widget.filter ?? {});
+  const value = (row: EditorTable["rows"][number], col: EditorTable["columns"][number]) => valueForColumn(row, col, tables);
+  const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
   if (widget.type === "metric" || widget.type === "progress") {
-    const total = numberCol ? rows.reduce((sum, row) => sum + (Number(row.cells[numberCol.id]) || 0), 0) : 0;
-    if (!numberCol) return <div className="fox-widget-empty">Для показателя нужна числовая колонка.</div>;
-    if (widget.type === "metric") return <div className="fox-widget-kpi"><strong>{fmt(total)}</strong><span>{numberCol.name} · сумма по {rows.length} записям</span></div>;
+    const mode = widget.aggregate ?? "sum";
+    const total = aggregateRows(rows, numberCol, tables, mode);
+    if (!numberCol && (widget.aggregate ?? "sum") !== "count") return <div className="fox-widget-empty">Для показателя нужна числовая колонка.</div>;
+    if (widget.type === "metric") return <div className="fox-widget-kpi"><strong>{fmt(total)}</strong><span>{mode === "count" ? "Количество записей" : (numberCol?.name ?? "Данные") + " · " + ({sum:"Сумма",average:"Среднее",min:"Минимум",max:"Максимум"} as Record<string,string>)[mode]}</span></div>;
     const target = Math.max(1, widget.target ?? 100);
     const percent = Math.max(0, Math.min(100, total / target * 100));
     return <div className="fox-widget-progress"><div className="fox-widget-progress-value"><strong>{fmt(total)}</strong><span>из {fmt(target)}</span></div><div className="fox-progress-track"><div style={{width:percent+"%", background: widget.accent || "var(--accent)"}}/></div><small>{fmt(total/target*100)}% от цели</small></div>;
   }
   if (widget.type === "bars") {
     if (!numberCol) return <div className="fox-widget-empty">Для графика нужна числовая колонка.</div>;
-    const sample = rows.slice(0, 8);
+    const sample = rows.slice(0, maxItems);
     if (!sample.length) return <div className="fox-widget-empty">Добавьте записи в таблицу.</div>;
-    const vals = sample.map(row => Number(row.cells[numberCol.id]) || 0);
+    const vals = sample.map(row => Number(value(row, numberCol)) || 0);
     const max = Math.max(1, ...vals.map(Math.abs));
-    return <div className="fox-widget-bars">{sample.map((row, i) => <div className="fox-widget-bar-row" key={row.id}><span title={String(row.cells[textCol?.id] ?? "")}>{String(row.cells[textCol?.id] ?? "Запись "+(i+1))}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(vals[i])/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(vals[i])}</b></div>)}</div>;
+    return <div className="fox-widget-bars">{sample.map((row, i) => <div className="fox-widget-bar-row" key={row.id}><span title={String(textCol ? value(row,textCol) ?? "" : "")}>{String(textCol ? value(row,textCol) ?? "Запись "+(i+1) : "Запись "+(i+1))}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(vals[i])/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(vals[i])}</b></div>)}</div>;
   }
   if (widget.type === "line") {
     if (!numberCol) return <div className="fox-widget-empty">Выберите числовую колонку.</div>;
-    const data = rows.slice(0, 12).map(row => Number(row.cells[numberCol.id]) || 0);
+    const data = rows.slice(0, maxItems).map(row => Number(value(row,numberCol)) || 0);
     if (!data.length) return <div className="fox-widget-empty">Для графика нужны записи.</div>;
     const min = Math.min(...data), max = Math.max(...data), spread = Math.max(1, max-min);
     const points = data.map((value,i) => (10 + (i/Math.max(1,data.length-1))*280).toFixed(1)+","+(110-(value-min)/spread*90).toFixed(1)).join(" ");
@@ -86,7 +86,7 @@ function WidgetPreview({ widget, table }: { widget: EditorWidget; table?: Editor
     const groupCol = table.columns.find(col=>col.id===widget.labelColumnId) ?? table.columns.find(col=>col.type==="select"||col.type==="text");
     if (!groupCol) return <div className="fox-widget-empty">Выберите поле для группировки.</div>;
     const counts = new Map<string, number>();
-    rows.forEach(row=>{const label=String(row.cells[groupCol.id]??"Без значения")||"Без значения";counts.set(label,(counts.get(label)||0)+1);});
+    rows.forEach(row=>{const label=String(value(row,groupCol)??"Без значения")||"Без значения";counts.set(label,(counts.get(label)||0)+1);});
     const palette = ["#f06432","#4779d5","#388b69","#8864c8","#d1a34a","#c96b93"];
     let offset=0;
     const gradient = Array.from(counts.values()).map((count,i)=>{const start=offset;offset+=count/Math.max(1,rows.length)*100;return palette[i%palette.length]+" "+start+"% "+offset+"%";}).join(",");
@@ -95,12 +95,12 @@ function WidgetPreview({ widget, table }: { widget: EditorWidget; table?: Editor
   if (widget.type === "timeline") {
     const dateCol = table.columns.find(col=>col.id===widget.columnId&&col.type==="date") ?? table.columns.find(col=>col.type==="date");
     if (!dateCol) return <div className="fox-widget-empty">Для хронологии нужно поле «Дата».</div>;
-    const dated = rows.filter(row=>/^\\d{4}-\\d{2}-\\d{2}/.test(String(row.cells[dateCol.id]??""))).sort((a,b)=>String(a.cells[dateCol.id]).localeCompare(String(b.cells[dateCol.id]))).slice(0,6);
+    const dated = rows.filter(row=>/^\d{4}-\d{2}-\d{2}/.test(String(value(row,dateCol)??""))).sort((a,b)=>String(value(a,dateCol)).localeCompare(String(value(b,dateCol)))).slice(0,maxItems);
     if (!dated.length) return <div className="fox-widget-empty">Пока нет событий с датой.</div>;
-    return <div className="fox-widget-timeline"><div className="fox-timeline-line"/>{dated.map((row,i)=><div key={row.id} className="fox-timeline-event"><span className="fox-timeline-date">{new Date(String(row.cells[dateCol.id])+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"short"})}</span><i style={{borderColor:widget.accent||"var(--accent)"}}/><strong title={String(row.cells[textCol?.id]??"")}>{String(row.cells[textCol?.id]??"Событие "+(i+1))}</strong></div>)}</div>;
+    return <div className="fox-widget-timeline"><div className="fox-timeline-line"/>{dated.map((row,i)=><div key={row.id} className="fox-timeline-event"><span className="fox-timeline-date">{new Date(String(value(row,dateCol))+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"short"})}</span><i style={{borderColor:widget.accent||"var(--accent)"}}/><strong title={String(row.cells[textCol?.id]??"")}>{String(row.cells[textCol?.id]??"Событие "+(i+1))}</strong></div>)}</div>;
   }
-  if (widget.type === "list") return <div className="fox-widget-list">{rows.slice(0, 6).map((row,i) => <div key={row.id}><span>{String(i+1).padStart(2,"0")}</span><strong>{String(row.cells[textCol?.id] ?? "Запись")}</strong>{numberCol && <small>{fmt(Number(row.cells[numberCol.id])||0)}</small>}</div>)}{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
-  return <div className="fox-widget-table-scroll"><table><thead><tr>{table.columns.slice(0,5).map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>{rows.slice(0,8).map(r=><tr key={r.id}>{table.columns.slice(0,5).map(c=><td key={c.id}>{c.type==="checkbox"?(r.cells[c.id]?"Да":"Нет"):String(r.cells[c.id]??"—")}</td>)}</tr>)}</tbody></table>{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
+  if (widget.type === "list") return <div className="fox-widget-list">{rows.slice(0, maxItems).map((row,i) => <div key={row.id}><span>{String(i+1).padStart(2,"0")}</span><strong>{String(textCol ? value(row,textCol) ?? "Запись" : "Запись")}</strong>{numberCol && <small>{fmt(Number(value(row,numberCol))||0)}</small>}</div>)}{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
+  return <div className="fox-widget-table-scroll"><table><thead><tr>{table.columns.slice(0,5).map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>{rows.slice(0,maxItems).map(r=><tr key={r.id}>{table.columns.slice(0,5).map(c=><td key={c.id}>{c.type==="checkbox"?(value(r,c)?"Да":"Нет"):formatCell(value(r,c))}</td>)}</tr>)}</tbody></table>{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
 }
 
 export default function FoxEditor({ screenId, tables, tableId, onTableChange, onOpenTables }: Props) {
@@ -181,7 +181,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
               onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();reorder(e.dataTransfer.getData("text/plain"),widget.id);}}
               onClick={()=>{setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
               <div className="fox-widget-header"><GripVertical size={14} className="fox-widget-grip"/><h3>{widget.title}</h3><button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button></div>
-              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table}/></div>
+              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables}/></div>
               <div className="fox-widget-resize" title="Перетащите для изменения ширины" onPointerDown={event=>{
                 event.stopPropagation(); event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId);
                 event.currentTarget.dataset.startX=String(event.clientX);
