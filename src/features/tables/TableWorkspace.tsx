@@ -9,7 +9,7 @@ type ColumnType = "text" | "number" | "date" | "select" | "checkbox" | "person" 
 type Column = { id: string; name: string; type: ColumnType; options?: string[]; relationTableId?: string; formulaSourceId?: string; formulaOperator?: string; formulaFactor?: number; width?: number };
 type Cell = string | number | boolean;
 type RowData = { id: string; cells: Record<string, Cell> };
-type SavedView = { id: string; name: string; filterColumn: string; filterOperator: string; filterValue: string; groupColumn: string; sortColumn: string; sortDirection: "asc" | "desc" };
+type SavedView = { id: string; name: string; filterColumn: string; filterOperator: string; filterValue: string; secondColumn?: string; secondOperator?: string; secondValue?: string; logic?: "and" | "or"; categoryFilter?: string; groupColumn: string; sortColumn: string; sortDirection: "asc" | "desc"; layout?: "table" | "list" };
 type DataTable = { id: string; name: string; columns: Column[]; rows: RowData[]; updatedAt: string; savedViews?: SavedView[] };
 
 const KEY = "fox-tables-v1";
@@ -72,6 +72,7 @@ export default function TableWorkspace() {
   const [filterOperator, setFilterOperator] = useState("contains");
   const [filterValue, setFilterValue] = useState("");
   const [secondColumn, setSecondColumn] = useState("");
+  const [secondOperator, setSecondOperator] = useState("contains");
   const [secondValue, setSecondValue] = useState("");
   const [logic, setLogic] = useState<"and" | "or">("and");
   const [groupColumn, setGroupColumn] = useState("");
@@ -130,25 +131,44 @@ export default function TableWorkspace() {
   }, [activeTable]);
   const visibleRows = useMemo(() => {
     if (!activeTable) return [];
-    let rows = activeTable.rows.filter(row => activeTable.columns.some(col => String(row.cells[col.id] ?? "").toLowerCase().includes(query.toLowerCase())));
-    const selectCol = activeTable.columns.find(c => c.type === "select");
-    if (categoryFilter !== "Все" && selectCol) rows = rows.filter(r => r.cells[selectCol.id] === categoryFilter);
-    if (filterColumn && filterValue.trim()) rows = rows.filter(r => { const value = String(r.cells[filterColumn] ?? "").toLowerCase(); const target = filterValue.toLowerCase(); if (filterOperator === "equals") return value === target; if (filterOperator === "not_equals") return value !== target; if (filterOperator === "gt") return Number(value) > Number(target); if (filterOperator === "lt") return Number(value) < Number(target); if (filterOperator === "empty") return !value; return value.includes(target); });
-    if (secondColumn && secondValue.trim()) {
-      const secondMatch = (row: RowData) => String(row.cells[secondColumn] ?? "").toLowerCase().includes(secondValue.toLowerCase());
-      if (logic === "and") rows = rows.filter(secondMatch);
-      else {
-        const primary = activeTable.rows.filter(row => filterColumn && String(row.cells[filterColumn] ?? "").toLowerCase().includes(filterValue.toLowerCase()));
-        rows = Array.from(new Map([...rows, ...primary, ...activeTable.rows.filter(secondMatch)].map(row => [row.id, row])).values()).filter(row => !query || activeTable.columns.some(col => String(row.cells[col.id] ?? "").toLowerCase().includes(query.toLowerCase())));
+    const evaluate = (row: RowData, columnId: string, operator: string, expected: string) => {
+      const column = activeTable.columns.find(item => item.id === columnId);
+      if (!column) return true;
+      const raw = computedCell(column, row);
+      const value = String(raw ?? "").toLocaleLowerCase("ru");
+      const target = expected.trim().toLocaleLowerCase("ru");
+      if (operator === "empty") return value === "";
+      if (operator === "not_empty") return value !== "";
+      if (operator === "equals") return value === target;
+      if (operator === "not_equals") return value !== target;
+      if (operator === "gt" || operator === "lt") {
+        const a = Number(raw), b = Number(expected);
+        if (!String(raw ?? "").trim() || !expected.trim() || !Number.isFinite(a) || !Number.isFinite(b)) return false;
+        return operator === "gt" ? a > b : a < b;
       }
-    }
-    if (sort) rows = [...rows].sort((a,b) => {
-      const av = a.cells[sort.key] ?? ""; const bv = b.cells[sort.key] ?? "";
-      const result = typeof av === "number" && typeof bv === "number" ? av-bv : String(av).localeCompare(String(bv), "ru");
-      return sort.direction === "asc" ? result : -result;
+      return value.includes(target);
+    };
+    const firstActive = Boolean(filterColumn && (filterValue.trim() || ["empty", "not_empty"].includes(filterOperator)));
+    const secondActive = Boolean(secondColumn && (secondValue.trim() || ["empty", "not_empty"].includes(secondOperator)));
+    const categoryColumn = activeTable.columns.find(col => col.type === "select");
+    let rows = activeTable.rows.filter(row => {
+      if (categoryColumn && categoryFilter !== "Все" && String(row.cells[categoryColumn.id] ?? "") !== categoryFilter) return false;
+      if (query && !activeTable.columns.some(col => String(computedCell(col, row) ?? "").toLocaleLowerCase("ru").includes(query.toLocaleLowerCase("ru")))) return false;
+      const one = !firstActive || evaluate(row, filterColumn, filterOperator, filterValue);
+      const two = !secondActive || evaluate(row, secondColumn, secondOperator, secondValue);
+      return firstActive && secondActive ? logic === "and" ? one && two : one || two : one && two;
     });
+    if (sort) {
+      const column = activeTable.columns.find(col => col.id === sort.key);
+      if (column) rows = [...rows].sort((a, b) => {
+        const av = computedCell(column, a) ?? "";
+        const bv = computedCell(column, b) ?? "";
+        const result = typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv), "ru", { numeric: true });
+        return sort.direction === "asc" ? result : -result;
+      });
+    }
     return rows;
-  }, [activeTable, query, categoryFilter, sort, filterColumn, filterOperator, filterValue, secondColumn, secondValue, logic]);
+  }, [activeTable, query, categoryFilter, sort, filterColumn, filterOperator, filterValue, secondColumn, secondOperator, secondValue, logic]);
 
   const groupedRows = useMemo(() => {
     if (!activeTable || !groupColumn) return [{ label: "", rows: visibleRows }];
@@ -181,12 +201,12 @@ export default function TableWorkspace() {
       </aside>
       <div className="table-main">
         {activeTable ? <>
-          <div className="table-title-row"><div><div className="table-breadcrumb">Файлы и таблицы <span>/</span> Таблицы</div><h2>{activeTable.name} <button className="tiny-icon" title="Переименовать" onClick={() => { const n = window.prompt("Название таблицы", activeTable.name); if (n?.trim()) setTables(ts => ts.map(t => t.id === activeId ? {...t,name:n.trim()} : t)); }}><MoreHorizontal size={17}/></button></h2><div className="table-subtitle">{activeTable.rows.length} записей <span>·</span> {activeTable.columns.length} полей <span>·</span> Изменения сохраняются автоматически</div>{(activeTable.savedViews?.length??0)>0 && <div className="saved-views">{activeTable.savedViews?.map(s=><button key={s.id} onClick={()=>{setFilterColumn(s.filterColumn);setFilterOperator(s.filterOperator);setFilterValue(s.filterValue);setGroupColumn(s.groupColumn);setSort(s.sortColumn?{key:s.sortColumn,direction:s.sortDirection}:null);setShowFilters(true);}}>{s.name}</button>)}</div>}</div><button className="soft-icon" onClick={exportCsv} title="Экспорт CSV"><Download size={17}/></button></div>
+          <div className="table-title-row"><div><div className="table-breadcrumb">Файлы и таблицы <span>/</span> Таблицы</div><h2>{activeTable.name} <button className="tiny-icon" title="Переименовать" onClick={() => { const n = window.prompt("Название таблицы", activeTable.name); if (n?.trim()) setTables(ts => ts.map(t => t.id === activeId ? {...t,name:n.trim()} : t)); }}><MoreHorizontal size={17}/></button></h2><div className="table-subtitle">{activeTable.rows.length} записей <span>·</span> {activeTable.columns.length} полей <span>·</span> Изменения сохраняются автоматически</div>{(activeTable.savedViews?.length??0)>0 && <div className="saved-views">{activeTable.savedViews?.map(s=><button key={s.id} onClick={()=>{setFilterColumn(s.filterColumn);setFilterOperator(s.filterOperator);setFilterValue(s.filterValue);setSecondColumn(s.secondColumn??"");setSecondOperator(s.secondOperator??"contains");setSecondValue(s.secondValue??"");setLogic(s.logic??"and");setCategoryFilter(s.categoryFilter??"Все");setGroupColumn(s.groupColumn);setSort(s.sortColumn?{key:s.sortColumn,direction:s.sortDirection}:null);setView(s.layout??"table");setShowFilters(true);}}>{s.name}</button>)}</div>}</div><button className="soft-icon" onClick={exportCsv} title="Экспорт CSV"><Download size={17}/></button></div>
           <div className="table-toolbar">
-            <div className="table-toolbar-left"><div className="table-view-switch"><button className={view==="table"?"chosen":""} onClick={() => setView("table")}><Table2 size={15}/> Таблица</button><button className={view==="list"?"chosen":""} onClick={() => setView("list")}><List size={15}/> Список</button></div><button className={showFilters?"toolbar-button chosen":"toolbar-button"} onClick={() => setShowFilters(v => !v)}><Filter size={15}/> Фильтр {categoryFilter!=="Все" && <i/>}</button><button className="toolbar-button" onClick={() => setSort(sort ? null : {key:activeTable.columns[0].id,direction:"asc"})}><ArrowUpDown size={15}/> Сортировка</button><select className="group-select" value={groupColumn} onChange={e=>setGroupColumn(e.target.value)}><option value="">Без группировки</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>Группировать: {col.name}</option>)}</select><button className="toolbar-button" onClick={()=>{const name=window.prompt("Название представления");if(!name?.trim())return;const saved:SavedView={id:id(),name:name.trim(),filterColumn,filterOperator,filterValue,groupColumn,sortColumn:sort?.key??"",sortDirection:sort?.direction??"asc"};updateTable(t=>({...t,savedViews:[...(t.savedViews??[]),saved]}));}}><Plus size={14}/> Сохранить вид</button></div>
+            <div className="table-toolbar-left"><div className="table-view-switch"><button className={view==="table"?"chosen":""} onClick={() => setView("table")}><Table2 size={15}/> Таблица</button><button className={view==="list"?"chosen":""} onClick={() => setView("list")}><List size={15}/> Список</button></div><button className={showFilters?"toolbar-button chosen":"toolbar-button"} onClick={() => setShowFilters(v => !v)}><Filter size={15}/> Фильтр {categoryFilter!=="Все" && <i/>}</button><button className="toolbar-button" onClick={() => setSort(sort ? null : {key:activeTable.columns[0].id,direction:"asc"})}><ArrowUpDown size={15}/> Сортировка</button><select className="group-select" value={groupColumn} onChange={e=>setGroupColumn(e.target.value)}><option value="">Без группировки</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>Группировать: {col.name}</option>)}</select><button className="toolbar-button" onClick={()=>{const name=window.prompt("Название представления");if(!name?.trim())return;const saved:SavedView={id:id(),name:name.trim(),filterColumn,filterOperator,filterValue,secondColumn,secondOperator,secondValue,logic,categoryFilter,groupColumn,sortColumn:sort?.key??"",sortDirection:sort?.direction??"asc",layout:view};updateTable(t=>({...t,savedViews:[...(t.savedViews??[]),saved]}));}}><Plus size={14}/> Сохранить вид</button></div>
             <div className="table-toolbar-right"><label className="table-search"><Search size={15}/><input placeholder="Найти в таблице" value={query} onChange={e => setQuery(e.target.value)}/></label><button className="toolbar-button" onClick={() => setColumnDialog(true)}><Columns3 size={15}/> Поля</button><button className="primary-button compact" onClick={addRow}><Plus size={15}/> Добавить запись</button></div>
           </div>
-          {showFilters && <div className="filter-bar"><SlidersHorizontal size={15}/><span>Поле</span><select value={filterColumn} onChange={e=>setFilterColumn(e.target.value)}><option value="">Любое</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><select value={filterOperator} onChange={e=>setFilterOperator(e.target.value)}><option value="contains">содержит</option><option value="equals">равно</option><option value="not_equals">не равно</option><option value="gt">больше</option><option value="lt">меньше</option><option value="empty">пусто</option></select><input className="filter-value" placeholder="Значение" value={filterValue} onChange={e=>setFilterValue(e.target.value)}/><select value={logic} onChange={e=>setLogic(e.target.value as "and"|"or")}><option value="and">И</option><option value="or">ИЛИ</option></select><select value={secondColumn} onChange={e=>setSecondColumn(e.target.value)}><option value="">Второе поле</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><input className="filter-value" placeholder="Второе значение" value={secondValue} onChange={e=>setSecondValue(e.target.value)}/><button className="text-button-inline" onClick={()=>{setFilterColumn("");setFilterValue("");setCategoryFilter("Все");}}>Сбросить</button></div>}
+          {showFilters && <div className="filter-bar"><SlidersHorizontal size={15}/><span>Поле</span><select value={filterColumn} onChange={e=>setFilterColumn(e.target.value)}><option value="">Любое</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><select value={filterOperator} onChange={e=>setFilterOperator(e.target.value)}><option value="contains">содержит</option><option value="equals">равно</option><option value="not_equals">не равно</option><option value="gt">больше</option><option value="lt">меньше</option><option value="empty">пусто</option><option value="not_empty">не пусто</option></select><input className="filter-value" placeholder="Значение" value={filterValue} onChange={e=>setFilterValue(e.target.value)}/><select value={logic} onChange={e=>setLogic(e.target.value as "and"|"or")}><option value="and">И</option><option value="or">ИЛИ</option></select><select value={secondColumn} onChange={e=>setSecondColumn(e.target.value)}><option value="">Второе поле</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><select value={secondOperator} onChange={e=>setSecondOperator(e.target.value)}><option value="contains">содержит</option><option value="equals">равно</option><option value="not_equals">не равно</option><option value="gt">больше</option><option value="lt">меньше</option><option value="empty">пусто</option><option value="not_empty">не пусто</option></select><input className="filter-value" placeholder="Второе значение" value={secondValue} onChange={e=>setSecondValue(e.target.value)}/><button className="text-button-inline" onClick={()=>{setFilterColumn("");setFilterValue("");setSecondColumn("");setSecondValue("");setSecondOperator("contains");setLogic("and");setCategoryFilter("Все");}}>Сбросить</button></div>}
           {view === "table" ? <div className="data-grid-wrap"><table className="data-grid"><thead><tr><th className="row-index">#</th>{activeTable.columns.map(col => <th key={col.id} draggable onDragStart={e=>{setDraggedColumn(col.id);e.dataTransfer.setData("text/plain",col.id);}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();moveColumn(e.dataTransfer.getData("text/plain"),col.id);setDraggedColumn(null);}} onDragEnd={()=>setDraggedColumn(null)} style={{width:col.width??170,minWidth:col.width??170}}><button className="column-head" onClick={() => setSort(s => s?.key===col.id ? {key:col.id,direction:s.direction==="asc"?"desc":"asc"} : {key:col.id,direction:"asc"})}>{col.type==="number"?<Hash size={13}/>:col.type==="date"?<CalendarDays size={13}/>:col.type==="checkbox"?<CheckSquare size={13}/>:col.type==="select"?<Tag size={13}/>:<Type size={13}/>} {col.name}{sort?.key===col.id && <span>{sort.direction==="asc"?"↑":"↓"}</span>}</button><button className="column-menu" onClick={() => deleteColumn(col.id)} title="Удалить поле"><X size={12}/></button><input className="column-width" type="range" min="110" max="360" step="10" value={col.width??170} onChange={e=>resizeColumn(col.id,Number(e.target.value))} aria-label={"Ширина: "+col.name}/></th>)}<th className="add-col-head"><button onClick={() => setColumnDialog(true)} title="Добавить поле"><Plus size={15}/></button></th></tr></thead><tbody>{groupedRows.map(group=><>{group.label && <tr className="group-heading" key={"group-"+group.label}><td colSpan={activeTable.columns.length+2}>{group.label}<span>{group.rows.length} записей</span></td></tr>}{group.rows.map((row,index) => <tr key={row.id}><td className="row-index">{index+1}</td>{activeTable.columns.map(col => <td key={col.id}>{renderCell(col,computedCell(col,row),v=>updateCell(row.id,col.id,v),tables)}</td>)}<td className="row-actions"><button onClick={() => deleteRow(row.id)} title="Удалить запись"><Trash2 size={13}/></button></td></tr>)}</>)}</tbody></table>{visibleRows.length===0 && <div className="table-no-results">Нет записей по выбранным условиям</div>}<button className="add-row-inline" onClick={addRow}><Plus size={14}/> Добавить запись</button></div> : <div className="record-list">{visibleRows.map((row,index)=><div className="record-card" key={row.id}><span className="record-number">{String(index+1).padStart(2,"0")}</span><div className="record-fields">{activeTable.columns.map(c=><div key={c.id}><small>{c.name}</small>{renderCell(c,computedCell(c,row),v=>updateCell(row.id,c.id,v),tables)}</div>)}</div><button onClick={()=>deleteRow(row.id)} className="tiny-icon"><Trash2 size={14}/></button></div>)}</div>}
           <div className="table-footer"><span>Показано {visibleRows.length} из {activeTable.rows.length} записей</span><span><Rows3 size={14}/> Все изменения сохраняются автоматически</span></div>
         </> : <div className="table-empty"><div className="empty-icon"><Table2 size={24}/></div><h2>Создайте первую таблицу</h2><p>Таблицы можно привязывать к пользовательским экранам и использовать как источник данных для виджетов.</p><button className="primary-button" onClick={() => setTableDialog(true)}><Plus size={16}/> Создать таблицу</button></div>}
