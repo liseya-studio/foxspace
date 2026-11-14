@@ -69,14 +69,46 @@ export function persistImportedTables(tables:ImportedTable[]):void{
     const parsed=JSON.parse(localStorage.getItem("fox-tables-v1")??"[]") as ImportedTable[];
     if(Array.isArray(parsed))existing=parsed;
   }catch{/* first import */}
-  const names=new Set(existing.map(table=>table.name.toLocaleLowerCase("ru")));
-  const seen=new Set<string>();
-  for(const table of tables){
-    const name=table.name.toLocaleLowerCase("ru");
-    if(names.has(name)||seen.has(name))throw Error("Таблица «"+table.name+"» уже существует. Импорт отменён, чтобы не перезаписать ваши данные.");
-    seen.add(name);
+  const normalize=(name:string)=>name.toLocaleLowerCase("ru").replace(/[^a-zа-яё0-9]/gi,"");
+  const next=[...existing];
+  const incomingNames=new Set<string>();
+  for(const imported of tables){
+    const name=normalize(imported.name);
+    if(incomingNames.has(name))throw Error("Два листа с одинаковым названием: «"+imported.name+"». Импорт отменён.");
+    incomingNames.add(name);
+    const matches=next.map((tab,index)=>({tab,index})).filter(({tab})=>{
+      const oldName=normalize(tab.name);
+      return oldName===name||name.endsWith(oldName)||oldName.endsWith(name);
+    });
+    // An already populated table is never overwritten without explicit action.
+    if(matches.some(({tab})=>tab.rows.length>0)){
+      throw Error("Таблица «"+imported.name+"» уже содержит записи. Импорт остановлен, чтобы не потерять данные.");
+    }
+    if(matches.length>1)throw Error("Несколько пустых таблиц совпадают с «"+imported.name+"». Переименуйте лишние перед импортом.");
+    if(matches.length===0){next.push(imported);continue;}
+    const match=matches[0];
+    const columns=[...match.tab.columns];
+    const mapped=new Map<string,string>();
+    for(const column of imported.columns){
+      let target=columns.find(item=>normalize(item.name)===normalize(column.name));
+      if(!target){
+        target={...column};
+        columns.push(target);
+      }else if(target.type==="text"&&column.type!=="text"){
+        // Imported column types can improve an empty placeholder's initial type.
+        target={...target,type:column.type};
+        const at=columns.findIndex(item=>item.id===target!.id);
+        columns[at]=target;
+      }
+      mapped.set(column.id,target.id);
+    }
+    const rows=imported.rows.map(row=>({
+      id:row.id,
+      cells:Object.fromEntries(Object.entries(row.cells).map(([id,value])=>[mapped.get(id)??id,value]))
+    }));
+    next[match.index]={...match.tab,columns,rows,updatedAt:new Date().toISOString()};
   }
-  try{localStorage.setItem("fox-tables-v1",JSON.stringify([...existing,...tables]));}
+  try{localStorage.setItem("fox-tables-v1",JSON.stringify(next));}
   catch{throw Error("Недостаточно места в браузере для импорта. Попробуйте уменьшить объём файла.");}
   window.dispatchEvent(new Event("fox-tables-updated"));
 }
