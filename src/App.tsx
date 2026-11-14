@@ -35,7 +35,8 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [tableRevision, setTableRevision] = useState(0);
+  const [screenMenuId, setScreenMenuId] = useState<string | null>(null);
+
 
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
   useEffect(() => { localStorage.setItem("fox-theme", JSON.stringify(theme)); }, [theme]);
@@ -51,6 +52,8 @@ export default function App() {
   }, []);
 
   const activeScreen = screens.find(s => s.id === active);
+  const availableTables = read<{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:{id:string;cells:Record<string,string|number|boolean>}[]}[]>("fox-tables-v1",[]);
+  const attachedTable = availableTables.find(t => t.id === activeScreen?.tableId);
   const filteredScreens = useMemo(() => screens.filter(s => s.name.toLowerCase().includes(search.toLowerCase())), [screens, search]);
 
   function addScreen() {
@@ -119,7 +122,7 @@ export default function App() {
         ) : (
           <section className="content-page">
             <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div><button className="outline-button" onClick={() => setCreateOpen(true)}><Plus size={16}/> Добавить</button></div>
-            <div className="screen-table-panel"><h2>Источник данных</h2><p>Подключите таблицу к этому экрану. Изменения в таблице будут доступны в разделе «Файлы и таблицы».</p><select className="form-input" value={activeScreen?.tableId??""} onChange={e=>setScreens(prev=>prev.map(s=>s.id===active?{...s,tableId:e.target.value||undefined}:s))}><option value="">Без таблицы</option>{read<{id:string;name:string}[]>("fox-tables-v1",[]).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select>{activeScreen?.tableId && <div className="screen-table-attached"><FileSpreadsheet size={20}/><span>Таблица подключена. Откройте редактор, чтобы изменить данные.</span><button className="outline-button" onClick={()=>setActive("files")}>Открыть таблицы</button></div>}</div>
+            <div className="screen-table-panel"><h2>Источник данных</h2><p>Подключите таблицу к этому экрану. Изменения в таблице будут доступны в разделе «Файлы и таблицы».</p><select className="form-input" value={activeScreen?.tableId??""} onChange={e=>setScreens(prev=>prev.map(s=>s.id===active?{...s,tableId:e.target.value||undefined}:s))}><option value="">Без таблицы</option>{availableTables.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select>{attachedTable && <div className="screen-preview"><h3>{attachedTable.name} <small>{attachedTable.rows.length} записей</small></h3><div className="screen-preview-scroll"><table><thead><tr>{attachedTable.columns.map(col=><th key={col.id}>{col.name}</th>)}</tr></thead><tbody>{attachedTable.rows.slice(0,6).map(row=><tr key={row.id}>{attachedTable.columns.map(col=><td key={col.id}>{col.type==="checkbox"?(row.cells[col.id]?"Да":"Нет"):col.type==="relation"?"Связанная запись":col.type==="formula"?"Вычисляемое поле":String(row.cells[col.id]??"—")}</td>)}</tr>)}</tbody></table></div>{attachedTable.rows.length===0&&<p>В таблице пока нет записей.</p>}</div>}{activeScreen?.tableId && <div className="screen-table-attached"><FileSpreadsheet size={20}/><span>Таблица подключена. Данные доступны на этом экране.</span><button className="outline-button" onClick={()=>setActive("files")}>Редактировать</button></div>}</div>
           </section>
         )}
       </main>
@@ -134,7 +137,7 @@ export default function App() {
           {screens.map(screen => (
             <div className={active === screen.id ? "dock-screen active" : "dock-screen"} key={screen.id}>
               {renameId === screen.id ? <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)} onBlur={() => saveRename(screen.id)} onKeyDown={e => e.key === "Enter" && saveRename(screen.id)} /> : <button className="dock-screen-name" onClick={() => setActive(screen.id)}><LayoutDashboard size={17}/>{screen.name}</button>}
-              <button className="screen-more" title="Действия" onClick={() => { setRenameId(screen.id); setRenameValue(screen.name); }}><MoreHorizontal size={15}/></button>
+              <button className="screen-more" title="Действия" onClick={() => setScreenMenuId(current => current===screen.id?null:screen.id)}><MoreHorizontal size={15}/></button>{screenMenuId===screen.id && <div className="screen-context-menu"><button onClick={()=>{setRenameId(screen.id);setRenameValue(screen.name);setScreenMenuId(null);}}>Переименовать</button><button className="danger" onClick={()=>{if(window.confirm("Удалить экран «"+screen.name+"»?"))removeScreen(screen.id);setScreenMenuId(null);}}>Удалить экран</button></div>}
             </div>
           ))}
         </div>
