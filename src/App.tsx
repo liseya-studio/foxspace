@@ -91,6 +91,7 @@ export default function App() {
   }, []);
 
   const unreadCount = useMemo(()=>unreadNotificationCount(),[notificationRevision]);
+  useEffect(()=>{if(editingScreenId && active!==editingScreenId)setEditingScreenId(null);},[active,editingScreenId]);
   const activeScreen = screens.find(s => s.id === active);
   const availableTables = read<{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:{id:string;cells:Record<string,string|number|boolean>}[]}[]>("fox-tables-v1",[]);
   void tableRevision;
