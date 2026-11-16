@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-16T06:42:46.789829+00:00",
+  "generatedAt": "2026-11-16T22:14:51.250173+00:00",
   "sources": [
     {
       "id": "telegram-bulotkaff",
@@ -7,8 +7,8 @@
       "title": "Telegram · @bulotkaff",
       "url": "https://t.me/bulotkaff",
       "status": "ok",
-      "message": "Загружено публикаций: 5",
-      "updatedAt": "2026-11-16T06:42:46.789829+00:00"
+      "message": "Загружено публикаций: 3",
+      "updatedAt": "2026-11-16T22:14:51.250173+00:00"
     },
     {
       "id": "vk-btsah",
@@ -21,69 +21,52 @@
   ],
   "posts": [
     {
+      "id": "telegram:bulotkaff/18466",
+      "sourceId": "telegram-bulotkaff",
+      "text": "#winter_flower@bulotkaff\n「 1.5/? 」\n☾\nAU, в котором Чимин — студент-медик, только-только закончивший университет и по распределению попавший в глушь на северной границе страны. Чимин должен отработать в больнице вымирающей деревни два года, а после может возвращаться обратно в Пусан и попробовать получить место в большой клинике. Чимину тяжело даётся переезд в крохотный населённый пункт, к тому же, здесь намного холоднее, чем в Пусане, что совсем не радует. Житель побережья оказывается совсем не приспособленным к выживанию в горной местности, особенно зимой, и один раз Пак пробует вернуться из клиники в усилившуюся метель, но по дороге забредает не туда и падает с обрыва, приложившись головой.\n✦\n#jimsu@bulotkaff\n#artau@bulotkaff\n#au@bulotkaff",
+      "url": "https://t.me/bulotkaff/18466",
+      "date": "2026-11-16T17:32:50+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/olL8mDxl6WtfCKZTDOGGIheEABfDkXVigq-Od-AcVNh6TuaI9pdTPw86y4dY1N6MSE82XX1f_TyAODgsCYirUK-0af_vHeGcViSb8xa5bTOS3q9akQ6NBf706Yy42YkpDa1wnbPaFPUJ12NxEh8-CZmO3ZRnZh8Au6_lORpWSBp0bdcD3gsO7Y6kxEUU6VnlwDX7GwpBW-Eta5MgUHQA6b7QJnjoHJp0sjs8Z4cw-9RILIguE-Lk5mbXDGGoL7i_7oxtUwNhSqiIDN4hqMgLtRFdDGejggPq8S4bsq9FJfVvyTZYdj4UxrrzX5XdIHqsZw3Y3OnBH2pVO9a8eSJCNA.jpg",
+        "https://cdn4.telesco.pe/file/drRaEFe8EEkY6mMvlgxF-tHE_3kgzrxcZ6XOXhfM5Mb64jELC9OQo_NiZovZgXKtQsjbJXAEnf3pkRiwyDPrY0Yy8Z5-O6SKzdM1r9pUMLw8EhOnMGq2mMIUctYGTN0g85bgeGZkTQJgkF8Km-iRh11wYYPnu-2y-F45KilmHx1x2xz3tg5eaX_zZUhDBdTVsZSBV5dToI3dRJZEx59Bo4NpP0v_VczJLzmZ74zdllRUGEXkJC74TCF69o6D_2coEy0XUz4yYbmu8KyEJXZPPfB7ZCgXMLgDPqKG_L9zfvt8n6QLd-U_ftm6wIxI4-9W8gBh5NFd7BHc5377QNglHg.jpg",
+        "https://cdn4.telesco.pe/file/sx4aYykWetKILirW9QwD2GQi6lu_oRwIs_u0xXVd-4nC6MDoeHOozS3f55oyoV0_gBsRB018ehfPrU8hTUXfNAaOYhV5JlBV4L-O2wXihHMDSvfDFNBUSAjqWmJn-kH8yEIC7JcSCrSDfwHyyTlCHTjf0SI8O4xixzBqEC3PNzqg0JYkXO6tqpk9ST-uQlmdd-pY6-m7hVhTahdj14Ip6e1koSDZfzcQu_hGQlnNGZSpwN_jcFN6H2zAJIneREMZU4HWQ2kfyvZEUMpuxY_BTU8SsHZWipgv1hU5kjyfnVmArL6KYG0PkNX9Di9-ocrX18c1k7GIAyaFspYihJymEw.jpg",
+        "https://cdn4.telesco.pe/file/BWOHeneG2QFMyr5R838XfqdxdJ7DGiQXd1xfINvQLVhlg5DWVP0YGMgtSSjXjiwmyvHBUSV7Bz2905pkIsYbasBoVEAS8504IHGqlQ5_3c5u9ql9Mq2xg-iW-K_UpMfiis_llpMxFWMHhj4odOsKRKEgeeixnrZZjgu-THTXaBG2lGja25QVTzxkcK75Lt9_W66NgqfjNiNcBAzwz2Q7z-3HjAcytrECy1rYC9brK-BAXFWr2LsEHkCXtSJwIFYt1toURMJgIgxrE5Hb3xHrQTxjHXO8dcva1RxL1_XTWDdtujz_yKCt6QbdGao56sOfiv0-HclkFWVTe8uQIU8j-w.jpg",
+        "https://cdn4.telesco.pe/file/ecu8VmJ-haj2hdiTOHoKa86SA8gm7EYFUl0iz9-JDbgYR76fkc3iG4WCfQq1du_uvnTuVxrHcg-GlSEAcmKocNfzQsHX1XCOhQk_d7x8NtoppRwI52qFXPA9k6skH6grYKGVJuRV4gGH5JQj94AjT1TsNlFnuFeVdKj10ny9h8sE-VmtlZMTBSUwjBEKeBQ8KgSRrq0zckFDgvoIa_kIa-FIR-V92rol0zLNmkRqYMXq1IUPysx0TghVetAR_BdCKEdiYl7TdjtyWPjBjTpOrp-0ceA5CgjI2fzSHxYPavITlxYsE8CyuHVgPZVSHFirIgSTH0Uy390tN4T-Q9sfRQ.jpg",
+        "https://cdn4.telesco.pe/file/NLaA8HftJA4q2TY3qgJLbAqKfUOR27tIyGpzYLlQBwSnaIddrTGREA4NaM1SVimYSW_iHLsAUCAPgC2yJve4h9GjNq-rnTH_xmsGze1RVu-4bZ-ir-C5YOvCBw5RoauZpfQe7YnqdPQTvFed0JKjwYyp4IK9kXJiOUcFNP7oXHUp-DCfx123rjYWDAmkPmBcJHfPENaEHDlC9v-VKh5wNVa5WThNN9ydXyChao4u2L-49alh1EdVwqsOqumKH7CNvfx0gIrsIuUGeZkNEic1ohV2KhGff6wrcIMgREFxrFzNfwEk5Hl5VuyS3jYhnlhqAenpwFflmvf-Ykt5TlA4dw.jpg"
+      ]
+    },
+    {
+      "id": "telegram:bulotkaff/18455",
+      "sourceId": "telegram-bulotkaff",
+      "text": "#winter_flower@bulotkaff\n「 1/? 」\n☾\nAU, в котором Чимин — студент-медик, только-только закончивший университет и по распределению попавший в глушь на северной границе страны. Чимин должен отработать в больнице вымирающей деревни два года, а после может возвращаться обратно в Пусан и попробовать получить место в большой клинике. Чимину тяжело даётся переезд в крохотный населённый пункт, к тому же, здесь намного холоднее, чем в Пусане, что совсем не радует. Житель побережья оказывается совсем не приспособленным к выживанию в горной местности, особенно зимой, и один раз Пак пробует вернуться из клиники в усилившуюся метель, но по дороге забредает не туда и падает с обрыва, приложившись головой.\n✦\nПерезапуск этой аушки. Будет небольшой редизайн.\n✦\n#jimsu@bulotkaff\n#artau@bulotkaff\n#au@bulotkaff",
+      "url": "https://t.me/bulotkaff/18455",
+      "date": "2026-11-16T16:12:22+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/QCIjiX6xITkcYcV3NNXhQvf41JSase-Ed1LxrzXmKr_6lpwwBwuTejfKE6ZZNQrQfvgyLacOpQarCCL0lcYWWmctnmIKXS8Jljyf_YW9Ve-ztDd_QFbjEML4xLWKhoLpOdc2i2AvoIGRunEUGS31IFfjBA1vlm13BVl9J8gDuk_oM7QdU0S27xPwb0WsYrnnbUKHznYTJHj2L75A-W0WQIkwteti41ep3t8o2Ak_gnJgGkesXDyUEUOQ75HOWIJ3a0ezIP5aAKYYXFXtr0_BSzpEpx1Da1fKn2eB0UxsDSVEn9H5Ei_4YVLOtyTzGlq4FPwsQ7sYkUbeiv-Z018YRQ.jpg",
+        "https://cdn4.telesco.pe/file/OqqBR2y33X7MRjRkbP6DZGdug7zWmw924aqcq6efof9Y638t8Bq5cjw2UdhWgHmpCDuQ05W3WGBJ6u06DmFU_o16omulvkmXRQnGhWfBQTUzo-pmaV6bvQ5GVVrvyiQmASnPHxo2Hoahvpxtlr9eEMn0J3MYayG-FzTLRVxTiSzZlHzSmsUel4NG0kSdMA3BIK5_TdDProB0tXDCJIv0U8QxYhGiwpW0v4MQReh1aw13uSEZ8vNHfpHXbcW7fx1dGtuES7NyBbv781Xli1LhkjvdaoDfJc0r6Riivy6RFO1cYsV8m4bkCOsQQ9sRs8PsCW63eccMh3tN6K-3PSVnTA.jpg",
+        "https://cdn4.telesco.pe/file/DnfCXpqCNWLFNs-_76CLMqM3wuKsJwmxhv0HQ585dzHeWbDdXzl3SVkXc7qJT_xvnnirqIkv_S8Dl8WiwFB986dBzUidMdFW_XJrqnpoXD6omn06KY4fBDgNzUVpj5gYhAHCWb5LhDTf5pR02A1_h1nBPfQvBccWMbqyvlkVXsKWLB_fdLD3RxtlvdSSj-Q1VHoqBBoapTCiat98bJo1oWyYQXISjLtXMgRePsYa9K-HHLhqKssfA7JSzHSm98MO8xW7q11dRnvsQO3vEfOMfEG4j4Bz__SBt0czNQv8zg_AzrppogLTGetYPNt1cP1SgCxd3ej18WoJDK6eUVZDyg.jpg",
+        "https://cdn4.telesco.pe/file/u8Q6Bx9WVIFkPyfUoRpH9qrUG1Zx53XJIaA9uowTTlxTKDev7YWRI7QaEGotojvUe3869d7x_qKHqc4kElMwH6q4AiKzpkRtwwWUqhV_u5P_kBLO03Su7teWiRzLoxWEbvVOg1_DBUVnFg0Ei1_mTzVzb5CDkuIw1IMaCEnJjGX0ijXTON0CFx2OIhZZA5_WwRAQwNgWFxXM1hSSvtMbAf9Y8JlbgzJOzZ5ZxMyhT_IrGNv7pQNdTHvOciL5lD8aU2Vg9Gb_4vGRywNPaqhdQu1xeU-ab3PJA4NtkvVDJFv-v3WznZVttFtajC6BLnZpMqr_2SBqCDY0nOdPxWWqxg.jpg",
+        "https://cdn4.telesco.pe/file/CCMZYiJ_4YmTob8j63OPdDo33yu9auY5rj-HULlyAPfFfpUhpcYcQm6cSwWIPRUcOx0cQMXqZtKa6Aal9Y11Km62QhH1ViOT4i2aknzAYoHGngu4hAIRFq0ZPm61Lst8e1cmSxf0lXxOR-mpNUfEgxnZcW9eQKjXaHTXsP9-3erjpvL4Y_o_UDkjJ2MO-ni9eiQfG3nyDMuCUroNiYVHUoSXxviHZASi2KoK0AM3SkLdpatha6ZW6rsfSiXgaSSBJ3A0a7YZhLVCVomzScSQjBJOhsproy7g-OKo6CTprkIv957TzhCjxdNk-16OKHNfdm--5r3AHVYE9Kt9QWzWyQ.jpg",
+        "https://cdn4.telesco.pe/file/AYL3sjobcE5GPRQi6zWXN2jpgHPp06GZxtJj0lgiSYVeT7zhXVnu1rwR3d46uFrdys_Eohhm6dDDnNutdHAo2VHKk_kS1RqwWO5DmUzmCt_ByFW1vkLLxvj4ONUQxtg6JFb914uE5Y7miPYPZgbTlnXDgF0fDCtmvkhhBEL84YikEi-b65AyAac09wChxXB7AOuYIxMVLdIBNf5r_0pQg66zPfs9DVJjRjHZgAnB14UFDNkEesKaHIsgzAFMGZL9HKp2s9xF3fV0vlLLtsqul33EECVtwsdPlA6_x1kl-v7Icm38rHuc-xVZ6FQgxKeGe2fOvEcxY8haRlALM-M85A.jpg",
+        "https://cdn4.telesco.pe/file/Xa1cvF9ijY8f6jRCBgWOj7k15nKtHH8ioPkBL7-JH2jELXZlhVrIgHW8AnUP1-_ViKkHkNbBguBaIVbUgaqbbWiIFYvMVNgdet1aPxhZIZpr6PjQAzGKeYjLtusyuiLZSTW_2nyjYWrkwgtWS4gWzqr1I5EmoA8tsu-QYCMC6sP5DYCIx1ozigfs2w9EGO6_BdQGqXAwlRD_R92j3-yNlqkdzH72FOV5nL1aCPwBjhQfslGWpNU2yEi0Zp-6dW0zBoTLGxY82n5FgiYmTjddZFDTO-P998nDtBfeO1wgpf0WuyIkcIfDhSwL66PBdjqb5iAlnF4ZmqlzP-LOVbQRjw.jpg",
+        "https://cdn4.telesco.pe/file/nZTQb_GclRF2ZQYL1l__2OTxLNYPMOdivHGBuQH34QT4ldFJvL_dx2NqS4DwvRL0WOtzu4ZMOyHz-SSUl5okWvthdPLxEZoHGSR86_jXDsJyicHpTuj4kZaqvDDmv-sLlmRvazBmsjZNixPPCES90AyHjBazEDltOaSYd8ewohL_jqFMpxtRZ3iXp2iqvgkrk6waBv9zNG8mmTOeNOpgcUVsw3H7Gq5JL_ymwSPoSuAw-3XXoOck-sPi5q7Lmj7TywcVnILhFrQ8I6-_GvYr2EHYf1SrA1XIdMq2d5DlqyWnYVD5wwpU1vfYHM7-EhRZM-uiWi1HpGiYRQF9E0tj9Q.jpg",
+        "https://cdn4.telesco.pe/file/HjCf4oVRzWSTm8O94rNYhaaOJhlS_wTwoT89Baa0U1GT3_p0DIAdCS09xrAtTEBeyG2zRQhMav1z8hXCm91q_rIsSfcjy3gLrYsauGRnGNYf89HoJGky2MtYbLStMbQ_qS41NW1Yeyfx9D3jbuFboErU7pZpyPpVYKSp4bLS-iVkJ74STUEwj7_iHAFhCwNE-xNfJdWuxcRrToUeR4mh9itZPjyiODXdL0kxJ7lTC7ylRM1crq-JaQB54uvvV_l0Hz4ERoW2d5nwOJMLGdC8XEBjSWB9oSFWG8DBvQ1otMW_cSHz55ABQ4yXVLxlS0mBrrCjhGKiAJv6SES1aH5sRg.jpg",
+        "https://cdn4.telesco.pe/file/rPkTDR2bzlB0pni5JNrVgDmw1z1PPQX1RynT6KlX_u0Pja4FlFgbqjOFVqtWOYVFse8UhfjMDRtXRJctk0YeNxJpyt25LVYBpIUFoN5V3Ji-18Zka_uDAtSlCvQwTBiMzeN3c1_PAu5R5LqVTkX9CMGFq1ty3gieAht29Xzj9n_GhU5t6PyEwSMnp-IRiaiYbNJsGZ6ApGrTz_vzldbOxrDsn6Y5_3LcO-52Dl_FOVbjd9GGJjqyJwE9rKZUEet2uF6PAn4xFoIZo4-Qm6kPpW4yr1MpAhrlTlYVII8d28iPZCvk6Hew6lnoE8jd1WNlVIKgzx6V_z5VaIlt8xm0Gg.jpg"
+      ]
+    },
+    {
       "id": "telegram:bulotkaff/18449",
       "sourceId": "telegram-bulotkaff",
       "text": "#oneshot@bulotkaff\n「 1/1 」\n☾\nAU, в котором Чонгук работает таксистом и каждую пятницу забирает Юнги с бара.\n✦\n#kookyoon@bulotkaff\n#artau@bulotkaff",
       "url": "https://t.me/bulotkaff/18449",
       "date": "2026-11-15T16:49:02+00:00",
       "images": [
-        "https://cdn4.telesco.pe/file/bDNgwOtiFvKJJbOW9BwIz4BW4J0qqW36Gmnx1uQ2achzY7EDkQf_HLnIbQQhyorjIt-RN6VqL06JwLkKvoIChjdwZqF4vbILuhxNBOWbhc7QWMdWD4KxUBxX6CjilxSt_-vHT0KqW1lqYYMNZ8UYyvTTkdCpWZyyooWaHNalCnRwyeGoOri1CGIkUOyMMu6kvwmS0oduaHEkLrenRQNauUTMnblSeUE50xSLL1Fil0gk5tTjQX-CWF5FyFQqDpQE9kT1nF-yW-0l0SAB88ElOcqHtmF_SiKVaHryjSDaeHKVmHEBA44OygjYKFtl-EafCM4wk6-XDsBgLXBhT8wkwA.jpg",
-        "https://cdn4.telesco.pe/file/YrlMe22iu-kA-j8eWIS3uzTLB0EIdi9POMB89L1DXDZBd0lE0GrMO6fGmTOj2t65_UoIQ9M3G2aMz2Qwe-fUBb2xJdF4mzFoFZpAOuZs0o_kH-9BHpjcU4d67Ccy_FwOcwJMkwaivdcFwqX0jbucjPCZH7MxzYh23WOKHPiI64Wuj6j_hzIsiJshagMtYBbI5qt7iy-W60FthwasCHDBaRmjv9Wl9ZN875wbURVAHsYuSPvYWPmcVUhgDyJ_ROA58dxalU2RN5o02jpRh556Ocsg_kESvxfZ18sOYkUJYQdo-ZIV2V4IN0Ex70w4JhmZPFdSqf4dKDwzOzsOwwxkxA.jpg",
-        "https://cdn4.telesco.pe/file/HEyqMwfaUJFL0QgF126l2QehiDuHRf4urQuAln1kbG85Mm9t9pkusGnYf75955UnQlwzzCswMwIzPpMzkDdSNVNXPRAEEuYTSmn69U8S4h73xagRCQmixJNMbXuMFr1kPO-1_5vA8ScSlGD5pFT_AJIrfyW2Mhw7lwFecuR5gYw91GC0DA_TIJs3sRWnZeLPK40F6Ehjr_JZ-bM1uIEu4O7NRSH9Aor5iPEySZ8sRvCLOzAIV15ihc-y_iuWHa9j3_wQSatTJWePIUPirMd3jovGQ_O0I3vc5-mnCe8eaKSDz3eCP3JJ6VeDWMermPiOx7_QL3yUNYkcYkHwNFamow.jpg",
-        "https://cdn4.telesco.pe/file/GGHXmV5wlTYn65g_j1E0f9-xShzMWKP2tusa0Hve77yw6TYkYn5GWcbDWzfVinLY5X4KEucQLNQ7Am4mWL4hobF0SQd71tIopozjxZWSe512uOcUhyMwbpRdIng4oDnsIJj4ahJIKEwRq9pBmdQnut2vQg_OTvXS4iCrWMrCP_qHL9FEsMiE5ZthcIb2BBlVaGDuIH3iSRWb4plodH2LcUKB2kv43F0Z8Zo8WEzEF6BzEuCqXEibTF_k1c9ih1sLWXxNfk-ui3ipKhAFnvxI3lJIVQgRPkXEXApKUevHB4Qlr7XI5OGpACFsq1lT5xWwIqlEqLXcbpL67J12Nvl7Sg.jpg",
-        "https://cdn4.telesco.pe/file/jU08LyCPCNKKIb6DqnPq4ljlT3MF91Dv7UVIv-nr4qGQtEThC8CDFQsZ7f49pfAchXu-eI3isJ2OOYy-Af07JEZlmGClohcrlOpVF_7nTyNF_3_1C2QgsJC_h9rgKDtkT3KV0vI_h6UPmQQU28mZwB3UZxsv-4YqnCOXVwVl95JZGuvSf5EkBLuYMf286iR9Xtn9rTjqg6PwLGa1lOSlpvJhcM2noMzCYoSfhykiaLGxfw1YehNzyssoBA1UxEPPDaOlA_Wnu-kYTXVFQbY4SZnx0oGfh_C6DY8Gw-MDy5P3NI54O1qoJrzEq7sSZujJcEfxf6rEtyEG50lX1ZT_vw.jpg",
-        "https://cdn4.telesco.pe/file/Myl7Qv98evCN-1-Zt1wcGB7QmE3e6uJ-n4DHhx9IyoHcI_lLfQbKFqXfg3t6pkEjFJuQhTxt50rREpYB6dfugly_QuSHUU_w92bpC6rEYyl_DsvOrFY1_V2ave7VZp0xTgpu50LxyilvfxYZTgnZmgHScQm7KEmh-9jqcIa8h_ctbGjWXopL2QFPysiu2LxytTm5QaSJ-xgq4AMkUBS4eAtRSUJdSLcwYCB0nX3iEc1QVbKwOtB0fR0TQPDpxGnAW90vPdzTb_AJbiHKOK2KeN3qzcnrENlaY64AGlAvPii4GqYXiJQvPUgYR4UAwJYzYHoGeWQ8kcXpqQo9DjSJuA.jpg"
-      ]
-    },
-    {
-      "id": "telegram:bulotkaff/18441",
-      "sourceId": "telegram-bulotkaff",
-      "text": "Истории Юнги ☾ | AU, fanfiction\npinned a photo",
-      "url": "https://t.me/bulotkaff/18441",
-      "date": "2026-11-14T15:35:35+00:00",
-      "images": []
-    },
-    {
-      "id": "telegram:bulotkaff/18440",
-      "sourceId": "telegram-bulotkaff",
-      "text": "16.11 - 22.11 РАСПИСАНИЕ ПОСТОВ\nВ NSFW AUшке будет всего 7 глав, они уже написаны и раскиданы в отложку, так что ждите)))\nЯ пока в ресурсе, контентика выйдет прилично, это примерное расписание, возможно работ будет больше (но не меньше).\nКак обычно, всё платное будет в пончике ВК или 1 глава = 1\n⭐️\n\"Девочка с сюрпризом\" тут выходит в открытом доступе.",
-      "url": "https://t.me/bulotkaff/18440",
-      "date": "2026-11-14T15:35:32+00:00",
-      "images": [
-        "https://cdn4.telesco.pe/file/ryVwOmy1zfeHguHAS9sOvmSjIbObbc1tbhgYsvK-LhiHch3BTF4K5nkOaqZyRLMlDhnAf-idVXa8kHEdLEWZPThjHoTyXiHftSONh-_mUBaKfcJf-c6UlNZOtOf0F56V2gYdCi02Nl4jfz_2oVKGAQxat1OYlwpzzBG3c1TeWi6X70eQwqRuOm62THmoo1v3pNgwgKqg-BXgcegFttIoihkPhtsW0_zkkmMy43DJyGakHx-5K6zb5Bnlhj0s2yf6YFcMoPCeN8NE31yaiXWCxToObUTuPcYGXT9H8Nz8mF1vAMDYvVCK7w_2ccT2X2jrN8-K-OB9JHKCnIzmUZfg7A.jpg"
-      ]
-    },
-    {
-      "id": "telegram:bulotkaff/18433",
-      "sourceId": "telegram-bulotkaff",
-      "text": "#девочка_с_сюрпризом@bulotkaff\n[47.5]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
-      "url": "https://t.me/bulotkaff/18433",
-      "date": "2026-11-14T10:40:30+00:00",
-      "images": [
-        "https://cdn4.telesco.pe/file/hye0NhyohjNgj6r_Gl-Y0biHLcCcim23wXrf1-fbJhi59a2EkILleP0tS4BmeO4SRYExs-1S-NtRq8ZhNnXvSgrNLsYNjxbNImViUjjE17ck1cc3879WZIh3ZEm5fkkQDj6UbsPplmNqWn8mnzkNqs6oT4aW5q-mVbCEVC9lzrbzfP62oMO0jsvVv81e1OQOHer4zlnqLINBi-vbNKlnLdx-eO7zMzzh6HmAgfuvQhz1_q9DaundbaYkK-8LHUo1L68xKgyx-PdyuaMo8HLM_A81t91pNn4wU0mhmU6XmF6EMeLF-w6whtbmq65lhFG5wOiV674S-0gQhstCbkcxIQ.jpg",
-        "https://cdn4.telesco.pe/file/JfThyW3v6j5JHiWv-olV2IDPAICgC3P8h89L4IaGetLnsskXZQwGvqUDLeTSwCaBb8Du9NNfIUuYItjW8tgM0FDnsHXBzaWdyFdvmvwIviw2GnHrpI2vqsLui3A5JkUKXqKwjWT0E8qANLZ3DlvejX_kxUC0KSHl929GwPYycqCnOesB-0ji08ejN7S9osp13h3pLj6IjHABmLNbNeLxezkeFTNejdFBLxw3yw8Csu8q6MVEUBRQ4t0cYvd_9NMiKpXmTdn7cgPWY2mhz9YVvVsBj_7JTfZ09pFey4FV094BiNtTJhYQ3IzBlrtAne5LlXujeajoD1OJa0OvRhAfhg.jpg",
-        "https://cdn4.telesco.pe/file/QaVJhzNlUlTFThtYTKCPDkeTiBcOApZwDPLtTr4vmn4mXGuu9g8eHfMGNLfjoMmLdKinFnGxdtjSwj0ISzCcg4nPbHyJ8WoywJIwDHUc2lbaY6PKN7O1KMcGnsq13CcP1pIB9qfa-CKeAEp3MqZHUfyXxcvQ-sj24y7zZIqY3j3q7NE0qYMajG7BRnpgaIJSoIBHU49zp2312n1O4bQpv5Qt_jt_St4NbGDXmKu1luxIeXx7YHLHK7TwDAHKZk6JtnkzGdJIE0uX-HiTXJiRi1maf8X4ObkrwtbGVQbFfV7Hgau-KuSmFrZ1IbcscLYjGKY9ckrf4QbXGQgH5O2K4A.jpg",
-        "https://cdn4.telesco.pe/file/Qse3C0k8mBJYan-yVW9-ClT_2SRmQ0A2VaHQ2fnHY1ABM6q89RnFtBGhr4D-02G1AaFA2Hq0Iw21NN8oGt9qHHnAY-RWSm0DdISrgCt5nxWEUHGMG-RxWau4QX4EmZqWacFOZXHZlCPzh8UfSp-vRbmILTvNvLNGyiFFaKMoJPqbKbmGbVqoS5G19uioT5GxH8WZ6TntyHHarD_osGD5RUYmfWwaOod8tbj0W_divJcrXEDu4BoXfEGaKXtjUkk6hP65ggl3DEJ3SY58oIw57dVQmhxfEp0HkAx2GFcGKJTleFyvI2asT6aROLqkMDZcIqD2SxbM2o8Ks0a6rZ8D_w.jpg",
-        "https://cdn4.telesco.pe/file/vGTmaEtav7l4L_8xFPYgMWhqtes6g9O1y1UEzEx6gEkX6wa2xw_wcUlOcq0not73BvLdnzTEZkwa8fZ9Z7X87BvUFpMk6ZGlf3DFS-zF6h9zB_RzqDL_IoAXRZ_AinCSaUIEEzJgYEV-Mh-iMTH8N6nij50ftcEKkW0IM_UIMFU_UW66H3u7l-P6FbxXYa5li7iOK4w_aDSbUR2rEd201Tz8HmKOvDDNnCgbMTI0l2WVtgPScb9fKx3EZpM6bAVqowVaqxqqslce3DjG2FT2gUjinvT-7Ps7GEpEPs03J2QX7fCfx3h99qYIaWDI_Yt65dZQSZD04pvvO_bouL5VHA.jpg",
-        "https://cdn4.telesco.pe/file/SYsZPXNaaXKKeIH2RYAfMj-yBciPAYlq7AcwfU_cgMb0aSHl7e73Ty_ugP_BnLpw5x7iLaOK5PLCrk6vJPOaLPjwK9WU4ymmLDSZPQFEUpqo2wF3wmhzu58CqKmUiradz8LZgB5kXgRcyDI9QYEHH1-wR8v0all5WV9nr6WQAs4wzAxHC83yKWWmybkEd26sUbi_6Qe-QlzK8g8LmtPr_4htecYF4552_q3H3mnkYSmv6L87vfTu5_uVso84hkK_bUiXG_1F6Qh1Lv-X-fzOcGB3ND5pqu_Z4k9HFHrjpnpMDfQJd0tJua4ldeMfbteZ791RNWkDo2NUFEoH3PaLTQ.jpg",
-        "https://cdn4.telesco.pe/file/DgqrrVO-o58IjSoVIc3qFEe3iI-DTrIgQjUVhU24uC7wMDToZkkuJtJdnHNF771EwkGguMciX85yFpva7R70qgOzZIF9v3WSV7NKyhnRDKfE6E64dxU_SwpDud7LYgNdRWuP6-e6cj5tOcz9Kd14f_WsYR7VcV5_0gUaPxZ_3GmrBsF9B_erkGUBQervD9nfpNYrRTlUIXyRNC0VQkhdRqD1ggaNAjCa0ZdlOq-m-wWpjgyi4Fn5d2rBq-3XDs_42YofOyrgxnULGSKcSviDoJlzbrMz4RuGeFVFFlpCA9LoKP3QUBJzit23Xiwt7X2ByoAOU2RITVdqEy1_q2AYkQ.jpg"
-      ]
-    },
-    {
-      "id": "telegram:bulotkaff/18425",
-      "sourceId": "telegram-bulotkaff",
-      "text": "#девочка_с_сюрпризом@bulotkaff\n[47]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
-      "url": "https://t.me/bulotkaff/18425",
-      "date": "2026-11-14T10:35:40+00:00",
-      "images": [
-        "https://cdn4.telesco.pe/file/OX6n4w7_SfJhXV6Ceb4rz2KS7exeYSoZcsGRHCdqFQIVT19nAaDf3UDNi-14r7BkK__a8d8DW4lTd7OZM_WerY7Nfhz6iLU9ncB18aNi4FMpRKvAFOMBZOqFP_rdiadH4tztHseTBA98N-pqB9V28wpYzv6f5HU3DSwps834nEuNXue798iro6PFRIOuNh3MgyMx8fnt0HQhgHMQuIULYxTTNapP9QQtVja1Ucx5DOjmFk1EzC76sA0pSABdNo9c17ThhtJ1rMRRCFncW05qp9jpu-dLXK7wVTZeODHya2X88W8aeiHfHvID948CLE9K1w-pIUmakwSvL1-dTCQygA.jpg",
-        "https://cdn4.telesco.pe/file/TtfksivVfqbAYCEGeTHfR1mVGyvJ1hGp4G_Bk0019OVdjz4fZMJGr4-OpdI2buAHuMWabC5jEkIwU_T71lvvIJM2Qzv5sW5l8zQXXDbdy84jiAL9CvEfhTeJEjO4Yl-3yMgNSv-pThcBUDX8UTpDSWlmNTmMF6Qu_31NwdBltxDgWY7VOOM_SVayLWq_xD4IWP9H6wEoxdsoeD6xrXjku4bYDAn2DfIZWfbrpwdgmDGHn3zvqy6lDA6Tch2Wvuf20oE6QcMflI-NK0tbkJ1zh5pbwe7a08Wc18kEgTm7dnMZxmyyIqEW7wdPJ_NCHeQXtTeP_ezh4fToBI7fe-jYvg.jpg",
-        "https://cdn4.telesco.pe/file/bkHZV2ZvDdOnFyQVhFP_4YLOgfd07lysV3Eh33pXOLUe0UZgn75WD3LITE2KMz4Uf4Fvg8jAzEVBLDhrmLsnSnbtxZ82GgLr43IE9ruc_PrYjqXipVnecyy5L5d7Vd8_2sprfClnhJu8VoA9JJg6FdRuolbWigO3DrRNuFEn-pT5vIpXjZNvH9VHou0H0dSS2Qr_6XnhrkRJKx6AeA8P8zJrvlJg39N1oAJnx-M2p4mjSkhFB2c9xxBmIG_XUEfRkxLAUknQNvowTEeCCOfdRS7P7CLSpCXB-8bKNBf4H085OQZnrjWlVbD4avvivIEwCl9VZlRTubt-A0C12WJP8w.jpg",
-        "https://cdn4.telesco.pe/file/L_P3OGHFuynirmN89eQwS71CrwEQ9VRVY1tbQOO5LsD9DTLBw_DHW0ZeL1--j35tQ2uk6xCaVCA7fPRwis1RjSFZosr3yLL0TMDiHqBlGsgcClrurRuYMp9IpzJLIBsgTqKGFnjH_i_ILUvCKZIUTcFFPWMHGj6J2FjukUOAaMC3rxcAyljjPfBbOyLbIy9P2BlAuYCyCfVF-mn3VBm-DUVGT9PXwfTI2JE2Cn7T-gholGJaFQUnaYoRK4eMaf3ldOmUpxEezgbTbmphfkZK66eZ7ZepwqOoN1WW-Ey1Y5hXEJqH3BRRqHjY8jpyTE-yKETCJGwyTBXNJHLPR-Cskw.jpg",
-        "https://cdn4.telesco.pe/file/vIx2OyS0PqC_4szz8wdY9FVj2sI7tuZQogxMe24QC6SSV7llZr-5S7hBYVNp4U2v4ATHCoub5c8x3872zfnNRvIOScgxcazTyD0RID0MJyynB3kHW92ttSBNy4oST-YSZrr8y_m2-SiQvH1t5MSc_9K__I3Em2dzs_-Uj2tPezvOyanDO87MYfDr0f9RIkZT46ZytVKvyos0zKtf7GcyQsmbGpvEddfpEAhs9jWde_6z7WNuwquUICP0yNhaYGQQbbZP_oqFAc36xQieyx-Z5fE1hpFcD873UDaytyz-IapaCmXebysX0ByGyMT9Dhm6FKhfnehYG3nyNd9h9o9uDw.jpg",
-        "https://cdn4.telesco.pe/file/MljTMvO-OkdNS5SOqh8BDvSLjI__fNt2KITgSIpYDIcyxhox6doQ_AqbX-7ZY3xuHM2giOBHr8GtNd6jc1OogXUUdYJJo6WhJjNcZ9QLT72yG3Zd8_AIXvuvGkPor5vqeeMUbowu6ZSyXhvL2vziOSSzVj-ziZls6ZXE7WH8Bhm6RWlTVhAk7RWn5CZK-VZca2xz9KrF9LvNOHbNgD9jVFpnnN4hegGU4ZGWl2wAEm_uuMW0NFwhnv2QZz56CMkwsM_PyWQg4mTVHcehN6Ng80966OiYVaqcLG7dRnCJnnya38DIqZh6y6FsQ1r1KP_5Qy0FEiAgZwmaIQfuei3yjA.jpg",
-        "https://cdn4.telesco.pe/file/g2XUXVqWG3yBchN8kODOepdIzZzgVebxQ4eGsFS7svCU_CTmfymL80RwDNaEo6fl0IjLA9ePXjFPJTWiYuv71NYZoX3f-K8-amB5taUa8jarKkfsnJdIZH4qDg9UId1l43lxin7hI0skimrrbMDAdfMVHk5EpZKbe9aVTpFrH0pzYZYiCWdCEhJfaijVuHh2P01i_4xTDLGL6GD2i4joddG_kMa_yD9-qz7J3XP7Hbw4pQSN64tRr1CcB5s4fPxqQ3I_4MbD-QTF9_sh3QNzQR7i3t8kg5AVRPJUvNm-bX5a8WPvC2oaaiMy0DRAsGXZb_KsAJwnoZmL90bOc8fGaw.jpg",
-        "https://cdn4.telesco.pe/file/QBuQu4bn-F-ylBkjaFM2YfHRGeP4bfdm_qODtbZSmdU0GPaZaUF0VxtnK8XPeMGj8EvXTv4Wei40zf5scp85dSy2pMyw2Cfn6QCyh6L3moVhIiapATmsUioA3ikzolFWoD0P2Hw2MFzMVfqeKN1T0_9uXQuJrcrpw84glZYLHx-lCb2rsxuJmydXOlbckOelMnX55nz57Pw5Y64l4-PWTDvCCt9GWUrHmSEcP7Uaz86UrgiWsaxY_hBtlb8BYjaZ4ML_01waSTyqavclA1JocYjQDZrUhT9igK7rJc10skd56gR3hIt_PS-e9yScATR-fbY1dSz1R-e1-9fjx0IFmQ.jpg"
+        "https://cdn4.telesco.pe/file/Zs5Uy_BToQ-wvJriAeNPYw7Jmp9mQB6UTJ45c68CMM6yTOSblfDsZnDWmXYgn4OQm9BCFbii_0OVtysbV-xFCcbBE1Fujc83MiuB7fuDNskfGQxMA4gdeuY6iG7Ayf_M3jqrommQdvVt6AHiUPzktUXszdnRvToMUe_0I5Do5LilJM2oHmr3wApMSdeb_Yq3FTGc2oeNxZ0S9A092572PybmGbruLcz238GMIf19c9lqpJ60ip4PIAT0rA6-Ml-ngpG0uwKIapO66a3Yl5EABwAIiKZM7Fg3BP_u7K4t6HmcwuAgLUBCEcR8GRfI05eVdGb0BFwyV4YjjNFnBd3R5w.jpg",
+        "https://cdn4.telesco.pe/file/gShoH046zud-bcDNNGoSl_ee0T55v4d_uWxdQNtjo07nrfEFCXw_dcryub5p29F72nZ01twHbA4cboc-KrRkgY_NGbNwLRUp-GhUayUiv6LpjoB7GZgL_UumV3zavGQ50wpA9E4SgCf1TDo2EWekiCdzKnEf_JaLjwmv7JS7WUcv346QxYFY1CITZxQhZUvz422Ki6_kR5gh8iC4nlNFxp3ngcMhRlvNcV79iKml2aUjmYZLkbTZNUxbsdOa1wJgYwp53emRWaJ1dQ_eTub9mH8U7Sq_2FHuOocoXVcHpDKOITSlrJjNqimeMBtA9wnyGmT5nx0u6Hm02EJGIEOgEQ.jpg",
+        "https://cdn4.telesco.pe/file/PcbEXhxiVCKIgrCldhMUSAl54jx8MHpPqrfJw-4e0XfICRG_nnnMYF3y4ZxuMLtj2ZMsot1ePE9cvtntC_E9KxbgAonLt2GQGdooFZYBmWneZgYLWJHxO5L4t9WUK2HTjw-V5NeAdGArE1t4S4sFx4Io7NDlgFB1xkZqnAXgdhmjpTAX9pKKjtZPSCirwKtLhzY4JxtaOpfAzvMKenOq2ZycTKF_PyO5BbSmUajXQFXR19cx9ajH8uBuIytEhsGXL1hQQ4cddRU7W26czSRjJSerToccECgSloViOV3b76MYC83cpc2iZSqb5shruuVCdMdqe2C7Nv16P3a7rX-aQQ.jpg",
+        "https://cdn4.telesco.pe/file/jC4XBZJrRu3b_TkwsPhYWCAqQ2II0rAyADLmWDN--5XbL3jbrk0MQnYaZNT7Dv6s78l1DjtqY7Ak2xOZ_U_z5NA2nSoMNIIk_knmFJEBr1qvQfXufS9DaiKCuRhLOAtatEp2xgO4lwKAAqhOdF-rvmcSgVoum36UCvAk5BbzxeFx5D2HoLZU40Lp6pg4Y4IRMolPeBFvjp3YdkYTdAw1n6zqwObgx7XJnP2YXm9x77uTZUb2JhFNvxy5svVRzLzhkWPOcvS92cq2VC-hIeZeONa2hZ1CNdOJz63Cr4ynzQfm5qC7AV7YWumw9kptKAxoBlzUjPn_SlMqea91c5bb4g.jpg",
+        "https://cdn4.telesco.pe/file/EnPUMCiIAhOA9i9L6EEztufHIt9ZMHW9mDsdaodEoq2HcUlkbrEYAt_iZ3zqSUOmm0ge3wf5Vq2eOHUj9opUpjnnATAsI0WYqrswRwyzIwpfuefKrSbdG1-ietaWgBNJ1bME9Q0E5tzmtQVno7EsMqbKCNj-W-J-d9qZv-hXQXcqYlCmZPhoB9odptOhwSVgzMMI3TfsN2Y3NM3DHiWRjD0-eB5xE1SmGz_fs5oS621VmCHQDNq3w6VQuxRF03kzimdzBogyY4YtOQSJhaJaoioPK3dtX0wEsLhMx9BCu7ykL59kSUMx-XpdFmDqC2lGYk9XhaOCRCMvV5cxup-rbA.jpg",
+        "https://cdn4.telesco.pe/file/XjulwIhDqwEcbT2_R9U2mcKSYfevL0--r4BkIgSPcwAxcRdvTNFT_EgmE0br1LkQRvc0HxE-SLpSnCs8uuywh7HfjClW7VwgsSUVV1UsPW3BdM1qvwq4ZMQOnPZNGYAm-WUYimOG0hiytiZ0g60YprpwxJay-c8Ftee1clWDAl1HEpIPZeaB1HAbyiYf8EwLNCcuzacPTlVoz3jDEfZWvTACAX731UsOp6enzom47We2syXVeDyaXPSlD2FxpAtkfTlNRlyGJnuKHkBWlsRam0suYaW_ZqCM6bUqA58T2NIqpXcgqV1dUL39tSw3asizj7bMLdPVpOHU4oJ_Rv-5yA.jpg"
       ]
     }
   ]
