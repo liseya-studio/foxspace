@@ -286,31 +286,23 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
               onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
               <div className="fox-widget-header">{!previewMode&&<GripVertical size={14} className="fox-widget-grip"/>}<h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>
               <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer} onConfigure={()=>{setSelectedId(widget.id);setSettingsTab("data");setRightMode("settings");setShowRight(true);}}/></div>
-              {!previewMode&&<div className="fox-widget-resize" role="button" tabIndex={0} aria-label={"Изменить размер: "+widget.title} title="Перетащите угол для изменения ширины и высоты. Стрелки — изменение размера с клавиатуры." onPointerDown={event=>{
-                event.stopPropagation();event.preventDefault();
-                event.currentTarget.setPointerCapture(event.pointerId);
-                event.currentTarget.dataset.startX=String(event.clientX);
-                event.currentTarget.dataset.startY=String(event.clientY);
-                event.currentTarget.dataset.dragged="false";
-              }} onPointerMove={event=>{
-                if(!event.currentTarget.hasPointerCapture(event.pointerId))return;
-                const originX=Number(event.currentTarget.dataset.startX??event.clientX);
-                const originY=Number(event.currentTarget.dataset.startY??event.clientY);
-                if(Math.abs(event.clientX-originX)+Math.abs(event.clientY-originY)>4)event.currentTarget.dataset.dragged="true";
-              }} onPointerUp={event=>{
-                if(!event.currentTarget.hasPointerCapture(event.pointerId))return;
-                const originX=Number(event.currentTarget.dataset.startX??event.clientX);
-                const originY=Number(event.currentTarget.dataset.startY??event.clientY);
-                resize(widget,event.clientX-originX,event.clientY-originY);
-                event.currentTarget.releasePointerCapture(event.pointerId);
-              }} onKeyDown={event=>{
-                const offsets:{[key:string]:[number,number]}={ArrowRight:[1,0],ArrowLeft:[-1,0],ArrowUp:[0,-20],ArrowDown:[0,20]};
-                const direction=offsets[event.key];
-                if(!direction)return;
-                event.preventDefault();event.stopPropagation();
-                if(direction[0])setWidget(widget.id,{width:Math.max(3,Math.min(12,widget.width+direction[0]))});
-                else setWidget(widget.id,{height:Math.max(65,Math.min(900,widget.height+direction[1]))});
-              }}><LayoutGrid size={13}/></div>}
+              {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} data-edge={edge}
+                aria-hidden="true" onPointerDown={event=>{
+                  if(event.button!==0)return;
+                  event.stopPropagation();event.preventDefault();
+                  const node=event.currentTarget;
+                  node.setPointerCapture(event.pointerId);
+                  node.dataset.x=String(event.clientX);
+                  node.dataset.y=String(event.clientY);
+                }} onPointerUp={event=>{
+                  const node=event.currentTarget;
+                  if(!node.hasPointerCapture(event.pointerId))return;
+                  const dx=event.clientX-Number(node.dataset.x??event.clientX);
+                  const dy=event.clientY-Number(node.dataset.y??event.clientY);
+                  resize(widget,edge==="right"?dx:edge==="left"?-dx:0,edge==="bottom"?dy:edge==="top"?-dy:0);
+                  node.releasePointerCapture(event.pointerId);
+                }}/>)}
+
             </div>;
           })}
           {!widgets.length && <div className="fox-editor-empty"><LayoutGrid size={30}/><h3>Пустой экран</h3><p>Добавьте первый виджет. Показатели, таблицы и графики будут брать данные из выбранного источника.</p><button className="primary-button" onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Выбрать виджет</button></div>}
@@ -343,7 +335,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
               </>}
             </>}
             {settingsTab==="appearance" && <><label>Ширина на сетке<select value={selected.width} onChange={e=>setWidget(selected.id,{width:Number(e.target.value)})}>{[3,4,6,8,9,12].map(n=><option key={n} value={n}>{n} / 12</option>)}</select></label><label>Высота карточки<input type="number" min={65} max={900} step={10} value={selected.height} onChange={e=>setWidget(selected.id,{height:Math.max(65,Math.min(900,Number(e.target.value)||65))})}/></label><label>Акцент карточки<select value={selected.accent??""} onChange={e=>setWidget(selected.id,{accent:e.target.value||undefined})}><option value="">Акцент приложения</option><option value="#f06432">Оранжевый</option><option value="#4779d5">Синий</option><option value="#388b69">Зелёный</option><option value="#8864c8">Фиолетовый</option></select></label></>}
-            {settingsTab==="behavior" && <><p>Перетаскивайте карточку за заголовок, чтобы менять порядок. Размер можно установить во вкладке «Вид» или потянуть за нижний правый угол: горизонтально для ширины и вертикально для высоты. На клавиатуре используйте стрелки на ручке размера.</p><div className="fox-editor-widget-actions"><button onClick={()=>moveWidget(selected.id,-1)}>Назад</button><button onClick={()=>moveWidget(selected.id,1)}>Вперёд</button><button onClick={()=>duplicateWidget(selected.id)}>Дублировать</button></div><button className="fox-editor-danger" onClick={()=>{updateWidgets(prev=>prev.filter(w=>w.id!==selected.id));setSelectedId(null);setRightMode("library");}}><Trash2 size={15}/> Удалить виджет</button></>}
+            {settingsTab==="behavior" && <><p>Перетаскивайте карточку за заголовок, чтобы менять порядок. Размер можно установить во вкладке «Вид» или зажать границу карточки и потянуть: боковые границы меняют ширину, верхняя и нижняя — высоту. В предпросмотре размер менять нельзя.</p><div className="fox-editor-widget-actions"><button onClick={()=>moveWidget(selected.id,-1)}>Назад</button><button onClick={()=>moveWidget(selected.id,1)}>Вперёд</button><button onClick={()=>duplicateWidget(selected.id)}>Дублировать</button></div><button className="fox-editor-danger" onClick={()=>{updateWidgets(prev=>prev.filter(w=>w.id!==selected.id));setSelectedId(null);setRightMode("library");}}><Trash2 size={15}/> Удалить виджет</button></>}
           </div>
           <button className="fox-editor-back" onClick={()=>{setSelectedId(null);setRightMode("library");}}>Вернуться в библиотеку</button>
         </> : <>
