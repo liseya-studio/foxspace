@@ -187,7 +187,7 @@ test("dropdowns share centered arrows and consistent right inset",async({page})=
   expect(source.image).toContain("svg");
   expect(source.padding).toBeGreaterThanOrEqual(32);
   expect(source.position).toMatch(/right|calc\(100% - 10px\)/);
-  await page.locator(".fox-widget").first().click();
+  await page.locator(".fox-widget").filter({hasText:"Обязательные платежи"}).first().click();
   const inspector=page.locator(".fox-editor-fields select").first();
   await expect(inspector).toBeVisible();
   const inset=await inspector.evaluate(node=>parseFloat(getComputedStyle(node).paddingRight));
