@@ -228,7 +228,20 @@ export default function App() {
           <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)} openTaskId={taskToOpen} onTaskOpened={()=>setTaskToOpen(null)}/>
         ) : (
           <section className="content-page">
-            <div className="page-heading"><div><div className="eyebrow">МОЙ ЭКРАН</div><h1>{activeScreen?.name ?? "Экран"}</h1><p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div></div>
+            <div className="page-heading"><div className="fox-screen-title-area"><div className="eyebrow">МОЙ ЭКРАН</div>
+              {activeScreen && renameId===activeScreen.id
+                ? <input className="fox-screen-rename-input" autoFocus aria-label="Название экрана" value={renameValue} onChange={event=>setRenameValue(event.target.value)} onBlur={()=>saveRename(activeScreen.id)} onKeyDown={event=>{if(event.key==="Enter")saveRename(activeScreen.id);if(event.key==="Escape")setRenameId(null);}}/>
+                : <h1>{activeScreen?.name ?? "Экран"}</h1>}
+              <p>Добавляйте таблицы и виджеты, чтобы собрать нужное представление.</p></div>
+              {activeScreen&&<div className="fox-screen-actions">
+                <button className="fox-screen-actions-trigger" type="button" title="Действия с экраном" aria-label="Действия с экраном" aria-expanded={screenMenuId===activeScreen.id} onClick={()=>setScreenMenuId(current=>current===activeScreen.id?null:activeScreen.id)}><MoreHorizontal size={20}/></button>
+                {screenMenuId===activeScreen.id&&<div className="screen-context-menu fox-screen-page-menu">
+                  <button onClick={()=>{setRenameId(activeScreen.id);setRenameValue(activeScreen.name);setScreenMenuId(null);}}>Переименовать</button>
+                  <button onClick={()=>{setIconPickerId(activeScreen.id);setScreenMenuId(null);}}>Изменить значок</button>
+                  <button className="danger" onClick={()=>{if(window.confirm("Удалить экран «"+activeScreen.name+"»?"))removeScreen(activeScreen.id);setScreenMenuId(null);}}>Удалить экран</button>
+                </div>}
+              </div>}
+            </div>
             {activeScreen && <FoxEditor
               screenId={activeScreen.id}
               tables={availableTables}
@@ -250,8 +263,7 @@ export default function App() {
         <div className="dock-screens">
           {screens.map(screen => (
             <div className={active === screen.id ? "dock-screen active" : "dock-screen"} key={screen.id}>
-              {renameId === screen.id ? <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)} onBlur={() => saveRename(screen.id)} onKeyDown={e => e.key === "Enter" && saveRename(screen.id)} /> : <button className="dock-screen-name" onClick={() => setActive(screen.id)}>{screen.icon?<PlatformIcon value={screen.icon} size={22}/>:<LayoutDashboard size={19}/>}<span className="dock-custom-label">{screen.name}</span></button>}
-              <button className="screen-more" title="Действия" onClick={() => setScreenMenuId(current => current===screen.id?null:screen.id)}><MoreHorizontal size={15}/></button>{screenMenuId===screen.id && <div className="screen-context-menu"><button onClick={()=>{setRenameId(screen.id);setRenameValue(screen.name);setScreenMenuId(null);}}>Переименовать</button><button onClick={()=>{setIconPickerId(screen.id);setScreenMenuId(null);}}>Изменить значок</button><button className="danger" onClick={()=>{if(window.confirm("Удалить экран «"+screen.name+"»?"))removeScreen(screen.id);setScreenMenuId(null);}}>Удалить экран</button></div>}
+              <button className="dock-screen-name" onClick={() => {setActive(screen.id);setScreenMenuId(null);}}>{screen.icon?<PlatformIcon value={screen.icon} size={22}/>:<LayoutDashboard size={19}/>}<span className="dock-custom-label">{screen.name}</span></button>
             </div>
           ))}
         </div>
