@@ -281,7 +281,7 @@ export default function FoxEditor({ screenId, tables, tableId, onTableChange, on
             const table = tables.find(t => t.id === widget.tableId);
             const isSelected = !previewMode && selectedId === widget.id;
             return <div className={"fox-widget"+(isSelected?" selected":"")} style={{gridColumn:"span "+widget.width,minHeight:widget.height}} key={widget.id}
-              draggable={!previewMode} onDragStart={e=>{e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",widget.id);}}
+              draggable={!previewMode} onDragStart={e=>{if((e.target as HTMLElement).closest(".fox-widget-edge")){e.preventDefault();return;}e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",widget.id);}}
               onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();reorder(e.dataTransfer.getData("text/plain"),widget.id);}}
               onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
               <div className="fox-widget-header">{!previewMode&&<GripVertical size={14} className="fox-widget-grip"/>}<h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>
