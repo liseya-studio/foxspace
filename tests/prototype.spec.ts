@@ -102,7 +102,7 @@ test("real feed sources show Telegram and VK source states", async ({page},info)
 test("ready-made travel dashboard has a clickable offline world map",async({page},info)=>{
   await page.locator(".dock-add").click();
   await expect(page.getByText("Готовые экраны")).toBeVisible();
-  await page.getByRole("button",{name:/Путешествия/}).click();
+  await page.locator(".fox-preset-list button").filter({hasText:"Путешествия"}).click();
   await expect(page.getByRole("heading",{name:"Путешествия",exact:true}).first()).toBeVisible();
   const map=page.getByRole("img",{name:"Интерактивная карта стран мира"});
   await expect(map).toBeVisible();
@@ -136,7 +136,7 @@ test("platform icon gallery can change a screen dock icon",async({page})=>{
 
 test("a workbook-style import fills an existing empty travel template without losing map linkage",async({page})=>{
   await page.locator(".dock-add").click();
-  await page.getByRole("button",{name:/Путешествия/}).click();
+  await page.locator(".fox-preset-list button").filter({hasText:"Путешествия"}).click();
   const before=await page.evaluate(()=>{
     const screens=JSON.parse(localStorage.getItem("fox-screens")??"[]");
     return {id:screens[0].tableId,tables:JSON.parse(localStorage.getItem("fox-tables-v1")??"[]").length};
@@ -177,7 +177,7 @@ test("feed gallery keeps every image in a multi-photo album",async({page})=>{
 
 test("dropdowns share centered arrows and consistent right inset",async({page})=>{
   await page.locator(".dock-add").click();
-  await page.getByRole("button",{name:/Мои финансы/}).click();
+  await page.locator(".fox-preset-list button").filter({hasText:"Мои финансы"}).click();
   await expect(page.locator(".fox-editor-source select")).toBeVisible();
   const source=await page.locator(".fox-editor-source select").evaluate(node=>{
     const css=getComputedStyle(node);
@@ -196,7 +196,7 @@ test("dropdowns share centered arrows and consistent right inset",async({page})=
 
 test("widgets resize from borders only in page editor",async({page})=>{
   await page.locator(".dock-add").click();
-  await page.getByRole("button",{name:/Мои финансы/}).click();
+  await page.locator(".fox-preset-list button").filter({hasText:"Мои финансы"}).click();
   const widget=page.locator(".fox-widget").first();
   await expect(widget).toBeVisible();
   await expect(widget.locator(".fox-widget-resize")).toHaveCount(0);
@@ -224,7 +224,7 @@ test("home offers ready-to-use templates without giant empty hero",async({page})
 
 test("world map stays clipped within its card when zoomed",async({page})=>{
   await page.locator(".dock-add").click();
-  await page.getByRole("button",{name:/Путешествия/}).click();
+  await page.locator(".fox-preset-list button").filter({hasText:"Путешествия"}).click();
   const map=page.locator(".fox-worldmap-surface");
   await expect(map).toBeVisible();
   await page.getByRole("button",{name:"Приблизить карту"}).click();
