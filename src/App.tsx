@@ -189,25 +189,31 @@ export default function App() {
 
       <main className="main-area">
         {active === "home" ? (
-          <section className="welcome">
-            <div className="welcome-copy">
-              <div className="eyebrow"><Sparkles size={14}/> ВАШЕ ПРОСТРАНСТВО</div>
-              <h1>Всё важное.<br/><span>В одном месте.</span></h1>
-              <p>Создайте свой первый экран — добавьте таблицы, заметки и виджеты, которые помогают держать дела под контролем.</p>
-              <button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={17}/> Создать экран</button>
-            </div>
-            <div className="welcome-art" aria-hidden="true">
-              <div className="art-window">
-                <div className="art-window-head"><span/><span/><span/><b>Мой экран</b></div>
-                <div className="art-skeleton">
-                  <div className="skeleton-card wide"><i/><i/><i/></div>
-                  <div className="skeleton-row"><div/><div/></div>
-                  <div className="skeleton-card small"><i/><i/></div>
+          <section className="fox-home">
+            <div className="fox-home-hero">
+              <div className="fox-home-content">
+                <div className="eyebrow"><Sparkles size={14}/> ВАШЕ ПРОСТРАНСТВО</div>
+                <h1>Всё важное.<span> В одном месте.</span></h1>
+                <p>Рабочее пространство для проектов, данных, заметок и задач. Начните с готового экрана или соберите свой.</p>
+                <div className="fox-home-actions">
+                  <button className="primary-button" onClick={() => setCreateOpen(true)}><Plus size={17}/> Создать экран</button>
+                  <button className="outline-button" onClick={()=>setActive("files")}><FileSpreadsheet size={17}/> Открыть данные</button>
                 </div>
               </div>
-              <div className="art-float float-one"><FileSpreadsheet size={19}/></div>
-              <div className="art-float float-two"><CheckSquare size={19}/></div>
-              <div className="art-float float-three"><StickyNote size={19}/></div>
+              <div className="fox-home-preview" aria-hidden="true">
+                <div className="fox-home-preview-top"><span/><span/><span/><strong>Моё пространство</strong></div>
+                <div className="fox-home-preview-grid"><div className="fox-home-preview-metric"><small>Проекты и задачи</small><strong>Fox Space</strong><span className="fox-home-preview-bars"><i/><i/><i/><i/><i/></span></div><div className="fox-home-preview-note"><span className="fox-home-preview-dot"/><small>Организация</small><b>Заметки и планы</b><i/><i/></div><div className="fox-home-preview-chart"><div className="fox-home-chart-bars"><i/><i/><i/><i/><i/><i/><i/></div></div></div>
+              </div>
+            </div>
+            <div className="fox-home-starters">
+              <div className="fox-home-section-title"><div><span>БЫСТРЫЙ СТАРТ</span><h2>Начните с шаблона</h2><p>Готовые виджеты и пустые таблицы без выдуманных данных. Всё можно изменить позже.</p></div><button type="button" onClick={()=>setCreateOpen(true)}>Все шаблоны <ChevronDown size={15}/></button></div>
+              <div className="fox-home-template-grid">
+                {SCREEN_PRESETS.filter(preset=>["finance","travel","fanfiction","content"].includes(preset.id)).map(preset=><button type="button" className="fox-home-template" key={preset.id} onClick={()=>addTemplateScreen(preset.id)}>
+                  <PlatformIcon value={preset.icon} size={36}/>
+                  <div><strong>{preset.name}</strong><span>{preset.description}</span></div>
+                  <Plus size={17}/>
+                </button>)}
+              </div>
             </div>
           </section>
         ) : active === "feed" ? (
