@@ -51,7 +51,7 @@ export default function WorldTravelMap({table}:{table?:TableData}){
  return <div className="fox-worldmap">
   <div className="fox-worldmap-toolbar"><span><Globe2 size={16}/> {table ? `${countCountries} стран с записями`:"Подключите таблицу путешествий"}</span><div><button type="button" className={onlyVisited?"selected":""} onClick={()=>setOnlyVisited(v=>!v)}>С посещениями</button><button type="button" aria-label="Приблизить карту" onClick={()=>setZoom(v=>Math.min(3,v+.35))}><ZoomIn size={16}/></button><button type="button" aria-label="Отдалить карту" onClick={()=>setZoom(v=>Math.max(1,v-.35))}><ZoomOut size={16}/></button></div></div>
   <div className="fox-worldmap-surface">
-   <svg role="img" aria-label="Интерактивная карта стран мира" viewBox="0 0 980 490" preserveAspectRatio="xMidYMid meet"><g style={{transform:`translate(490px,245px) scale(${zoom}) translate(-490px,-245px)`,transformOrigin:"center",transition:"transform .25s ease"}}>
+   <svg role="img" aria-label="Интерактивная карта стран мира" viewBox="0 0 980 490" preserveAspectRatio="xMidYMid meet"><g transform={`translate(490 245) scale(${zoom}) translate(-490 -245)`}>
     {list.map(item=>{const id=String(item.id).padStart(3,"0");const info=records.get(id);const shape=path(item as never)||"";return <path key={id} d={shape} className={"fox-worldmap-country"+(info?" visited":"")+(selected===id?" active":"")+(onlyVisited&&!info?" muted":"")} role="button" tabIndex={0} aria-label={countryById(id)?.name.common||id} onClick={()=>handleSelect(id)} onKeyDown={event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();handleSelect(id);}}}><title>{countryById(id)?.name.common||item.properties?.name||id}{info?` · ${info.visits} записей`:""}</title></path>;})}
    </g></svg>
   </div>
