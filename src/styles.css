@@ -315,3 +315,14 @@
 .fox-worldmap-country:focus-visible{stroke:var(--accent);stroke-width:2.4}
 .fox-worldmap-details{flex-shrink:0;overflow-wrap:anywhere}
 @media(max-width:680px){.fox-worldmap{min-height:300px}.fox-worldmap-surface{min-height:160px}.fox-worldmap-toolbar{font-size:10px}.fox-worldmap-details{flex-wrap:wrap}}
+
+/* Screen actions belong in the opened page, never in its Dock shortcut. */
+.app-shell .dock-screen .screen-more{display:none}
+.app-shell .dock-screen{position:relative}
+.app-shell .dock-screen-name{width:100%}
+.fox-screen-title-area{min-width:0;flex:1}
+.fox-screen-actions{position:relative;flex-shrink:0;z-index:20}
+.fox-screen-actions-trigger{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:9px;cursor:pointer}
+.fox-screen-actions-trigger:hover,.fox-screen-actions-trigger[aria-expanded="true"]{background:var(--canvas);border-color:var(--accent);color:var(--text)}
+.fox-screen-page-menu{position:absolute;top:44px;bottom:auto;right:0;min-width:180px;z-index:30}
+.fox-screen-rename-input{display:block;width:min(100%,420px);height:43px;margin:9px 0 7px;padding:8px 12px;border:1px solid var(--accent);border-radius:9px;outline:none;background:var(--surface);color:var(--text);font:750 26px Manrope,sans-serif}
