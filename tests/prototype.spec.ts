@@ -174,3 +174,22 @@ test("feed gallery keeps every image in a multi-photo album",async({page})=>{
   await expect(page.locator(".fox-feed-gallery img")).toHaveCount(9);
   await expect(page.locator(".fox-feed-gallery a")).toHaveCount(9);
 });
+
+test("dropdowns share centered arrows and consistent right inset",async({page})=>{
+  await page.locator(".dock-add").click();
+  await page.getByRole("button",{name:/Мои финансы/}).click();
+  await expect(page.locator(".fox-editor-source select")).toBeVisible();
+  const source=await page.locator(".fox-editor-source select").evaluate(node=>{
+    const css=getComputedStyle(node);
+    return {appearance:css.appearance,image:css.backgroundImage,padding:parseFloat(css.paddingRight),position:css.backgroundPosition};
+  });
+  expect(source.appearance).toBe("none");
+  expect(source.image).toContain("svg");
+  expect(source.padding).toBeGreaterThanOrEqual(32);
+  expect(source.position).toContain("right");
+  await page.locator(".fox-widget").first().click();
+  const inspector=page.locator(".fox-editor-fields select").first();
+  await expect(inspector).toBeVisible();
+  const inset=await inspector.evaluate(node=>parseFloat(getComputedStyle(node).paddingRight));
+  expect(inset).toBeGreaterThanOrEqual(32);
+});
