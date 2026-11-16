@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 
+async function openScreenEditor(page:import("@playwright/test").Page){
+  await page.getByRole("button",{name:"Действия с экраном"}).click();
+  await page.getByRole("button",{name:"Редактировать экран"}).click();
+}
+
 test.beforeEach(async ({page})=>{
   await page.goto("/");
   await page.evaluate(()=>{
@@ -36,6 +41,8 @@ test("universal creation opens task and saves its content", async ({page},info)=
 test("create custom screen with a local text widget", async ({page},info)=>{
   await page.locator(".dock-add").click();
   await page.locator(".fox-global-create-items button").filter({hasText:"Экран"}).click();
+  await expect(page.locator(".fox-editor-toolbar")).toHaveCount(0);
+  await openScreenEditor(page);
   await expect(page.getByText("FOX EDITOR", {exact:true})).toBeVisible();
   await page.locator(".fox-editor-library button").filter({hasText:"Текст"}).click();
   await expect(page.locator(".fox-widget")).toHaveCount(1);
@@ -57,6 +64,7 @@ test("data widgets can be placed and persisted before a table exists", async ({p
   await page.locator(".fox-global-create-items button").filter({hasText:"Экран"}).click();
   const editor=page.locator(".fox-editor");
   await expect(editor).toBeVisible();
+  await openScreenEditor(page);
   const types=["Показатель","Счётчик записей","Прогресс","Столбчатый график","Линейный график","Круговая диаграмма","Хронология","Таблица","Список"];
   for(const type of types){
     await editor.locator(".fox-editor-toolbar .outline-button").filter({hasText:"Виджет"}).click();
@@ -69,6 +77,7 @@ test("data widgets can be placed and persisted before a table exists", async ({p
   await page.reload();
   await page.locator(".dock-screen-name").first().click();
   await expect(page.locator(".fox-widget")).toHaveCount(types.length);
+  await openScreenEditor(page);
   await page.locator(".fox-widget").first().getByRole("button",{name:"Выбрать источник"}).click();
   await expect(page.getByText("Источник данных")).toBeVisible();
   await expect(page.getByRole("button",{name:"Создать таблицу"})).toBeVisible();
@@ -125,7 +134,7 @@ test("relationship template starts without invented personal dates",async({page}
 test("platform icon gallery can change a screen dock icon",async({page})=>{
   await page.locator(".dock-add").click();
   await page.locator(".fox-global-create-items button").filter({hasText:"Экран"}).click();
-  await page.locator(".dock-screen .screen-more").first().click();
+  await page.getByRole("button",{name:"Действия с экраном"}).click();
   await page.getByRole("button",{name:"Изменить значок"}).click();
   await expect(page.getByRole("heading",{name:"Выберите значок"})).toBeVisible();
   await page.getByRole("button",{name:"Telegram"}).click();
@@ -178,6 +187,7 @@ test("feed gallery keeps every image in a multi-photo album",async({page})=>{
 test("dropdowns share centered arrows and consistent right inset",async({page})=>{
   await page.locator(".dock-add").click();
   await page.locator(".fox-preset-list button").filter({hasText:"Мои финансы"}).click();
+  await openScreenEditor(page);
   await expect(page.locator(".fox-editor-source select")).toBeVisible();
   const source=await page.locator(".fox-editor-source select").evaluate(node=>{
     const css=getComputedStyle(node);
@@ -197,6 +207,7 @@ test("dropdowns share centered arrows and consistent right inset",async({page})=
 test("widgets resize from borders only in page editor",async({page})=>{
   await page.locator(".dock-add").click();
   await page.locator(".fox-preset-list button").filter({hasText:"Мои финансы"}).click();
+  await openScreenEditor(page);
   const widget=page.locator(".fox-widget").first();
   await expect(widget).toBeVisible();
   await expect(widget.locator(".fox-widget-resize")).toHaveCount(0);
@@ -211,7 +222,7 @@ test("widgets resize from borders only in page editor",async({page})=>{
   await page.mouse.up();
   const after=await widget.evaluate(node=>node.getBoundingClientRect().height);
   expect(after).toBeGreaterThan(before.height+25);
-  await page.getByRole("button",{name:"Предпросмотр"}).click();
+  await page.getByRole("button",{name:"Готово"}).click();
   await expect(page.locator(".fox-widget-edge")).toHaveCount(0);
 });
 
@@ -219,6 +230,8 @@ test("home offers ready-to-use templates without giant empty hero",async({page})
   await expect(page.locator(".fox-home-template")).toHaveCount(4);
   await expect(page.getByRole("heading",{name:"Начните с шаблона"})).toBeVisible();
   await page.locator(".fox-home-template").filter({hasText:"Мои финансы"}).click();
+  await expect(page.locator(".fox-editor-toolbar")).toHaveCount(0);
+  await openScreenEditor(page);
   await expect(page.getByText("FOX EDITOR",{exact:true})).toBeVisible();
 });
 
@@ -238,4 +251,21 @@ test("world map stays clipped within its card when zoomed",async({page})=>{
   expect(bounds.overflow).toBe("hidden");
   expect(bounds.svgWidth).toBeLessThanOrEqual(bounds.width+1);
   expect(bounds.svgHeight).toBeLessThanOrEqual(bounds.height+1);
+});
+
+test("Dock opens a ready-made screen in read-only mode; editing is in screen actions",async({page})=>{
+  await page.locator(".dock-add").click();
+  await page.locator(".fox-preset-list button").filter({hasText:"Путешествия"}).click();
+  await expect(page.getByRole("heading",{name:"Путешествия",exact:true}).first()).toBeVisible();
+  await expect(page.locator(".fox-editor-toolbar")).toHaveCount(0);
+  await expect(page.locator(".fox-editor-sidebar")).toHaveCount(0);
+  await expect(page.locator(".fox-widget-edge")).toHaveCount(0);
+  await expect(page.locator(".dock-screen .screen-more")).toHaveCount(0);
+  await openScreenEditor(page);
+  await expect(page.getByText("FOX EDITOR",{exact:true})).toBeVisible();
+  await expect(page.locator(".fox-widget-edge").first()).toBeAttached();
+  await page.getByRole("button",{name:"Готово"}).click();
+  await expect(page.locator(".fox-editor-toolbar")).toHaveCount(0);
+  await page.locator(".dock-screen-name").first().click();
+  await expect(page.locator(".fox-editor-toolbar")).toHaveCount(0);
 });
