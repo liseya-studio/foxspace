@@ -49,6 +49,7 @@ export default function App() {
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [screenMenuId, setScreenMenuId] = useState<string | null>(null);
+  const [editingScreenId, setEditingScreenId] = useState<string | null>(null);
   const [iconPickerId,setIconPickerId]=useState<string|null>(null);
   const [fileIndex,setFileIndex] = useState<StoredItem[]>([]);
   const [notificationRevision,setNotificationRevision] = useState(0);
@@ -167,6 +168,7 @@ export default function App() {
   function removeScreen(id: string) {
     setScreens(current => current.filter(s => s.id !== id));
     if (active === id) setActive("home");
+    if (editingScreenId === id) setEditingScreenId(null);
   }
 
   return (
@@ -236,6 +238,7 @@ export default function App() {
               {activeScreen&&<div className="fox-screen-actions">
                 <button className="fox-screen-actions-trigger" type="button" title="Действия с экраном" aria-label="Действия с экраном" aria-expanded={screenMenuId===activeScreen.id} onClick={()=>setScreenMenuId(current=>current===activeScreen.id?null:activeScreen.id)}><MoreHorizontal size={20}/></button>
                 {screenMenuId===activeScreen.id&&<div className="screen-context-menu fox-screen-page-menu">
+                  <button onClick={()=>{setEditingScreenId(activeScreen.id);setScreenMenuId(null);}}>Редактировать экран</button>
                   <button onClick={()=>{setRenameId(activeScreen.id);setRenameValue(activeScreen.name);setScreenMenuId(null);}}>Переименовать</button>
                   <button onClick={()=>{setIconPickerId(activeScreen.id);setScreenMenuId(null);}}>Изменить значок</button>
                   <button className="danger" onClick={()=>{if(window.confirm("Удалить экран «"+activeScreen.name+"»?"))removeScreen(activeScreen.id);setScreenMenuId(null);}}>Удалить экран</button>
@@ -244,6 +247,8 @@ export default function App() {
             </div>
             {activeScreen && <FoxEditor
               screenId={activeScreen.id}
+              editMode={editingScreenId===activeScreen.id}
+              onDoneEditing={()=>setEditingScreenId(null)}
               tables={availableTables}
               tableId={activeScreen.tableId}
               onTableChange={id => setScreens(prev => prev.map(s => s.id===activeScreen.id ? {...s,tableId:id||undefined} : s))}
