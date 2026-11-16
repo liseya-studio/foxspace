@@ -186,10 +186,56 @@ test("dropdowns share centered arrows and consistent right inset",async({page})=
   expect(source.appearance).toBe("none");
   expect(source.image).toContain("svg");
   expect(source.padding).toBeGreaterThanOrEqual(32);
-  expect(source.position).toContain("right");
+  expect(source.position).toMatch(/right|calc\(100% - 10px\)/);
   await page.locator(".fox-widget").first().click();
   const inspector=page.locator(".fox-editor-fields select").first();
   await expect(inspector).toBeVisible();
   const inset=await inspector.evaluate(node=>parseFloat(getComputedStyle(node).paddingRight));
   expect(inset).toBeGreaterThanOrEqual(32);
+});
+
+test("widgets resize from borders only in page editor",async({page})=>{
+  await page.locator(".dock-add").click();
+  await page.getByRole("button",{name:/Мои финансы/}).click();
+  const widget=page.locator(".fox-widget").first();
+  await expect(widget).toBeVisible();
+  await expect(widget.locator(".fox-widget-resize")).toHaveCount(0);
+  await expect(widget.locator(".fox-widget-edge")).toHaveCount(4);
+  const before=await widget.evaluate(node=>({width:getComputedStyle(node).gridColumnEnd,height:node.getBoundingClientRect().height}));
+  const border=widget.locator(".fox-widget-edge-bottom");
+  const bounds=await border.boundingBox();
+  if(!bounds)throw Error("Bottom edge is missing");
+  await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2+80,{steps:7});
+  await page.mouse.up();
+  const after=await widget.evaluate(node=>node.getBoundingClientRect().height);
+  expect(after).toBeGreaterThan(before.height+25);
+  await page.getByRole("button",{name:"Предпросмотр"}).click();
+  await expect(page.locator(".fox-widget-edge")).toHaveCount(0);
+});
+
+test("home offers ready-to-use templates without giant empty hero",async({page})=>{
+  await expect(page.locator(".fox-home-template")).toHaveCount(4);
+  await expect(page.getByRole("heading",{name:"Начните с шаблона"})).toBeVisible();
+  await page.locator(".fox-home-template").filter({hasText:"Мои финансы"}).click();
+  await expect(page.getByText("FOX EDITOR",{exact:true})).toBeVisible();
+});
+
+test("world map stays clipped within its card when zoomed",async({page})=>{
+  await page.locator(".dock-add").click();
+  await page.getByRole("button",{name:/Путешествия/}).click();
+  const map=page.locator(".fox-worldmap-surface");
+  await expect(map).toBeVisible();
+  await page.getByRole("button",{name:"Приблизить карту"}).click();
+  await page.getByRole("button",{name:"Приблизить карту"}).click();
+  const bounds=await map.evaluate(node=>{
+    const svg=node.querySelector("svg");
+    const container=node.getBoundingClientRect();
+    const image=svg?.getBoundingClientRect();
+    return {height:container.height,svgHeight:image?.height||0,width:container.width,svgWidth:image?.width||0,overflow:getComputedStyle(node).overflow};
+  });
+  expect(bounds.overflow).toBe("hidden");
+  expect(bounds.svgWidth).toBeLessThanOrEqual(bounds.width+1);
+  expect(bounds.svgHeight).toBeLessThanOrEqual(bounds.height+1);
 });
