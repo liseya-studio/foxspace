@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
 import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type TaskStatus } from "../notes/data";
 import WorldTravelMap from "./WorldTravelMap";
@@ -172,6 +172,14 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const selected = widgets.find(w => w.id === selectedId);
   const defaultTable = tables.find(t => t.id === tableId);
   const financeLayout = widgets.some(w=>w.type==="finance"&&Boolean(w.financeKind));
+  // A resized card expands its whole finance row, keeping adjacent cards aligned.
+  const financeHeight=(row:number,baseline:number)=>Math.max(baseline,...widgets.filter(w=>w.type==="finance"&&w.financeRow===row).map(w=>w.height||baseline));
+  const financeTopHeight=Math.max(220,...widgets.filter(w=>w.type==="finance"&&w.financeRowSpan===2).map(w=>w.height||220));
+  const financeGridStyle:CSSProperties|undefined=financeLayout?({
+    "--finance-top-height":financeTopHeight+"px",
+    "--finance-row3-height":financeHeight(3,310)+"px",
+    "--finance-row4-height":financeHeight(4,295)+"px",
+  } as CSSProperties):undefined;
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
   useEffect(()=>{const update=()=>setOrganizer(readNotesTasks());window.addEventListener("fox-notes-tasks-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(() => { setSelectedId(null); setRightMode("library"); }, [screenId]);
@@ -287,7 +295,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
     <div className={"fox-editor-layout"+(previewMode?" preview":"")}>
       <div className="fox-editor-workspace">
         {editMode&&<div className="fox-editor-source"><Database size={16}/><span>Основная таблица</span><select value={tableId??""} onChange={e=>onTableChange(e.target.value)}><option value="">Не выбрана</option>{tables.map(t=><option value={t.id} key={t.id}>{t.name}</option>)}</select><button onClick={onOpenTables}>Управление таблицами <ChevronsRight size={14}/></button></div>}
-        <div className={"fox-editor-grid"+(financeLayout?" finance-dashboard-grid":"")} ref={canvasRef}>
+        <div className={"fox-editor-grid"+(financeLayout?" finance-dashboard-grid":"")} style={financeGridStyle} ref={canvasRef}>
           {widgets.map(widget => {
             const table = tables.find(t => t.id === widget.tableId);
             const isSelected = !previewMode && selectedId === widget.id;
