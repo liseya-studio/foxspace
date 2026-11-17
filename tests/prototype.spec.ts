@@ -281,7 +281,7 @@ test("approved finance screen uses ten cards and saves real entries from plus bu
   await expect(page.getByRole("dialog",{name:"Добавить доход"})).toBeVisible();
   await page.locator(".finance-modal input").nth(0).fill("Фриланс");
   await page.locator(".finance-modal input").nth(1).fill("15000");
-  await page.locator(".finance-modal input").nth(3).fill("Работа");
+  await page.locator(".finance-modal input").nth(2).fill("Работа");
   await page.getByRole("dialog",{name:"Добавить доход"}).getByRole("button",{name:"Добавить",exact:true}).click();
   await expect(page.getByText("Фриланс").first()).toBeVisible();
   await page.locator(".fox-finance-expense .finance-add").click();
