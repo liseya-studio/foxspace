@@ -67,11 +67,23 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
  const existing=[...available];
  const newTables:{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:unknown[];updatedAt:string}[]=[];
  const ids=new Map<string,string>();
+ const updatedTables:typeof available=[];
  for(const schema of preset.tables){
    const norm=(text:string)=>text.toLocaleLowerCase("ru").replace(/[^a-zа-яё0-9]/gi,"");
    const matches=existing.filter(tab=>[schema.title,...(schema.aliases??[])].some(name=>norm(tab.name)===norm(name)||norm(tab.name).endsWith(norm(name))));
    const found=matches[0];
-   if(found){ids.set(schema.key,found.id);continue;}
+   if(found){
+     // Keep all original rows; only add fields needed by new finance widgets.
+     if(preset.id==="finance"){
+       const missing=schema.columns.filter(([name])=>!found.columns.some(col=>norm(col.name)===norm(name)));
+       if(missing.length){
+         const updated={...found,columns:[...found.columns,...missing.map(([name,type])=>({id:crypto.randomUUID(),name,type}))]};
+         existing[existing.findIndex(tab=>tab.id===found.id)]=updated;
+         updatedTables.push(updated);
+       }
+     }
+     ids.set(schema.key,found.id);continue;
+   }
    const table={id:crypto.randomUUID(),name:schema.title,columns:schema.columns.map(([name,type])=>({id:crypto.randomUUID(),name,type})),rows:[],updatedAt:new Date().toISOString()};
    newTables.push(table);existing.push(table);ids.set(schema.key,table.id);
  }
@@ -80,5 +92,5 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
    const find=(name?:string)=>tab?.columns.find(col=>col.name.toLocaleLowerCase("ru")===name?.toLocaleLowerCase("ru"))?.id;
    return {id:crypto.randomUUID(),type:def.type,title:def.title,tableId:tab?.id,columnId:find(def.column),labelColumnId:find(def.label),body:def.body??"",width:def.width??6,height:def.height??205,aggregate:def.aggregate??"sum",filter:{},limit:8,target:100,startDate:def.startDate,financeKind:def.financeKind,financeRow:def.financeRow,financeColumn:def.financeColumn,financeRowSpan:def.financeRowSpan};
  });
- return {newTables,widgets,primaryTableId:ids.values().next().value as string|undefined};
+ return {newTables,updatedTables,widgets,primaryTableId:ids.values().next().value as string|undefined};
 }
