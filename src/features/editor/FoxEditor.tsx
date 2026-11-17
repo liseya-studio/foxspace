@@ -12,7 +12,7 @@ import {
 export type EditorTable = TableData;
 type WidgetType = "finance" | "recordcards" | "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
 type EditorWidget = {
-  id: string; type: WidgetType; title: string; tableId?: string; startDate?: string; financeKind?:FinanceKind; financeRow?:number; financeColumn?:number; financeRowSpan?:number;
+  id: string; type: WidgetType; title: string; tableId?: string; startDate?: string; financeKind?:FinanceKind; financeRow?:number; financeColumn?:number; financeRowSpan?:number; financeBackground?: "mountains"|"sunset"|"plain";
   columnId?: string; labelColumnId?: string; target?: number;
   body?: string; width: number; height: number; accent?: string;
   aggregate?: Aggregate; filter?: RowFilter; limit?: number; hideTitle?: boolean; taskStatus?: TaskStatus | "all";
@@ -68,7 +68,7 @@ const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigit
 
 function WidgetPreview({ widget, table, tables, organizer, onConfigure, editMode }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData; onConfigure: () => void; editMode: boolean }) {
   const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
-  if(widget.type==="finance")return <FinanceWidget kind={widget.financeKind??"balance"} tables={tables}/>;
+  if(widget.type==="finance")return <FinanceWidget kind={widget.financeKind??"balance"} tables={tables} background={widget.financeBackground??"mountains"}/>;
   if(widget.type==="worldmap")return <WorldTravelMap table={table}/>;
   if(widget.type==="datecount"){
     const start=widget.startDate?new Date(widget.startDate+"T00:00:00"):null;
@@ -208,6 +208,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
           financeRow:typeof w.financeRow==="number"?w.financeRow:undefined,
           financeColumn:typeof w.financeColumn==="number"?w.financeColumn:undefined,
           financeRowSpan:typeof w.financeRowSpan==="number"?w.financeRowSpan:undefined,
+          financeBackground:typeof w.financeBackground==="string"&&["mountains","sunset","plain"].includes(w.financeBackground)?w.financeBackground as EditorWidget["financeBackground"]:undefined,
           accent:typeof w.accent==="string"&&/^#[0-9a-f]{6}$/i.test(w.accent)?w.accent:undefined
         } satisfies EditorWidget;
       });
@@ -344,7 +345,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
                 {["metric","progress"].includes(selected.type)&&<label>Расчёт<select value={selected.aggregate??"sum"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="sum">Сумма</option><option value="average">Среднее</option><option value="min">Минимум</option><option value="max">Максимум</option><option value="count">Количество записей</option></select></label>}{selected.type==="progress"&&<label>Целевое значение<input type="number" value={selected.target??100} onChange={e=>setWidget(selected.id,{target:Number(e.target.value)})}/></label>}
               </>}
             </>}
-            {settingsTab==="appearance" && <><label>Ширина на сетке<select value={selected.width} onChange={e=>setWidget(selected.id,{width:Number(e.target.value)})}>{[3,4,6,8,9,12].map(n=><option key={n} value={n}>{n} / 12</option>)}</select></label><label>Высота карточки<input type="number" min={65} max={900} step={10} value={selected.height} onChange={e=>setWidget(selected.id,{height:Math.max(65,Math.min(900,Number(e.target.value)||65))})}/></label><label>Акцент карточки<select value={selected.accent??""} onChange={e=>setWidget(selected.id,{accent:e.target.value||undefined})}><option value="">Акцент приложения</option><option value="#f06432">Оранжевый</option><option value="#4779d5">Синий</option><option value="#388b69">Зелёный</option><option value="#8864c8">Фиолетовый</option></select></label></>}
+            {settingsTab==="appearance" && <><label>Ширина на сетке<select value={selected.width} onChange={e=>setWidget(selected.id,{width:Number(e.target.value)})}>{[3,4,6,8,9,12].map(n=><option key={n} value={n}>{n} / 12</option>)}</select></label><label>Высота карточки<input type="number" min={65} max={900} step={10} value={selected.height} onChange={e=>setWidget(selected.id,{height:Math.max(65,Math.min(900,Number(e.target.value)||65))})}/></label><label>Акцент карточки<select value={selected.accent??""} onChange={e=>setWidget(selected.id,{accent:e.target.value||undefined})}><option value="">Акцент приложения</option><option value="#f06432">Оранжевый</option><option value="#4779d5">Синий</option><option value="#388b69">Зелёный</option><option value="#8864c8">Фиолетовый</option></select></label>{selected.type==="finance"&&selected.financeKind==="balance"&&<label>Фон карточки баланса<select value={selected.financeBackground??"mountains"} onChange={e=>setWidget(selected.id,{financeBackground:e.target.value as EditorWidget["financeBackground"]})}><option value="mountains">Горный пейзаж</option><option value="sunset">Тёплый закат</option><option value="plain">Однотонный</option></select></label>}</>}
             {settingsTab==="behavior" && <><p>Перетаскивайте карточку за заголовок, чтобы менять порядок. Размер можно установить во вкладке «Вид» или зажать границу карточки и потянуть: боковые границы меняют ширину, верхняя и нижняя — высоту. В предпросмотре размер менять нельзя.</p><div className="fox-editor-widget-actions"><button onClick={()=>moveWidget(selected.id,-1)}>Назад</button><button onClick={()=>moveWidget(selected.id,1)}>Вперёд</button><button onClick={()=>duplicateWidget(selected.id)}>Дублировать</button></div><button className="fox-editor-danger" onClick={()=>{updateWidgets(prev=>prev.filter(w=>w.id!==selected.id));setSelectedId(null);setRightMode("library");}}><Trash2 size={15}/> Удалить виджет</button></>}
           </div>
           <button className="fox-editor-back" onClick={()=>{setSelectedId(null);setRightMode("library");}}>Вернуться в библиотеку</button>
