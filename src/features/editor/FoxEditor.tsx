@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
 import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type TaskStatus } from "../notes/data";
 import WorldTravelMap from "./WorldTravelMap";
+import FinanceWidget,{type FinanceKind} from "./FinanceWidget";
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
   AlignLeft, List, Target, GripVertical, Trash2, X, Database,
@@ -9,9 +10,9 @@ import {
 } from "lucide-react";
 
 export type EditorTable = TableData;
-type WidgetType = "recordcards" | "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
+type WidgetType = "finance" | "recordcards" | "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
 type EditorWidget = {
-  id: string; type: WidgetType; title: string; tableId?: string; startDate?: string;
+  id: string; type: WidgetType; title: string; tableId?: string; startDate?: string; financeKind?:FinanceKind; financeRow?:number; financeColumn?:number; financeRowSpan?:number;
   columnId?: string; labelColumnId?: string; target?: number;
   body?: string; width: number; height: number; accent?: string;
   aggregate?: Aggregate; filter?: RowFilter; limit?: number; hideTitle?: boolean; taskStatus?: TaskStatus | "all";
@@ -31,6 +32,7 @@ type Props = {
 };
 const STORAGE = "fox-editor-widgets-v1";
 const catalog: { type: WidgetType; title: string; description: string; icon: typeof LayoutGrid; needsTable: boolean }[] = [
+  { type:"finance",title:"Финансовая карточка",description:"Показатели, категории и списки финансов",icon:Target,needsTable:false },
   { type:"worldmap",title:"Интерактивная карта",description:"Страны мира, флаги и посещённые города",icon:LayoutGrid,needsTable:false },
   { type:"datecount",title:"Дни вместе",description:"Счётчик дней от выбранной даты",icon:Target,needsTable:false },
   { type:"recordcards",title:"Карточки персонажей",description:"Досье, характер и связи персонажей",icon:AlignLeft,needsTable:true },
@@ -66,6 +68,7 @@ const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigit
 
 function WidgetPreview({ widget, table, tables, organizer, onConfigure, editMode }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData; onConfigure: () => void; editMode: boolean }) {
   const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
+  if(widget.type==="finance")return <FinanceWidget kind={widget.financeKind??"balance"} tables={tables}/>;
   if(widget.type==="worldmap")return <WorldTravelMap table={table}/>;
   if(widget.type==="datecount"){
     const start=widget.startDate?new Date(widget.startDate+"T00:00:00"):null;
@@ -168,6 +171,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const widgets = useMemo(() => store[screenId] ?? [], [store, screenId]);
   const selected = widgets.find(w => w.id === selectedId);
   const defaultTable = tables.find(t => t.id === tableId);
+  const financeLayout = widgets.some(w=>w.type==="finance"&&Boolean(w.financeKind));
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
   useEffect(()=>{const update=()=>setOrganizer(readNotesTasks());window.addEventListener("fox-notes-tasks-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(() => { setSelectedId(null); setRightMode("library"); }, [screenId]);
@@ -200,6 +204,10 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
           filter: w.filter && typeof w.filter==="object" ? { columnId:String(w.filter.columnId??""), operator:w.filter.operator, value:String(w.filter.value??"") } : {},
           body:typeof w.body==="string"?w.body.slice(0,10000):"",
           startDate:typeof w.startDate==="string"?w.startDate:undefined,
+          financeKind:typeof w.financeKind==="string"?w.financeKind as FinanceKind:undefined,
+          financeRow:typeof w.financeRow==="number"?w.financeRow:undefined,
+          financeColumn:typeof w.financeColumn==="number"?w.financeColumn:undefined,
+          financeRowSpan:typeof w.financeRowSpan==="number"?w.financeRowSpan:undefined,
           accent:typeof w.accent==="string"&&/^#[0-9a-f]{6}$/i.test(w.accent)?w.accent:undefined
         } satisfies EditorWidget;
       });
@@ -278,15 +286,15 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
     <div className={"fox-editor-layout"+(previewMode?" preview":"")}>
       <div className="fox-editor-workspace">
         {editMode&&<div className="fox-editor-source"><Database size={16}/><span>Основная таблица</span><select value={tableId??""} onChange={e=>onTableChange(e.target.value)}><option value="">Не выбрана</option>{tables.map(t=><option value={t.id} key={t.id}>{t.name}</option>)}</select><button onClick={onOpenTables}>Управление таблицами <ChevronsRight size={14}/></button></div>}
-        <div className="fox-editor-grid" ref={canvasRef}>
+        <div className={"fox-editor-grid"+(financeLayout?" finance-dashboard-grid":"")} ref={canvasRef}>
           {widgets.map(widget => {
             const table = tables.find(t => t.id === widget.tableId);
             const isSelected = !previewMode && selectedId === widget.id;
-            return <div className={"fox-widget"+(isSelected?" selected":"")} style={{gridColumn:"span "+widget.width,minHeight:widget.height}} key={widget.id}
+            return <div className={"fox-widget"+(isSelected?" selected":"")+(widget.type==="finance"?" fox-finance-card fox-finance-"+(widget.financeKind??"balance"):"")} style={{gridColumn:financeLayout&&widget.financeColumn?widget.financeColumn+" / span "+widget.width:"span "+widget.width,gridRow:financeLayout&&widget.financeRow?widget.financeRow+" / span "+(widget.financeRowSpan??1):undefined,minHeight:widget.height}} key={widget.id}
               draggable={!previewMode} onDragStart={e=>{if((e.target as HTMLElement).closest(".fox-widget-edge")){e.preventDefault();return;}e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",widget.id);}}
               onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();reorder(e.dataTransfer.getData("text/plain"),widget.id);}}
               onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
-              <div className="fox-widget-header">{!previewMode&&<GripVertical size={14} className="fox-widget-grip"/>}<h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>
+              {widget.type!=="finance" && <div className="fox-widget-header">{!previewMode&&<GripVertical size={14} className="fox-widget-grip"/>}<h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>}
               <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer} editMode={editMode} onConfigure={()=>{setSelectedId(widget.id);setSettingsTab("data");setRightMode("settings");setShowRight(true);}}/></div>
               {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} data-edge={edge}
                 aria-hidden="true" onPointerDown={event=>{
