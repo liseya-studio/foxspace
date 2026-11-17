@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { ArrowDownRight, ArrowUpRight, Plus, X, Wallet, CalendarClock, Target, HandCoins, Clock3, Eye, EyeOff } from "lucide-react";
 import type { TableData } from "../tables/values";
 
@@ -35,7 +36,7 @@ const iconFor=(name:string)=>name.trim().slice(0,1).toLocaleUpperCase("ru")||"�
 function AddEntry({kind,tables,onClose,onCreated}:{kind:EntryType;tables:TableData[];onClose:()=>void;onCreated?:()=>void}){
   const [form,setForm]=useState<FinanceForm>(newForm);
   const [error,setError]=useState("");
-  const input=(field:keyof FinanceForm)=>(event:React.ChangeEvent<HTMLInputElement|HTMLSelectElement>)=>setForm(prev=>({...prev,[field]:event.target.value}));
+  const input=(field:keyof FinanceForm)=>(event:ChangeEvent<HTMLInputElement|HTMLSelectElement>)=>setForm(prev=>({...prev,[field]:event.target.value}));
   const moneyTable=findTable(tables,"ФИНАНСЫ (ОПЕРАЦИИ)");
   const paymentTable=findTable(tables,"ФИНАНСЫ (ОБЯЗАТЕЛЬНЫЕ ПЛАТЕЖИ)");
   const debtTable=findTable(tables,"ФИНАНСЫ (ДОЛГИ)");
@@ -99,7 +100,7 @@ export default function FinanceWidget({kind,tables,onCreated}:FinanceProps){
   const outMonth=total(expense.filter(r=>monthKey(getField(transactions!,r,["Дата"]))===currentMonth),transactions);
   const button=(entry:EntryType)=><button type="button" className="finance-add" title={formTitles[entry]} aria-label={formTitles[entry]} onClick={event=>{event.stopPropagation();setAdding(entry);}}><Plus size={18}/></button>;
   const empty=(text:string)=><p className="finance-empty">{text}</p>;
-  let content:React.ReactNode=null;
+  let content:ReactNode=null;
   if(kind==="balance")content=<div className="finance-balance">
     <div className="finance-balance-heading"><span>Текущий баланс</span><button aria-label={balanceVisible?"Скрыть баланс":"Показать баланс"} onClick={()=>setBalanceVisible(v=>!v)}>{balanceVisible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div>
     <strong>{balanceVisible?money(inTotal-outTotal):"••••••"}</strong><small>По записанным операциям · ₽</small>
@@ -146,6 +147,6 @@ export default function FinanceWidget({kind,tables,onCreated}:FinanceProps){
   return <div className={"finance-widget-inner finance-kind-"+kind}>
     {!["balance","income","expense"].includes(kind)&&<div className="finance-widget-title"><h3>{labels[kind]}</h3>{createKind[kind]&&button(createKind[kind]!)}</div>}
     {content}
-    {adding&&<AddEntry kind={adding} tables={tables} onClose={()=>setAdding(null)} onCreated={onCreated}/>}
+    {adding&&createPortal(<AddEntry kind={adding} tables={tables} onClose={()=>setAdding(null)} onCreated={onCreated}/>,document.body)}
   </div>;
 }
