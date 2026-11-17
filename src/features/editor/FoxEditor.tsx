@@ -176,7 +176,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const financeHeight=(row:number,baseline:number)=>Math.max(baseline,...widgets.filter(w=>w.type==="finance"&&w.financeRow===row).map(w=>w.height||baseline));
   const financeTopHeight=Math.max(220,...widgets.filter(w=>w.type==="finance"&&w.financeRowSpan===2).map(w=>w.height||220));
   const financeGridStyle:CSSProperties|undefined=financeLayout?({
-    "--finance-top-height":financeTopHeight+"px",
+    "--finance-half-height":(financeTopHeight/2)+"px",
     "--finance-row3-height":financeHeight(3,310)+"px",
     "--finance-row4-height":financeHeight(4,295)+"px",
   } as CSSProperties):undefined;
