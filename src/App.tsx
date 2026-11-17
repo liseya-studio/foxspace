@@ -136,8 +136,8 @@ export default function App() {
     if(!preset)return;
     try{
       const storedTables=read<{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:unknown[];updatedAt?:string}[]>("fox-tables-v1",[]);
-      const {newTables,widgets,primaryTableId}=instantiatePreset(preset,storedTables);
-      const nextTables=[...storedTables,...newTables];
+      const {newTables,updatedTables,widgets,primaryTableId}=instantiatePreset(preset,storedTables);
+      const nextTables=[...storedTables.map(table=>updatedTables.find(updated=>updated.id===table.id)??table),...newTables];
       const existingWidgets=read<Record<string,unknown[]>>("fox-editor-widgets-v1",{});
       const screenId=crypto.randomUUID();
       const newStore={...existingWidgets,[screenId]:widgets};
