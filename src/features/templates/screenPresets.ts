@@ -1,4 +1,4 @@
-export type WidgetPreset = { type:string; title:string; source?:string; column?:string; label?:string; body?:string; width?:number; height?:number; aggregate?:string; startDate?:string; };
+export type WidgetPreset = { type:string; title:string; source?:string; column?:string; label?:string; body?:string; width?:number; height?:number; aggregate?:string; startDate?:string; financeKind?:string; financeRow?:number; financeColumn?:number; financeRowSpan?:number; };
 export type TablePreset = { key:string; title:string; columns:[string,string][]; aliases?:string[] };
 export type ScreenPreset = {id:string;name:string;icon:string;description:string;group:"Личное"|"Творчество"|"Работа";tables:TablePreset[];widgets:WidgetPreset[]};
 const columns=(...values:string[]):[string,string][]=>values.map(value=>{const [name,type="text"]=value.split("|");return [name,type];});
@@ -6,12 +6,24 @@ const table=(key:string,title:string,fields:string[],aliases:string[]=[]):TableP
 const widget=(type:string,title:string,source?:string,other:Partial<WidgetPreset>={}):WidgetPreset=>({type,title,source,...other});
 const head=(title:string,body:string):WidgetPreset=>widget("heading",title,undefined,{body,width:12,height:110});
 export const SCREEN_PRESETS:ScreenPreset[]=[
-{id:"finance",name:"Мои финансы",icon:"₽",group:"Личное",description:"Бюджет, операции, обязательные платежи, долги и покупки.",tables:[
+{id:"finance",name:"Мои финансы",icon:"finance",group:"Личное",description:"Доходы, расходы, баланс, платежи, долги и финансовые цели.",tables:[
 table("money","ФИНАНСЫ (ОПЕРАЦИИ)",["Товар","Сумма|number","Валюта","Дата|date","Категория","Тип операции"]),
-table("bills","ФИНАНСЫ (ОБЯЗАТЕЛЬНЫЕ ПЛАТЕЖИ)",["Платёж","Сумма|number","Категория","Дата|date"]),
-table("debts","ФИНАНСЫ (ДОЛГИ)",["Кому","Сумма|number","Валюта","Срок|date","Статус"]),
+table("bills","ФИНАНСЫ (ОБЯЗАТЕЛЬНЫЕ ПЛАТЕЖИ)",["Платёж","Сумма|number","Категория","Дата|date","Периодичность","Следующий платёж|date"]),
+table("debts","ФИНАНСЫ (ДОЛГИ)",["Кому","Сумма|number","Валюта","Срок|date","Статус","Направление"]),
+table("goals","ФИНАНСЫ (ЦЕЛИ)",["Цель","Накоплено|number","Сумма|number","Срок|date"]),
 table("shopping","Финансы (список покупок)",["Покупка","Стоимость|number","Приоритет","Куплено|checkbox"])],
-widgets:[head("Финансовая панель","Показатели не смешивают валюты автоматически: для разных валют применяйте фильтры."),widget("counter","Операций","money",{width:4}),widget("metric","Обязательные платежи","bills",{column:"Сумма",width:4}),widget("metric","Долги","debts",{column:"Сумма",width:4}),widget("donut","Категории расходов","money",{label:"Категория"}),widget("bars","Регулярные платежи","bills",{column:"Сумма"}),widget("table","Операции","money",{width:12}),widget("list","План покупок","shopping",{width:12})]},
+widgets:[
+widget("finance","Текущий баланс","money",{financeKind:"balance",financeRow:1,financeColumn:1,financeRowSpan:2,width:4,height:220}),
+widget("finance","Динамика за 6 месяцев","money",{financeKind:"trend",financeRow:1,financeColumn:5,financeRowSpan:2,width:5,height:220}),
+widget("finance","Доходы","money",{financeKind:"income",financeRow:1,financeColumn:10,width:4,height:105}),
+widget("finance","Расходы","money",{financeKind:"expense",financeRow:2,financeColumn:10,width:4,height:105}),
+widget("finance","Расходы по категориям","money",{financeKind:"expenseCategories",financeRow:3,financeColumn:1,width:4,height:310}),
+widget("finance","Обязательные платежи","bills",{financeKind:"payments",financeRow:3,financeColumn:5,width:5,height:310}),
+widget("finance","Финансовые цели","goals",{financeKind:"goals",financeRow:3,financeColumn:10,width:4,height:310}),
+widget("finance","Доходы по категориям","money",{financeKind:"incomeCategories",financeRow:4,financeColumn:1,width:4,height:295}),
+widget("finance","Долги","debts",{financeKind:"debts",financeRow:4,financeColumn:5,width:5,height:295}),
+widget("finance","Последние операции","money",{financeKind:"recent",financeRow:4,financeColumn:10,width:4,height:295})
+]},
 {id:"travel",name:"Путешествия",icon:"✈",group:"Личное",description:"Карта посещённых стран, маршруты, даты и сборы.",tables:[
 table("trips","Путешествия (поездки)",["Флаг","Страна","ISO A3","Дата въезда|date","Дата выезда|date","Статус","Город","Количество городов|number"]),
 table("plans","Путешествия · Планы",["Место","Страна","Дата|date","Бюджет|number","Статус"]),
@@ -50,7 +62,7 @@ table("books","Книги",["Название","Автор","Жанр","Стат
 table("movies","Фильмы",["Название","Жанр","Статус","Оценка|number","Впечатления"])],
 widgets:[head("Моя медиатека","Что читаю, смотрю и планирую."),widget("counter","Книг","books",{width:4}),widget("counter","Фильмов","movies",{width:4}),widget("list","Читаю","books",{label:"Название"}),widget("list","Смотрю","movies",{label:"Название"}),widget("table","Книжная полка","books",{width:12}),widget("table","Список фильмов","movies",{width:12})]}
 ];
-export type StoredWidget = {id:string;type:string;title:string;tableId?:string;columnId?:string;labelColumnId?:string;body?:string;width:number;height:number;aggregate?:string;filter:Record<string,string>;limit:number;target:number;startDate?:string};
+export type StoredWidget = {id:string;type:string;title:string;tableId?:string;columnId?:string;labelColumnId?:string;body?:string;width:number;height:number;aggregate?:string;filter:Record<string,string>;limit:number;target:number;startDate?:string;financeKind?:string;financeRow?:number;financeColumn?:number;financeRowSpan?:number};
 export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:string;columns:{id:string;name:string;type:string}[]}[]){
  const existing=[...available];
  const newTables:{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:unknown[];updatedAt:string}[]=[];
@@ -66,7 +78,7 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
  const widgets:StoredWidget[]=preset.widgets.map(def=>{
    const tab=existing.find(item=>item.id===ids.get(def.source??""));
    const find=(name?:string)=>tab?.columns.find(col=>col.name.toLocaleLowerCase("ru")===name?.toLocaleLowerCase("ru"))?.id;
-   return {id:crypto.randomUUID(),type:def.type,title:def.title,tableId:tab?.id,columnId:find(def.column),labelColumnId:find(def.label),body:def.body??"",width:def.width??6,height:def.height??205,aggregate:def.aggregate??"sum",filter:{},limit:8,target:100,startDate:def.startDate};
+   return {id:crypto.randomUUID(),type:def.type,title:def.title,tableId:tab?.id,columnId:find(def.column),labelColumnId:find(def.label),body:def.body??"",width:def.width??6,height:def.height??205,aggregate:def.aggregate??"sum",filter:{},limit:8,target:100,startDate:def.startDate,financeKind:def.financeKind,financeRow:def.financeRow,financeColumn:def.financeColumn,financeRowSpan:def.financeRowSpan};
  });
  return {newTables,widgets,primaryTableId:ids.values().next().value as string|undefined};
 }
