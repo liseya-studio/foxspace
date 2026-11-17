@@ -438,3 +438,10 @@
   .finance-widget-inner{padding:16px}
   .finance-categories{grid-template-columns:1fr 1fr}
 }
+
+/* Finance dashboard uses the available canvas width, while keeping the global Dock unchanged. */
+.app-shell .main-area:has(.finance-dashboard-grid){max-width:1620px;padding-left:clamp(15px,3vw,50px);padding-right:clamp(15px,3vw,50px)}
+.finance-kind-balance.finance-background-sunset{background:linear-gradient(140deg,#6c4d63 0%,#c77b76 45%,#f09b55 79%,#7a574e 100%)}
+.finance-kind-balance.finance-background-plain{background:linear-gradient(140deg,#413d39,#665247)}
+.finance-kind-balance.finance-background-plain::after{display:none}
+@media(max-width:680px){.app-shell .main-area:has(.finance-dashboard-grid){padding-left:14px;padding-right:14px}}
