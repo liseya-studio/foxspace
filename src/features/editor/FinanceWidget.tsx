@@ -6,7 +6,7 @@ import type { TableData } from "../tables/values";
 export type FinanceKind = "balance"|"trend"|"income"|"expense"|"expenseCategories"|"payments"|"goals"|"incomeCategories"|"debts"|"recent";
 type Cell = string|number|boolean;
 type RecordRow = TableData["rows"][number];
-type FinanceProps = {kind:FinanceKind;tables:TableData[];onCreated?:()=>void};
+type FinanceProps = {kind:FinanceKind;tables:TableData[];onCreated?:()=>void;background?:"mountains"|"sunset"|"plain"};
 type EntryType = "income"|"expense"|"payment"|"debt"|"goal";
 const money=(num:number)=>new Intl.NumberFormat("ru-RU",{maximumFractionDigits:0}).format(num)+" ₽";
 const normalize=(value:unknown)=>String(value??"").trim().toLocaleLowerCase("ru").replace(/ё/g,"е");
@@ -84,7 +84,7 @@ function AddEntry({kind,tables,onClose,onCreated}:{kind:EntryType;tables:TableDa
   </div>;
 }
 
-export default function FinanceWidget({kind,tables,onCreated}:FinanceProps){
+export default function FinanceWidget({kind,tables,onCreated,background="mountains"}:FinanceProps){
   const [adding,setAdding]=useState<EntryType|null>(null);
   const [balanceVisible,setBalanceVisible]=useState(true);
   const transactions=findTable(tables,"ФИНАНСЫ (ОПЕРАЦИИ)");
@@ -121,13 +121,13 @@ export default function FinanceWidget({kind,tables,onCreated}:FinanceProps){
     </div>;
   }
   if(kind==="expenseCategories"||kind==="incomeCategories"){
-    const rows=kind==="expenseCategories"?expense:income;
+    const rows=(kind==="expenseCategories"?expense:income).filter(row=>monthKey(getField(transactions!,row,["Дата"]))===currentMonth);
     const sums=new Map<string,number>();
     if(transactions)for(const row of rows){const name=getField(transactions,row,["Категория"])||"Без категории";sums.set(name,(sums.get(name)||0)+readAmount(transactions,row));}
     const data=[...sums].sort((a,b)=>b[1]-a[1]);const sum=[...sums.values()].reduce((a,b)=>a+b,0);
     let running=0;
     const gradient=data.map(([_,v],i)=>{const begin=running;running+=v/Math.max(1,sum)*100;return PALETTE[i%PALETTE.length]+" "+begin+"% "+running+"%";}).join(", ");
-    content=<div className="finance-categories"><div className="finance-category-ring" style={{background:data.length?"conic-gradient("+gradient+")":undefined}}><div><strong>{money(sum)}</strong><small>за всё время</small></div></div><div className="finance-category-legend">{data.slice(0,6).map(([name,value],i)=><div key={name}><i style={{background:PALETTE[i%PALETTE.length]}}/><span title={name}>{name}</span><b>{Math.round(value/Math.max(1,sum)*100)}%</b></div>)}{!data.length&&empty("Пока нет операций по категориям")}</div></div>;
+    content=<div className="finance-categories"><div className="finance-category-ring" style={{background:data.length?"conic-gradient("+gradient+")":undefined}}><div><strong>{money(sum)}</strong><small>в этом месяце</small></div></div><div className="finance-category-legend">{data.slice(0,6).map(([name,value],i)=><div key={name}><i style={{background:PALETTE[i%PALETTE.length]}}/><span title={name}>{name}</span><b>{Math.round(value/Math.max(1,sum)*100)}%</b></div>)}{!data.length&&empty("Пока нет операций по категориям")}</div></div>;
   }
   if(kind==="payments"){
     content=<div className="finance-card-stack">{(bills?.rows??[]).slice().sort((a,b)=>getField(bills!,a,["Следующий платёж","Дата"]).localeCompare(getField(bills!,b,["Следующий платёж","Дата"]))).slice(0,6).map(row=><div className="finance-entry" key={row.id}><span className="finance-entry-icon"><CalendarClock size={18}/></span><div><b>{getField(bills!,row,["Платёж"])||"Платёж"}</b><small>{getField(bills!,row,["Периодичность"])||"раз"} · {shortDate(getField(bills!,row,["Следующий платёж","Дата"]))}</small></div><strong>{money(readAmount(bills!,row))}</strong></div>)}{!bills?.rows.length&&empty("Добавьте обязательные платежи, чтобы видеть суммы и следующие даты.")}</div>;
@@ -144,7 +144,7 @@ export default function FinanceWidget({kind,tables,onCreated}:FinanceProps){
   }
   const createKind:Record<string,EntryType|undefined>={payments:"payment",goals:"goal",debts:"debt"};
   const labels:Record<FinanceKind,string>={balance:"Текущий баланс",trend:"Динамика за 6 месяцев",income:"Доходы",expense:"Расходы",expenseCategories:"Расходы по категориям",payments:"Обязательные платежи",goals:"Финансовые цели",incomeCategories:"Доходы по категориям",debts:"Долги",recent:"Последние операции"};
-  return <div className={"finance-widget-inner finance-kind-"+kind}>
+  return <div className={"finance-widget-inner finance-kind-"+kind+(kind==="balance"?" finance-background-"+background:"")}>
     {!["balance","income","expense"].includes(kind)&&<div className="finance-widget-title"><h3>{labels[kind]}</h3>{createKind[kind]&&button(createKind[kind]!)}</div>}
     {content}
     {adding&&createPortal(<AddEntry kind={adding} tables={tables} onClose={()=>setAdding(null)} onCreated={onCreated}/>,document.body)}
