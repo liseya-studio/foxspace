@@ -445,3 +445,85 @@
 .finance-kind-balance.finance-background-plain{background:linear-gradient(140deg,#413d39,#665247)}
 .finance-kind-balance.finance-background-plain::after{display:none}
 @media(max-width:680px){.app-shell .main-area:has(.finance-dashboard-grid){padding-left:14px;padding-right:14px}}
+
+
+/* Finance dashboard layout repair: prevent overlapping cards and keep one
+   deterministic grid at every viewport width. */
+.finance-dashboard-grid.fox-editor-grid{
+  grid-template-columns:repeat(13,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,var(--finance-half-height,110px))) minmax(0,var(--finance-row3-height,310px)) minmax(0,var(--finance-row4-height,295px));
+  grid-auto-flow:row;
+  grid-auto-rows:minmax(180px,auto);
+  align-items:stretch;
+}
+.finance-dashboard-grid .fox-finance-card{
+  box-sizing:border-box;
+  min-width:0;
+  min-height:0!important;
+  height:100%;
+  max-width:100%;
+  overflow:hidden;
+  align-self:stretch;
+}
+.finance-dashboard-grid .fox-finance-balance{grid-column:1/span 4!important;grid-row:1/span 2!important}
+.finance-dashboard-grid .fox-finance-trend{grid-column:5/span 5!important;grid-row:1/span 2!important}
+.finance-dashboard-grid .fox-finance-income{grid-column:10/span 4!important;grid-row:1!important}
+.finance-dashboard-grid .fox-finance-expense{grid-column:10/span 4!important;grid-row:2!important}
+.finance-dashboard-grid .fox-finance-expenseCategories{grid-column:1/span 4!important;grid-row:3!important}
+.finance-dashboard-grid .fox-finance-payments{grid-column:5/span 5!important;grid-row:3!important}
+.finance-dashboard-grid .fox-finance-goals{grid-column:10/span 4!important;grid-row:3!important}
+.finance-dashboard-grid .fox-finance-incomeCategories{grid-column:1/span 4!important;grid-row:4!important}
+.finance-dashboard-grid .fox-finance-debts{grid-column:5/span 5!important;grid-row:4!important}
+.finance-dashboard-grid .fox-finance-recent{grid-column:10/span 4!important;grid-row:4!important}
+.finance-dashboard-grid .fox-widget-body,
+.finance-dashboard-grid .finance-widget-inner{min-width:0;min-height:0;max-width:100%;overflow:hidden}
+@media(max-width:1150px) and (min-width:701px){
+  .finance-dashboard-grid.fox-editor-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:none;
+    grid-auto-rows:minmax(240px,auto);
+  }
+  .finance-dashboard-grid .fox-finance-card{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    min-height:240px!important;
+    height:auto;
+  }
+  .finance-dashboard-grid .fox-finance-balance,
+  .finance-dashboard-grid .fox-finance-trend{
+    grid-column:auto!important;grid-row:auto!important;min-height:280px!important;
+  }
+  .finance-dashboard-grid .fox-finance-income,
+  .finance-dashboard-grid .fox-finance-expense{
+    min-height:125px!important;
+  }
+}
+@media(max-width:700px){
+  .finance-dashboard-grid.fox-editor-grid{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:none;
+    grid-auto-rows:auto;
+    gap:12px;
+  }
+  .finance-dashboard-grid .fox-finance-card,
+  .finance-dashboard-grid .fox-finance-balance,
+  .finance-dashboard-grid .fox-finance-trend,
+  .finance-dashboard-grid .fox-finance-income,
+  .finance-dashboard-grid .fox-finance-expense,
+  .finance-dashboard-grid .fox-finance-expenseCategories,
+  .finance-dashboard-grid .fox-finance-payments,
+  .finance-dashboard-grid .fox-finance-goals,
+  .finance-dashboard-grid .fox-finance-incomeCategories,
+  .finance-dashboard-grid .fox-finance-debts,
+  .finance-dashboard-grid .fox-finance-recent{
+    grid-column:1/-1!important;
+    grid-row:auto!important;
+    height:auto;
+    min-height:205px!important;
+  }
+  .finance-dashboard-grid .fox-finance-income,
+  .finance-dashboard-grid .fox-finance-expense{min-height:110px!important}
+  .finance-dashboard-grid .fox-finance-trend{min-height:260px!important}
+  .finance-dashboard-grid .fox-finance-expenseCategories,
+  .finance-dashboard-grid .fox-finance-incomeCategories{min-height:280px!important}
+}
