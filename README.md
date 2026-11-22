@@ -45,6 +45,28 @@ Open the local URL printed by Vite (typically `http://localhost:5173/`).
 
 **Automated checks:** `npm run build` checks TypeScript/Vite. `npm run test:e2e` runs Chromium smoke tests and captures screenshots. Screenshots and traces are available as artifacts of [Browser smoke tests and screenshots](https://github.com/liseya-studio/foxspace/actions/workflows/browser.yml).
 
+
+## Native macOS application (Apple Silicon)
+
+The repository now includes a Tauri 2 desktop shell and an ARM64 macOS build workflow.
+
+Prerequisites: Node.js 22, Rust stable, and the Xcode Command Line Tools.
+
+```bash
+npm install
+npm run tauri:dev
+```
+
+Build a local DMG on an Apple Silicon Mac:
+
+```bash
+npm run tauri:build
+```
+
+The DMG is written under `src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/` on an M-series Mac. The GitHub Actions workflow **Build Fox Space for macOS Apple Silicon** builds the same target and uploads the DMG as a 14-day artifact.
+
+In the native shell, structured workspace records are atomically saved to the operating-system application-data directory as `workspace.json`; native snapshots are versioned and the latest ten are retained. Browser mode continues to use localStorage with an IndexedDB recovery mirror. **Current migration boundary:** user file blobs and folder metadata still use the existing IndexedDB file store; moving those binary assets into the native app-data directory is a separate migration step. This build is an unsigned development DMG; code signing, notarization, auto-updater and installer distribution are not configured yet.
+
 ## Run locally
 ```bash
 npm install
