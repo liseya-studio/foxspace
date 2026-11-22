@@ -1,5 +1,5 @@
 export const OPS_KEY="fox-operations-v1";
-export type Transaction={id:string;title:string;amount:number;kind:"income"|"expense";date:string;category:string;projectId:string;state:"actual"|"planned";repeat:"none"|"monthly"};
+export type Transaction={id:string;title:string;amount:number;kind:"income"|"expense";date:string;category:string;projectId:string;state:"actual"|"planned";repeat:"none"|"monthly";seriesId?:string;generated?:boolean};
 export type Publication={id:string;title:string;text:string;projectId:string;date:string;status:"idea"|"draft"|"ready"|"scheduled"|"published";mediaFileIds?:string[];variants:{id:string;platform:string;text:string;url:string;views:number;date:string}[]};
 export type Budget={id:string;title:string;month:string;limit:number;projectId:string;category:string};
 export type LedgerItem={id:string;title:string;kind:"debt"|"saving"|"goal";target:number;actual:number;deadline:string};
