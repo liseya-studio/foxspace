@@ -527,6 +527,3 @@
   .finance-dashboard-grid .fox-finance-expenseCategories,
   .finance-dashboard-grid .fox-finance-incomeCategories{min-height:280px!important}
 }
-
-
-@import "./features/projects/projects.css";
