@@ -65,6 +65,8 @@ export default function App() {
 
 
   useEffect(()=>{
+    void createAutoBackup().catch(error=>console.error("Fox Space automatic backup failed",error));
+    const backupTimer=window.setInterval(()=>{void createAutoBackup().catch(error=>console.error("Fox Space automatic backup failed",error));},30*60*1000);
     const update=()=>dispatchDesktopReminders();
     update();
     const timer=window.setInterval(update,5*60*1000);
