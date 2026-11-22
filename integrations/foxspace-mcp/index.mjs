@@ -21,6 +21,6 @@ server.tool("foxspace_get","Read a single Fox Space object by ID.",{collection:z
  if(!item)throw Error("Not found");return item;
 }));
 server.tool("foxspace_create_task","Create a task on the local Mac (requires explicit local write enablement).",{title:z.string().min(1).max(300),description:z.string().max(20000).optional(),dueDate:z.string().optional(),projectId:z.string().optional()},async(args)=>safe(()=>createTask(args)));
-server.tool("foxspace_set_task_status","Update task state locally (requires explicit local write enablement).",{taskId:z.string().min(1),status:z.enum(["todo","in_progress","done"])},async(args)=>safe(()=>updateTaskStatus(args)));
+server.tool("foxspace_set_task_status","Update task state locally (requires explicit local write enablement).",{taskId:z.string().min(1),status:z.enum(["todo","doing","done"])},async(args)=>safe(()=>updateTaskStatus(args)));
 const transport=new StdioServerTransport();
 await server.connect(transport);
