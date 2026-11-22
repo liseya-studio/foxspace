@@ -174,16 +174,21 @@ npm run dev
 - Source sync failures retain previously retrieved posts and label them stale instead of inventing data.
 
 ### Backups and restore
-- Settings contain a full workspace export to a single local JSON backup (screens, tables, notes/tasks, editor widgets, preferences, and IndexedDB files with their binary contents encoded)
+- Settings contain a full workspace export to a single local JSON backup (screens, tables, projects and goals, tasks, finance, content, trackers, automations, agent policies, audit history, editor widgets, preferences and IndexedDB files with their binary contents encoded)
 - Backup restore validates the format, metadata, file lengths and structural record keys; user confirmation is required before replacing current data
 - One transaction replaces the IndexedDB collection; localStorage data is updated and the app reloads to refresh all mounted views
 - Current backup limits: 150 MB per archive, 60 MB per stored file; this is intended for small/local prototype workspaces, not huge media collections
-- Backups are unencrypted local downloads; users should store them securely and avoid importing untrusted archives
+- Backups are unencrypted local downloads; API credentials are excluded because OpenAI keys are held in the macOS Keychain, not workspace storage. Store backup files securely and avoid importing untrusted archives
 
-## Not implemented yet
-Advanced relational aggregation, arbitrary formulas, nested multi-condition filters, table permissions, full in-widget editing, WYSIWYG rich-text (Markdown is supported), advanced recurring rules, server-side push notifications, remote sync, automatic backup scheduling, incremental archives, full widget catalog, native macOS file access, Telegram and VK authorization, ChatGPT API, actual feed data and multiposting.
+## Remaining integration work
+- Authenticated remote API endpoints for third-party agents and external AI clients.
+- Full AI tool-calling that can execute workspace mutations; current OpenAI assistant is analysis-only and all mutations remain in the separately approved local agent gateway.
+- OAuth and publishing adapters for Telegram, VK, YouTube, TikTok, Instagram, X and Boosty; content variants can be prepared locally, but direct publishing is not connected.
+- Server-backed cross-device synchronization, conflict resolution and remote push notifications.
+- Background conditional automations while the app is closed; local conditions are evaluated while Fox Space is running.
+- Advanced recurring rules, arbitrary table formulas, advanced relational aggregation and full in-widget editing.
 
-The current build is an interactive UI prototype. Browser localStorage is temporary prototype storage, not the final data architecture.
+The macOS app stores structured workspace snapshots and managed file blobs in the app data directory. Browser mode continues to use localStorage and IndexedDB and remains subject to browser storage eviction. Cloud synchronization is not enabled.
 
 ## Build verification
 
@@ -195,8 +200,9 @@ GitHub Actions `.github/workflows/build.yml` runs `npm install` and `npm run bui
 - This is still a browser-only UI prototype; no remote synchronization or native macOS integration is included.
 
 ### Local data safety
-- The file manager persists blobs in browser IndexedDB; it does **not** access the macOS filesystem directly. Clearing site data, private-browsing expiry or browser storage eviction may delete local files. Export regular backups.
-- Notes, tables and widgets still use localStorage; attachments reference IndexedDB file IDs. Removing a file from the file manager can leave a missing attachment in notes.
+- In the macOS app, structured workspace snapshots and managed file blobs are stored under the app data directory with atomic snapshot writes and versioned native backups.
+- In browser mode, the file manager persists blobs in IndexedDB and other records in localStorage; clearing site data, private-browsing expiry or browser storage eviction may delete local data. Export regular backups.
+- Attachments reference managed file IDs. Removing a file from the file manager can leave a missing attachment in notes or projects.
 - Workbook import reads the cached values of formulas, not live Excel formulas; its current conversion does not preserve workbook styling or formulas. Import is capped at 8 MB and each populated sheet at 10,000 rows / 200 columns.
 
 ### Notification limitations
