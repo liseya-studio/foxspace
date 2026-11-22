@@ -1,4 +1,5 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{collections::BTreeMap, fs, path::{Path, PathBuf}};
+use sha2::{Digest, Sha256};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use tauri::{AppHandle, Manager};
 
@@ -66,6 +67,44 @@ fn read_file_blob(app: AppHandle, id: String) -> Result<Option<String>, String> 
 fn delete_file_blob(app: AppHandle, id: String) -> Result<(), String> {
     let path = native_file_path(&app, &id)?;
     if path.exists() { fs::remove_file(path).map_err(|e| format!("Cannot delete native file: {e}"))?; }
+    Ok(())
+}
+
+fn sha256_file(path: &Path) -> Result<String, String> {
+    let bytes = fs::read(path).map_err(|e| format!("Cannot read backup file for checksum: {e}"))?;
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn collect_backup_hashes(root: &Path, current: &Path, hashes: &mut BTreeMap<String, String>) -> Result<(), String> {
+    for entry in fs::read_dir(current).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
+            collect_backup_hashes(root, &path, hashes)?;
+        } else if entry.file_name() != "manifest.json" {
+            let relative = path.strip_prefix(root).map_err(|e| e.to_string())?.to_string_lossy().to_string();
+            hashes.insert(relative, sha256_file(&path)?);
+        }
+    }
+    Ok(())
+}
+
+fn verify_native_backup(backup_dir: &Path) -> Result<(), String> {
+    let manifest_path = backup_dir.join("manifest.json");
+    if !manifest_path.exists() { return Err("Нативная копия не содержит манифест целостности".into()); }
+    let manifest: serde_json::Value = serde_json::from_slice(&fs::read(manifest_path).map_err(|e| e.to_string())?)
+        .map_err(|e| format!("Манифест резервной копии повреждён: {e}"))?;
+    if manifest.get("algorithm").and_then(|v| v.as_str()) != Some("SHA-256") { return Err("Неподдерживаемый алгоритм целостности резервной копии".into()); }
+    let expected = manifest.get("files").and_then(|v| v.as_object()).ok_or("В манифесте отсутствует список файлов")?;
+    let mut actual = BTreeMap::new();
+    collect_backup_hashes(backup_dir, backup_dir, &mut actual)?;
+    if expected.len() != actual.len() { return Err("Состав файлов резервной копии не совпадает с манифестом".into()); }
+    for (path, digest) in expected {
+        let expected_digest = digest.as_str().ok_or("Некорректная контрольная сумма в манифесте")?;
+        if actual.get(path).map(String::as_str) != Some(expected_digest) { return Err(format!("Контрольная сумма файла «{path}» не совпадает")); }
+    }
     Ok(())
 }
 
