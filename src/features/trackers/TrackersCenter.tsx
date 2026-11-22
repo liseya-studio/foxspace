@@ -1,3 +1,4 @@
+import { appendAudit } from "../agents/data";
 import {useMemo,useState} from "react";
 import {Plus,ArrowLeft,Trash2,Pencil,TrendingUp,CalendarDays,Download,Check} from "lucide-react";
 import {readTrackers,saveTrackers,TRACKER_TEMPLATES,trackerId,today,type Tracker,type TrackerEntry,type TrackerTemplate} from "./data";
@@ -7,7 +8,7 @@ const fmt=(v:string|number|boolean|undefined,unit?:string)=>v===undefined||v==="
 export default function TrackersCenter(){
  const [data,setData]=useState(readTrackers),[active,setActive]=useState<string|null>(null),[entry,setEntry]=useState<TrackerEntry|null>(null),[range,setRange]=useState("30");
  const selected=data.trackers.find(t=>t.id===active);
- const persist=(trackers:Tracker[])=>{const next={version:1 as const,trackers};saveTrackers(next);setData(next);};
+ const persist=(trackers:Tracker[])=>{const next={version:1 as const,trackers};saveTrackers(next);setData(next);appendAudit({actorType:"user",actorId:"user",action:"trackers.updated",resource:"trackers",summary:"Обновлены личные трекеры",outcome:"success",approvalRequired:false});};
  const filtered=useMemo(()=>selected?[...selected.entries].filter(e=>range==="all"||Date.parse(e.date+"T23:59:59")>=Date.now()-Number(range)*86400000).sort((a,b)=>b.date.localeCompare(a.date)):[],[selected,range]);
  function saveEntry(){if(!selected||!entry)return;const exists=selected.entries.some(e=>e.id===entry.id);persist(data.trackers.map(t=>t.id===selected.id?{...t,entries:exists?t.entries.map(e=>e.id===entry.id?{...entry,updatedAt:new Date().toISOString()}:e):[{...entry,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()},...t.entries],updatedAt:new Date().toISOString()}:t));setEntry(null);}
  function exportCsv(){if(!selected)return;const cols=["date",...selected.fields.map(f=>f.label),"note"];const rows=[cols,...filtered.map(e=>[e.date,...selected.fields.map(f=>String(e.values[f.id]??"")),e.note])];const csv="\uFEFF"+rows.map(row=>row.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(";")).join("\r\n");const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download=selected.name.replace(/[^\p{L}\p{N}-]+/gu,"-")+".csv";a.click();URL.revokeObjectURL(url);}
