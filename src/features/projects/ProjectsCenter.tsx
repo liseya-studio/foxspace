@@ -1,3 +1,4 @@
+import { appendAudit } from "../agents/data";
 import { projectTotals } from "../operations/data";
 import { useMemo, useState } from "react";
 import { Plus, FolderKanban, ArrowLeft, Pencil, Trash2, Target, X, Save, CheckSquare, FileSpreadsheet } from "lucide-react";
@@ -25,7 +26,7 @@ export default function ProjectsCenter({onOpenTask}:{onOpenTask?:(id:string)=>vo
   const taskData=readNotesTasks();
   const tableOptions=(()=>{try{return JSON.parse(localStorage.getItem("fox-tables-v1")||"[]") as {id:string;name:string}[];}catch{return [];}})();
   const projects=useMemo(()=>data.projects.filter(p=>(filter==="all"||p.status===filter)&&(!query||[p.name,p.description,p.category].join(" ").toLocaleLowerCase("ru").includes(query.toLocaleLowerCase("ru")))),[data,filter,query]);
-  function commit(projects:Project[]){const next={...data,projects};setData(next);saveProjects(next);}
+  function commit(projects:Project[]){const next={...data,projects};setData(next);saveProjects(next);appendAudit({actorType:"user",actorId:"user",action:"projects.updated",resource:"projects",summary:"Обновлён список проектов",outcome:"success",approvalRequired:false});}
   function saveProject(){if(!editing?.name.trim())return;const exists=data.projects.some(p=>p.id===editing.id);const now=new Date().toISOString();const history=exists?editing.history:[...editing.history,{id:projectId(),at:now,action:"Создан проект",details:editing.name}];commit(exists?data.projects.map(p=>p.id===editing.id?{...editing,name:editing.name.trim(),updatedAt:now,history:[...editing.history,{id:projectId(),at:now,action:"Изменён проект",details:"Обновлены основные параметры"}]}:p):[{...editing,name:editing.name.trim(),history,updatedAt:now},...data.projects]);setSelectedId(editing.id);setEditing(null);}
   function patchProject(patch:Partial<Project>){if(!selected)return;commit(data.projects.map(p=>p.id===selected.id?{...p,...patch,updatedAt:new Date().toISOString()}:p));}
   function saveGoal(){if(!selected||!goalEditing?.title.trim())return;const exists=selected.goals.some(g=>g.id===goalEditing.id);const now=new Date().toISOString();const goal={...goalEditing,title:goalEditing.title.trim(),updatedAt:now};patchProject({goals:exists?selected.goals.map(g=>g.id===goal.id?goal:g):[...selected.goals,goal],history:[...selected.history,{id:projectId(),at:now,action:exists?"Изменена цель":"Добавлена цель",details:goal.title}]});setGoalEditing(null);}
