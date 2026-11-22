@@ -65,7 +65,19 @@ npm run tauri:build
 
 The DMG is written under `src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/` on an M-series Mac. The GitHub Actions workflow **Build Fox Space for macOS Apple Silicon** builds the same target and uploads the DMG as a 14-day artifact.
 
-In the native shell, structured workspace records are atomically saved to the operating-system application-data directory as `workspace.json`; file blobs are stored under `files/`, and existing IndexedDB files are migrated into this native store on first access. Native snapshots include both workspace data and file blobs, retain the latest ten versions, and can be restored from Backup settings. Portable JSON exports also include file contents. Browser mode continues to use localStorage with an IndexedDB recovery mirror and keeps file blobs in IndexedDB. This build is an unsigned development DMG; code signing, notarization, auto-updater and installer distribution are not configured yet.
+In the native shell, structured workspace records are atomically saved to the operating-system application-data directory as `workspace.json`; file blobs are stored under `files/`, and existing IndexedDB files are migrated into this native store on first access. Native snapshots include workspace data and file blobs, retain the latest ten versions, include SHA-256 manifests, and can be restored from Backup settings. Portable JSON exports and automatic snapshots are also integrity-checked with SHA-256. Browser mode continues to use localStorage with an IndexedDB recovery mirror and keeps file blobs in IndexedDB. Native macOS notifications and optional login autostart are integrated. This build is an unsigned development DMG; code signing, notarization, auto-updater and installer distribution are not configured yet.
+
+
+## Project, finance and content workflows
+
+- Project cards include status, priority, ownership, deadlines, budgets, income/expenses, goals, notes, change history, linked projects, linked tables, row-level project relations and attached files.
+- Goals support annual, quarterly and monthly horizons with numeric, percentage, boolean and text key results.
+- Global task views can be filtered by project; tasks can link to projects and goals and retain execution history.
+- Finance includes income, expenses, planned transactions, automatically generated next-month recurring payments, project budgets, debt and savings goals.
+- Content planning supports source publications, platform-specific text variants, attached media files, publication status and a week/month calendar view.
+- Analytics compares equivalent weekly or monthly periods and includes project results, goals, publication views, manually recorded social audience/bot activity snapshots and personal tracker entries.
+
+External social publishing, OAuth integrations, cross-device server sync and AI-agent execution are not connected yet. Agent policy and audit foundations are present; actual provider credentials and server-side adapters remain separate work.
 
 ## Run locally
 ```bash
