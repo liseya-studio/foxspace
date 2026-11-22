@@ -35,7 +35,8 @@ function validateRecords(records:unknown):Record<string,unknown>{
   const trackers=values["fox-trackers-v1"] as {version?:number;trackers?:unknown[]};
   if(!trackers||trackers.version!==1||!Array.isArray(trackers.trackers))throw Error("Повреждены данные личных трекеров");
   const ops=values["fox-operations-v1"] as Record<string,unknown>;
-  if(!ops||ops.version!==1||!["transactions","publications","budgets","ledger"].every(k=>Array.isArray(ops[k])))throw Error("Повреждён финансовый или контентный учёт");\n  if(!Array.isArray(ops.audience))ops.audience=[];
+  if(!ops||ops.version!==1||!["transactions","publications","budgets","ledger"].every(k=>Array.isArray(ops[k])))throw Error("Повреждён финансовый или контентный учёт");
+  if(!Array.isArray(ops.audience))ops.audience=[];
   const projects=values["fox-projects-v1"];
   if(!projects||typeof projects!=="object"||!Array.isArray((projects as {projects?:unknown}).projects))throw Error("Повреждены проекты и цели");
   if(!Array.isArray(values["fox-screens"]))throw Error("Не найден список экранов");
