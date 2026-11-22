@@ -1,6 +1,6 @@
 import { listItems, replaceItems, type StoredItem } from "../files/storage";
 
-const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-projects-v1","fox-operations-v1"] as const;
+const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1"] as const;
 const FORMAT = "fox-space-backup-v1";
 type SerializedFile = Omit<StoredItem,"blob"> & {blobBase64?:string};
 type Backup = {format:string;createdAt:string;records:Record<string,unknown>;files:SerializedFile[]};
@@ -25,6 +25,9 @@ function validateRecords(records:unknown):Record<string,unknown>{
   const values=records as Record<string,unknown>;
   if(!("fox-projects-v1" in values))values["fox-projects-v1"]={version:1,projects:[]};
   if(!("fox-operations-v1" in values))values["fox-operations-v1"]={version:1,transactions:[],publications:[],budgets:[],ledger:[]};
+  if(!("fox-trackers-v1" in values))values["fox-trackers-v1"]={version:1,trackers:[]};
+  const trackers=values["fox-trackers-v1"] as {version?:number;trackers?:unknown[]};
+  if(!trackers||trackers.version!==1||!Array.isArray(trackers.trackers))throw Error("Повреждены данные личных трекеров");
   const ops=values["fox-operations-v1"] as Record<string,unknown>;
   if(!ops||ops.version!==1||!["transactions","publications","budgets","ledger"].every(k=>Array.isArray(ops[k])))throw Error("Повреждён финансовый или контентный учёт");
   const projects=values["fox-projects-v1"];
@@ -42,7 +45,7 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
   const records:Record<string,unknown>={};
   for(const key of KEYS){
     const raw=localStorage.getItem(key);
-    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[]}:key==="fox-theme"?"light":"#f06432";
+    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-theme"?"light":"#f06432";
   }
   const items=await listItems();
   let totalBytes=0;
