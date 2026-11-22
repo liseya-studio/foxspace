@@ -1,0 +1,26 @@
+name: Fox Space MCP bridge tests
+on:
+  push:
+    paths:
+      - 'integrations/foxspace-mcp/**'
+      - '.github/workflows/mcp-bridge.yml'
+  pull_request:
+    paths:
+      - 'integrations/foxspace-mcp/**'
+      - '.github/workflows/mcp-bridge.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test local bridge data operations
+        run: node --test integrations/foxspace-mcp/tests/*.test.mjs
+      - name: Install and check MCP server dependencies
+        run: |
+          cd integrations/foxspace-mcp
+          npm install --no-audit --no-fund
+          node --check index.mjs
+          node --check core.mjs
