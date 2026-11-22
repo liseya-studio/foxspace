@@ -1,7 +1,7 @@
 import { readProjects, type Project } from "../projects/data";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import {
-  Plus, Search, Filter, ArrowUpDown, MoreHorizontal, ChevronDown, Table2, FolderKanban,
+  Plus, Search, Filter, ArrowUpDown, MoreHorizontal, ChevronDown, Table2, FolderKanban, History, FileSpreadsheet,
   CalendarDays, Hash, Type, CheckSquare, UserRound, Tag, Trash2, Download,
   Columns3, Rows3, X, LayoutGrid, List, SlidersHorizontal
 } from "lucide-react";
@@ -11,7 +11,8 @@ type Column = { id: string; name: string; type: ColumnType; options?: string[]; 
 type Cell = string | number | boolean;
 type RowData = { id: string; cells: Record<string, Cell> };
 type SavedView = { id: string; name: string; filterColumn: string; filterOperator: string; filterValue: string; secondColumn?: string; secondOperator?: string; secondValue?: string; logic?: "and" | "or"; categoryFilter?: string; groupColumn: string; sortColumn: string; sortDirection: "asc" | "desc"; layout?: "table" | "list" };
-type DataTable = { id: string; name: string; columns: Column[]; rows: RowData[]; updatedAt: string; savedViews?: SavedView[] };
+type TableHistoryEntry={id:string;at:string;summary:string};
+type DataTable = { id: string; name: string; columns: Column[]; rows: RowData[]; updatedAt: string; savedViews?: SavedView[]; history?:TableHistoryEntry[] };
 
 const KEY = "fox-tables-v1";
 const types: { value: ColumnType; label: string; icon: typeof Type }[] = [
@@ -33,6 +34,7 @@ function loadTables(): DataTable[] {
   catch { return initialTables; }
 }
 const id = () => crypto.randomUUID();
+import {downloadXlsx} from "./xlsx";
 
 
 export default function TableWorkspace({openCreate=false,onCreateConsumed}:{openCreate?:boolean;onCreateConsumed?:()=>void}) {
@@ -63,6 +65,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
   const [logic, setLogic] = useState<"and" | "or">("and");
   const [groupColumn, setGroupColumn] = useState("");
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
+  const [historyOpen,setHistoryOpen]=useState(false);
 
 
   useEffect(()=>{if(openCreate)onCreateConsumed?.();},[openCreate]);
@@ -72,7 +75,14 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
   const activeTable = tables.find(t => t.id === activeId) ?? null;
 
   function updateTable(updater: (table: DataTable) => DataTable) {
-    setTables(current => current.map(t => t.id === activeId ? updater({ ...t, updatedAt: new Date().toISOString() }) : t));
+    setTables(current => current.map(table => {
+      if(table.id!==activeId)return table;
+      const next=updater({...table,updatedAt:new Date().toISOString()});
+      const summary=summarizeTableChange(table,next);
+      if(!summary)return next;
+      const history=[...(table.history??[]),{id:id(),at:new Date().toISOString(),summary}].slice(-300);
+      return {...next,history};
+    }));
   }
   function createTable() {
     const name = newTableName.trim();
@@ -83,7 +93,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
         { id: "name", name: "Название", type: "text" },
         { id: "status", name: "Статус", type: "select", options: ["Не начато", "В работе", "Готово"] },
         { id: "date", name: "Дата", type: "date" },
-      ], rows: []
+      ], rows: [],history:[{id:id(),at:new Date().toISOString(),summary:"Создана таблица"}]
     };
     setTables(current => [...current, table]); setActiveId(table.id); setNewTableName(""); setTableDialog(false); setQuery(""); setCategoryFilter("Все");
   }
@@ -174,6 +184,10 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
     return Array.from(groups.entries()).map(([label, rows]) => ({ label, rows }));
   }, [activeTable, groupColumn, visibleRows]);
 
+  function exportXlsx(){
+    if(!activeTable)return;
+    downloadXlsx(activeTable.name,activeTable.columns.map(column=>column.name),activeTable.rows.map(row=>activeTable.columns.map(column=>computedCell(column,row))));
+  }
   function exportCsv() {
     if (!activeTable) return;
     const quote = (v: Cell | undefined) => '"' + String(v ?? "").replaceAll('"', '""') + '"';
@@ -195,9 +209,9 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
       </aside>
       <div className="table-main">
         {activeTable ? <>
-          <div className="table-title-row"><div><div className="table-breadcrumb">Файлы и таблицы <span>/</span> Таблицы</div><h2>{activeTable.name} <button className="tiny-icon" title="Переименовать" onClick={() => { const n = window.prompt("Название таблицы", activeTable.name); if (n?.trim()) setTables(ts => ts.map(t => t.id === activeId ? {...t,name:n.trim()} : t)); }}><MoreHorizontal size={17}/></button></h2><div className="table-subtitle">{activeTable.rows.length} записей <span>·</span> {activeTable.columns.length} полей <span>·</span> Изменения сохраняются автоматически</div>{(activeTable.savedViews?.length??0)>0 && <div className="saved-views">{activeTable.savedViews?.map(s=><span className="saved-view-chip" key={s.id}><button onClick={()=>{setFilterColumn(s.filterColumn);setFilterOperator(s.filterOperator);setFilterValue(s.filterValue);setSecondColumn(s.secondColumn??"");setSecondOperator(s.secondOperator??"contains");setSecondValue(s.secondValue??"");setLogic(s.logic??"and");setCategoryFilter(s.categoryFilter??"Все");setGroupColumn(s.groupColumn);setSort(s.sortColumn?{key:s.sortColumn,direction:s.sortDirection}:null);setView(s.layout??"table");setShowFilters(true);}}>{s.name}</button><button className="saved-view-delete" title={"Удалить вид "+s.name} onClick={()=>updateTable(t=>({...t,savedViews:(t.savedViews??[]).filter(v=>v.id!==s.id)}))}><X size={12}/></button></span>)}</div>}</div><div className="table-top-actions"><button className="soft-icon" onClick={exportCsv} title="Экспорт CSV"><Download size={17}/></button><button className="soft-icon table-danger" onClick={deleteTable} title="Удалить таблицу"><Trash2 size={16}/></button></div></div>
+          <div className="table-title-row"><div><div className="table-breadcrumb">Файлы и таблицы <span>/</span> Таблицы</div><h2>{activeTable.name} <button className="tiny-icon" title="Переименовать" onClick={() => { const n = window.prompt("Название таблицы", activeTable.name); if (n?.trim()) updateTable(t=>({...t,name:n.trim()})); }}><MoreHorizontal size={17}/></button></h2><div className="table-subtitle">{activeTable.rows.length} записей <span>·</span> {activeTable.columns.length} полей <span>·</span> Изменения сохраняются автоматически</div>{(activeTable.savedViews?.length??0)>0 && <div className="saved-views">{activeTable.savedViews?.map(s=><span className="saved-view-chip" key={s.id}><button onClick={()=>{setFilterColumn(s.filterColumn);setFilterOperator(s.filterOperator);setFilterValue(s.filterValue);setSecondColumn(s.secondColumn??"");setSecondOperator(s.secondOperator??"contains");setSecondValue(s.secondValue??"");setLogic(s.logic??"and");setCategoryFilter(s.categoryFilter??"Все");setGroupColumn(s.groupColumn);setSort(s.sortColumn?{key:s.sortColumn,direction:s.sortDirection}:null);setView(s.layout??"table");setShowFilters(true);}}>{s.name}</button><button className="saved-view-delete" title={"Удалить вид "+s.name} onClick={()=>updateTable(t=>({...t,savedViews:(t.savedViews??[]).filter(v=>v.id!==s.id)}))}><X size={12}/></button></span>)}</div>}</div><div className="table-top-actions"><button className="soft-icon" onClick={exportCsv} title="Экспорт CSV"><Download size={17}/></button><button className="soft-icon" onClick={exportXlsx} title="Экспорт Excel"><FileSpreadsheet size={17}/></button><button className="soft-icon table-danger" onClick={deleteTable} title="Удалить таблицу"><Trash2 size={16}/></button></div></div>
           <div className="table-toolbar">
-            <div className="table-toolbar-left"><div className="table-view-switch"><button className={view==="table"?"chosen":""} onClick={() => setView("table")}><Table2 size={15}/> Таблица</button><button className={view==="list"?"chosen":""} onClick={() => setView("list")}><List size={15}/> Список</button></div><button className={showFilters?"toolbar-button chosen":"toolbar-button"} onClick={() => setShowFilters(v => !v)}><Filter size={15}/> Фильтр {categoryFilter!=="Все" && <i/>}</button><button className="toolbar-button" onClick={() => setSort(sort ? null : {key:activeTable.columns[0].id,direction:"asc"})}><ArrowUpDown size={15}/> Сортировка</button><select className="group-select" value={groupColumn} onChange={e=>setGroupColumn(e.target.value)}><option value="">Без группировки</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>Группировать: {col.name}</option>)}</select><button className="toolbar-button" onClick={()=>{const name=window.prompt("Название представления");if(!name?.trim())return;const saved:SavedView={id:id(),name:name.trim(),filterColumn,filterOperator,filterValue,secondColumn,secondOperator,secondValue,logic,categoryFilter,groupColumn,sortColumn:sort?.key??"",sortDirection:sort?.direction??"asc",layout:view};updateTable(t=>({...t,savedViews:[...(t.savedViews??[]),saved]}));}}><Plus size={14}/> Сохранить вид</button></div>
+            <div className="table-toolbar-left"><div className="table-view-switch"><button className={view==="table"?"chosen":""} onClick={() => setView("table")}><Table2 size={15}/> Таблица</button><button className={view==="list"?"chosen":""} onClick={() => setView("list")}><List size={15}/> Список</button></div><button className={showFilters?"toolbar-button chosen":"toolbar-button"} onClick={() => setShowFilters(v => !v)}><Filter size={15}/> Фильтр {categoryFilter!=="Все" && <i/>}</button><button className="toolbar-button" onClick={() => setSort(sort ? null : {key:activeTable.columns[0].id,direction:"asc"})}><ArrowUpDown size={15}/> Сортировка</button><select className="group-select" value={groupColumn} onChange={e=>setGroupColumn(e.target.value)}><option value="">Без группировки</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>Группировать: {col.name}</option>)}</select><button className="toolbar-button" onClick={()=>setHistoryOpen(true)}><History size={15}/> История</button><button className="toolbar-button" onClick={()=>{const name=window.prompt("Название представления");if(!name?.trim())return;const saved:SavedView={id:id(),name:name.trim(),filterColumn,filterOperator,filterValue,secondColumn,secondOperator,secondValue,logic,categoryFilter,groupColumn,sortColumn:sort?.key??"",sortDirection:sort?.direction??"asc",layout:view};updateTable(t=>({...t,savedViews:[...(t.savedViews??[]),saved]}));}}><Plus size={14}/> Сохранить вид</button></div>
             <div className="table-toolbar-right"><label className="table-search"><Search size={15}/><input placeholder="Найти в таблице" value={query} onChange={e => setQuery(e.target.value)}/></label><button className="toolbar-button" onClick={() => setColumnDialog(true)}><Columns3 size={15}/> Поля</button><button className="primary-button compact" onClick={addRow}><Plus size={15}/> Добавить запись</button></div>
           </div>
           {showFilters && <div className="filter-bar"><SlidersHorizontal size={15}/><span>Поле</span><select value={filterColumn} onChange={e=>setFilterColumn(e.target.value)}><option value="">Любое</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><select value={filterOperator} onChange={e=>setFilterOperator(e.target.value)}><option value="contains">содержит</option><option value="equals">равно</option><option value="not_equals">не равно</option><option value="gt">больше</option><option value="lt">меньше</option><option value="empty">пусто</option><option value="not_empty">не пусто</option></select><input className="filter-value" placeholder="Значение" value={filterValue} onChange={e=>setFilterValue(e.target.value)}/><select value={logic} onChange={e=>setLogic(e.target.value as "and"|"or")}><option value="and">И</option><option value="or">ИЛИ</option></select><select value={secondColumn} onChange={e=>setSecondColumn(e.target.value)}><option value="">Второе поле</option>{activeTable.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select><select value={secondOperator} onChange={e=>setSecondOperator(e.target.value)}><option value="contains">содержит</option><option value="equals">равно</option><option value="not_equals">не равно</option><option value="gt">больше</option><option value="lt">меньше</option><option value="empty">пусто</option><option value="not_empty">не пусто</option></select><input className="filter-value" placeholder="Второе значение" value={secondValue} onChange={e=>setSecondValue(e.target.value)}/><button className="text-button-inline" onClick={()=>{setFilterColumn("");setFilterValue("");setSecondColumn("");setSecondValue("");setSecondOperator("contains");setLogic("and");setCategoryFilter("Все");}}>Сбросить</button></div>}
@@ -207,6 +221,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
       </div>
     </div>
     {tableDialog && <div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setTableDialog(false)}><div className="dialog"><button className="close-button" onClick={()=>setTableDialog(false)}><X size={18}/></button><div className="dialog-icon"><Table2 size={21}/></div><h2>Новая таблица</h2><p>Создайте таблицу. Позже к ней можно будет подключать представления и виджеты на пользовательских экранах.</p><label className="form-label">Название<input className="form-input" autoFocus placeholder="Например, Проекты" value={newTableName} onChange={e=>setNewTableName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createTable()}/></label><button className="primary-button full" disabled={!newTableName.trim()} onClick={createTable}><Plus size={16}/> Создать таблицу</button><button className="text-button" onClick={()=>setTableDialog(false)}>Отмена</button></div></div>}
+    {historyOpen&&<div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setHistoryOpen(false)}><div className="dialog table-history-dialog"><button className="close-button" onClick={()=>setHistoryOpen(false)}><X size={18}/></button><div className="dialog-icon"><History size={20}/></div><h2>История таблицы</h2><p>Последние 300 изменений структуры и записей.</p><div className="table-history-list">{[...(activeTable?.history??[])].reverse().map(item=><article key={item.id}><strong>{item.summary}</strong><small>{new Date(item.at).toLocaleString("ru-RU")}</small></article>)}{!activeTable?.history?.length&&<p>История пока пуста.</p>}</div><button className="primary-button full" onClick={()=>setHistoryOpen(false)}>Закрыть</button></div></div>}
     {columnDialog && <div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setColumnDialog(false)}><div className="dialog"><button className="close-button" onClick={()=>setColumnDialog(false)}><X size={18}/></button><div className="dialog-icon"><Columns3 size={21}/></div><h2>Новое поле</h2><p>Выберите тип данных для новой колонки.</p><label className="form-label">Название<input className="form-input" autoFocus placeholder="Например, Приоритет" value={newColumnName} onChange={e=>setNewColumnName(e.target.value)}/></label><label className="form-label">Тип поля<select className="form-input" value={newColumnType} onChange={e=>setNewColumnType(e.target.value as ColumnType)}>{types.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}</select></label>{newColumnType==="relation" && <label className="form-label">Связать с таблицей<select className="form-input" value={relationTableId} onChange={e=>setRelationTableId(e.target.value)}><option value="">Выберите таблицу</option>{tables.filter(t=>t.id!==activeId).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>}{newColumnType==="formula" && <><label className="form-label">Числовое поле-источник<select className="form-input" value={formulaSourceId} onChange={e=>setFormulaSourceId(e.target.value)}><option value="">Выберите поле</option>{activeTable?.columns.filter(col=>col.type==="number").map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label><label className="form-label">Операция<select className="form-input" value={formulaOperator} onChange={e=>setFormulaOperator(e.target.value)}><option value="*">Умножить</option><option value="/">Разделить</option><option value="+">Прибавить</option><option value="-">Вычесть</option></select></label><label className="form-label">Число<input className="form-input" type="number" value={formulaFactor} onChange={e=>setFormulaFactor(e.target.value)}/></label></>}<button className="primary-button full" disabled={!newColumnName.trim() || (newColumnType==="relation" && !relationTableId) || (newColumnType==="formula" && !formulaSourceId)} onClick={addColumn}><Plus size={16}/> Добавить поле</button><button className="text-button" onClick={()=>setColumnDialog(false)}>Отмена</button></div></div>}
   </section>;
 }
@@ -230,4 +245,20 @@ function renderCell(column: Column, value: Cell | undefined, onChange: (v: Cell)
   if (column.type === "checkbox") return <label className="checkbox-cell"><input type="checkbox" checked={Boolean(value)} onChange={e=>onChange(e.target.checked)}/><span>{value?"Да":"Нет"}</span></label>;
   if (column.type === "select") return <select className="cell-select" value={String(value ?? "")} onChange={e=>onChange(e.target.value)}><option value="">—</option>{(column.options ?? ["Новый","В работе","Готово"]).map(o=><option key={o}>{o}</option>)}</select>;
   return <input className="cell-input" type={column.type==="number"?"number":column.type==="date"?"date":"text"} value={String(value ?? "")} onChange={e=>onChange(column.type==="number"?(e.target.value===""?0:Number(e.target.value)):e.target.value)} />;
+}
+
+function summarizeTableChange(before:DataTable,after:DataTable):string{
+ const changes:string[]=[];
+ if(before.name!==after.name)changes.push("Переименована таблица");
+ const signature=(columns:Column[])=>JSON.stringify(columns.map(({width,...column})=>column));
+ if(signature(before.columns)!==signature(after.columns))changes.push("Изменена структура полей");
+ if(before.rows.length!==after.rows.length)changes.push("Количество записей: "+before.rows.length+" → "+after.rows.length);
+ else{
+  let changed=0;
+  const previous=new Map(before.rows.map(row=>[row.id,row]));
+  for(const row of after.rows){const old=previous.get(row.id);if(!old)continue;for(const column of after.columns)if(JSON.stringify(old.cells[column.id])!==JSON.stringify(row.cells[column.id]))changed++;}
+  if(changed)changes.push("Изменено значений: "+changed);
+ }
+ if(JSON.stringify(before.savedViews??[])!==JSON.stringify(after.savedViews??[]))changes.push("Изменены сохранённые представления");
+ return changes.join(" · ");
 }
