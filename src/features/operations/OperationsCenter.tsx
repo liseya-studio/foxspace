@@ -1,3 +1,4 @@
+import { appendAudit } from "../agents/data";
 import {useState} from "react";
 import {readOperations,saveOperations,uid,dateNow,totals,money,platforms,type Operations,type Transaction,type Publication,type Budget,type LedgerItem} from "./data";
 import {readProjects,goalProgress} from "../projects/data";
@@ -10,7 +11,7 @@ function replace<T extends {id:string}>(rows:T[],item:T){return rows.some(x=>x.i
 export default function OperationsCenter(){
  const [data,setData]=useState(readOperations),[tab,setTab]=useState("finance"),[month,setMonth]=useState(dateNow().slice(0,7)),[project,setProject]=useState(""),[tx,setTx]=useState<Transaction|null>(null),[post,setPost]=useState<Publication|null>(null),[budget,setBudget]=useState<Budget|null>(null),[ledger,setLedger]=useState<LedgerItem|null>(null),[error,setError]=useState("");
  const projects=readProjects().projects;
- const save=(patch:Partial<Operations>)=>{try{const next={...data,...patch};saveOperations(next);setData(next);setError("");return true;}catch(e){setError(String(e));return false;}};
+ const save=(patch:Partial<Operations>)=>{try{const next={...data,...patch};saveOperations(next);setData(next);appendAudit({actorType:"user",actorId:"user",action:"operations.updated",resource:patch.transactions?"finance":patch.publications?"content":"finance",summary:"Обновлены данные раздела управления",outcome:"success",approvalRequired:false});setError("");return true;}catch(e){setError(String(e));return false;}};
  const projectSelect=(value:string,change:(v:string)=>void)=><select value={value} onChange={e=>change(e.target.value)}><option value="">Без проекта</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>;
  const rows=data.transactions.filter(t=>(!month||t.date.startsWith(month))&&(!project||t.projectId===project));
  const summary=totals(rows),planned=rows.filter(t=>t.state==="planned"&&t.kind==="expense").reduce((s,t)=>s+t.amount,0);
