@@ -46,7 +46,7 @@ export class LocalAgentTransport implements FoxSpaceTransport{
   if(request.method==="GET"){
    if(request.capability!=="read")throw new Error("Для GET требуется read capability");
    if(!canAgent(policy,resource,"read")){audit(request.actorId,"api.read",resource,"Чтение запрещено политикой доступа","denied",false,id);throw new Error("Агенту не разрешено читать этот ресурс");}
-   if(resource==="goals"){const projects=getCollection("projects").items;const goals=projects.flatMap(p=>Array.isArray(p.goals)?(p.goals as Record<string,unknown>[]).map(g=>({...g,projectId:p.id})):[]);return respond(id?goals.find(g=>g.id===id)??null:goals);}
+   if(resource==="goals"){const projects=getCollection("projects").items;const goals:Record<string,unknown>[]=[];for(const project of projects){const nested=project.goals;if(Array.isArray(nested)){for(const goal of nested){if(goal&&typeof goal==="object"&&!Array.isArray(goal))goals.push({...goal as Record<string,unknown>,projectId:project.id});}}}return respond(id?goals.find(goal=>String(goal.id)===id)??null:goals);}
    const items=getCollection(resource).items;return respond(id?items.find(x=>x.id===id)??null:items);
   }
   const action=request.method==="POST"?"create":request.method==="PATCH"?"update":"delete";
