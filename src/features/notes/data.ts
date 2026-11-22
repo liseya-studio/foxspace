@@ -6,7 +6,8 @@ export type Task = {
   id: string; title: string; description: string; status: TaskStatus;
   priority: Priority; dueDate: string; important: boolean; urgent: boolean;
   tags: string[]; checklist: { id: string; title: string; done: boolean }[];
-  repeat?: TaskRepeat; seriesId?: string;\n  projectId?: string; goalId?: string;
+  repeat?: TaskRepeat; seriesId?: string;
+  projectId?: string; goalId?: string;
   createdAt: string; updatedAt: string;
 };
 export type Note = {
