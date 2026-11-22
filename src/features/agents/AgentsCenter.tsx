@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import {ShieldCheck,Plus,Trash2,Download,LockKeyhole,History,Plug,ChevronDown} from "lucide-react";
 import {readPolicies,savePolicies,readAudit,appendAudit,blankPermissions,RESOURCES,RESOURCE_LABELS,canAgent,requiresApproval,type AgentPolicy,type Resource,type AuditEvent} from "./data";
 import {readPendingAgentActions,resolvePendingAgentAction,type PendingAgentAction} from "./runtime";
@@ -6,6 +6,7 @@ import "./agents.css";
 export default function AgentsCenter(){
  const [agents,setAgents]=useState(readPolicies),[audit,setAudit]=useState(readAudit),[pending,setPending]=useState(readPendingAgentActions),[selected,setSelected]=useState<string|null>(null),[name,setName]=useState(""),[description,setDescription]=useState(""),[approvalError,setApprovalError]=useState("");
  const refresh=()=>{setAgents(readPolicies());setAudit(readAudit());setPending(readPendingAgentActions());};
+ useEffect(()=>{const update=()=>refresh();window.addEventListener("fox-agent-pending-updated",update);window.addEventListener("fox-audit-updated",update);return()=>{window.removeEventListener("fox-agent-pending-updated",update);window.removeEventListener("fox-audit-updated",update);};},[]);
  const resolve=async(item:PendingAgentAction,approve:boolean)=>{setApprovalError("");try{await resolvePendingAgentAction(item.id,approve);refresh();}catch(error){setApprovalError(error instanceof Error?error.message:"Не удалось обработать запрос");refresh();}};
  const save=(items:AgentPolicy[])=>{savePolicies(items);setAgents(items);};
  const create=()=>{if(!name.trim())return;const now=new Date().toISOString();const item:AgentPolicy={id:crypto.randomUUID(),name:name.trim(),description:description.trim(),enabled:false,permissions:blankPermissions(),createdAt:now,updatedAt:now};save([item,...agents]);setName("");setDescription("");setSelected(item.id);appendAudit({actorType:"user",actorId:"user",action:"agent.policy.created",resource:"integrations",resourceId:item.id,summary:"Создан профиль агента «"+item.name+"»",outcome:"success",approvalRequired:false});setAudit(readAudit());};
