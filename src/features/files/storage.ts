@@ -43,12 +43,15 @@ async function hydrateNativeBlob(item:StoredItem):Promise<StoredItem>{if(!isTaur
 async function updateNativeIndex():Promise<void>{if(!isTauri())return;const items=await rawItems();const metadata=items.map(({blob,...item})=>item);localStorage.setItem(NATIVE_INDEX_KEY,JSON.stringify(metadata));}
 async function ensureNativeIndex():Promise<void>{
   if(!isTauri()||nativeIndexReady)return;
+  const savedRaw=localStorage.getItem(NATIVE_INDEX_KEY);
+  if(savedRaw!==null){
+    try{const saved=JSON.parse(savedRaw) as StoredItem[];if(!Array.isArray(saved))throw new Error("Invalid native file index");await storeMetadata(saved);nativeIndexReady=true;return;}
+    catch(error){console.error("Fox Space native file index could not be restored",error);}
+  }
   const existing=await rawItems();
   if(existing.length){
     for(const item of existing)if(item.kind==="file"&&item.blob)await writeNativeBlob(item);
     await storeMetadata(existing);
-  }else{
-    try{const raw=localStorage.getItem(NATIVE_INDEX_KEY);const saved=raw?JSON.parse(raw) as StoredItem[]:[];if(Array.isArray(saved)&&saved.length)await storeMetadata(saved);}catch(error){console.error("Fox Space native file index could not be restored",error);}
   }
   await updateNativeIndex();
   nativeIndexReady=true;
