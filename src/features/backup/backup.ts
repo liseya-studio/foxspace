@@ -36,6 +36,7 @@ function validateRecords(records:unknown):Record<string,unknown>{
   if(!trackers||trackers.version!==1||!Array.isArray(trackers.trackers))throw Error("Повреждены данные личных трекеров");
   const ops=values["fox-operations-v1"] as Record<string,unknown>;
   if(!ops||ops.version!==1||!["transactions","publications","budgets","ledger"].every(k=>Array.isArray(ops[k])))throw Error("Повреждён финансовый или контентный учёт");
+  if(!Array.isArray(ops.audience))ops.audience=[];
   const projects=values["fox-projects-v1"];
   if(!projects||typeof projects!=="object"||!Array.isArray((projects as {projects?:unknown}).projects))throw Error("Повреждены проекты и цели");
   if(!Array.isArray(values["fox-screens"]))throw Error("Не найден список экранов");
@@ -51,7 +52,7 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
   const records:Record<string,unknown>={};
   for(const key of KEYS){
     const raw=localStorage.getItem(key);
-    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
+    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
   }
   const items=await listItems(true);
   let totalBytes=0;
