@@ -6,7 +6,7 @@ This is a **local stdio MCP server** for the existing native Fox Space workspace
 - Install Node.js 22.
 - From `integrations/foxspace-mcp`: `npm install`, then `npm start`.
 - Configure your MCP-capable **local desktop host** to launch `node <absolute-path>/integrations/foxspace-mcp/index.mjs` using stdio (working directory is this folder).
-- Set `FOXSPACE_WORKSPACE_PATH` only if the Tauri application-data directory differs. By default it is `~/Library/Application Support/com.liseya.foxspace/workspace.json` (verify actual bundle identifier in Tauri config).
+- Set `FOXSPACE_WORKSPACE_PATH` only if the Tauri application-data directory differs. By default it is `~/Library/Application Support/studio.liseya.foxspace/workspace.json`.
 - Read-only operations work when a native workspace snapshot exists.
 - All writes are **disabled by default**. To test writes on an isolated copy, set `FOXSPACE_ALLOW_WRITES=1`.
 
