@@ -85,6 +85,38 @@ fn copy_directory(source: &Path, destination: &Path) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn restore_latest_native_backup(app: AppHandle) -> Result<String, String> {
+    let root = app_data_root(&app)?;
+    let backups = root.join("backups");
+    if !backups.exists() { return Err("Нативных резервных копий пока нет".into()); }
+    let mut entries: Vec<_> = fs::read_dir(&backups).map_err(|e| e.to_string())?
+        .filter_map(Result::ok).filter(|entry| entry.path().is_dir() && entry.path().join("workspace.json").exists()).collect();
+    entries.sort_by_key(|entry| entry.metadata().and_then(|m| m.modified()).ok());
+    let latest = entries.pop().ok_or("Нативных резервных копий пока нет")?.path();
+    let snapshot = fs::read_to_string(latest.join("workspace.json")).map_err(|e| format!("Cannot read native backup: {e}"))?;
+    serde_json::from_str::<serde_json::Value>(&snapshot).map_err(|e| format!("Native backup is invalid JSON: {e}"))?;
+
+    let files_dir = root.join("files");
+    let staged = root.join("files.restore-staging");
+    let previous = root.join("files.restore-previous");
+    if staged.exists() { fs::remove_dir_all(&staged).map_err(|e| e.to_string())?; }
+    if previous.exists() { fs::remove_dir_all(&previous).map_err(|e| e.to_string())?; }
+    copy_directory(&latest.join("files"), &staged)?;
+    if files_dir.exists() { fs::rename(&files_dir, &previous).map_err(|e| format!("Cannot stage current files: {e}"))?; }
+    if let Err(error) = fs::rename(&staged, &files_dir) {
+        if previous.exists() { let _ = fs::rename(&previous, &files_dir); }
+        return Err(format!("Cannot restore native files: {error}"));
+    }
+    if let Err(error) = write_workspace_snapshot(app.clone(), snapshot) {
+        let _ = fs::remove_dir_all(&files_dir);
+        if previous.exists() { let _ = fs::rename(&previous, &files_dir); }
+        return Err(format!("Cannot restore workspace snapshot: {error}"));
+    }
+    if previous.exists() { let _ = fs::remove_dir_all(previous); }
+    Ok(latest.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
 fn create_native_backup(app: AppHandle) -> Result<String, String> {
     let source = workspace_file(&app)?;
     if !source.exists() { return Err("No native workspace snapshot exists yet".into()); }
@@ -111,7 +143,7 @@ fn chrono_stamp() -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup])
+        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup])
         .run(tauri::generate_context!())
         .expect("error while running Fox Space");
 }
