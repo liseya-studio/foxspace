@@ -76,10 +76,10 @@ export async function replaceItems(items:StoredItem[]):Promise<void>{
   if(isTauri()){
     const previous=await rawItems();
     const nextIds=new Set(items.filter(x=>x.kind==="file").map(x=>x.id));
-    for(const old of previous)if(old.kind==="file"&&!nextIds.has(old.id))await invoke("delete_file_blob",{id:old.id});
     for(const item of items)if(item.kind==="file"&&item.blob)await writeNativeBlob(item);
     await storeMetadata(items);
     await updateNativeIndex();
+    for(const old of previous)if(old.kind==="file"&&!nextIds.has(old.id))await invoke("delete_file_blob",{id:old.id});
   }else{
     await transaction<void>("readwrite",(store,done)=>{store.clear();for(const item of items)store.put(item);done(undefined);});
   }
@@ -108,9 +108,10 @@ export async function editItem(id:string,patch:Pick<Partial<StoredItem>,"name"|"
 export async function deleteItem(id:string):Promise<void>{
   const all=await listItems();const ids=new Set([id]);let found=true;
   while(found){found=false;for(const item of all)if(item.parentId&&ids.has(item.parentId)&&!ids.has(item.id)){ids.add(item.id);found=true;}}
-  if(isTauri())for(const item of all)if(ids.has(item.id)&&item.kind==="file")await invoke("delete_file_blob",{id:item.id});
   await transaction<void>("readwrite",(store,done)=>{for(const entryId of ids)store.delete(entryId);done(undefined);});
-  await updateNativeIndex();window.dispatchEvent(new Event("fox-files-updated"));
+  await updateNativeIndex();
+  if(isTauri())for(const item of all)if(ids.has(item.id)&&item.kind==="file")await invoke("delete_file_blob",{id:item.id});
+  window.dispatchEvent(new Event("fox-files-updated"));
 }
 export async function downloadItem(item:StoredItem):Promise<void>{
   if(item.kind!=="file")throw new Error("Это не файл");
