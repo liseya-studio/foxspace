@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T19:23:45.136407+00:00",
+  "generatedAt": "2026-11-22T07:00:02.542888+00:00",
   "sources": [
     {
       "id": "telegram-bulotkaff",
@@ -7,8 +7,8 @@
       "title": "Telegram · @bulotkaff",
       "url": "https://t.me/bulotkaff",
       "status": "ok",
-      "message": "Загружено публикаций: 4",
-      "updatedAt": "2026-11-21T19:23:45.136407+00:00"
+      "message": "Загружено публикаций: 3",
+      "updatedAt": "2026-11-22T07:00:02.542888+00:00"
     },
     {
       "id": "vk-btsah",
@@ -21,64 +21,54 @@
   ],
   "posts": [
     {
+      "id": "telegram:bulotkaff/18768",
+      "sourceId": "telegram-bulotkaff",
+      "text": "#тигр_и_дракон@bulotkaff\n「 9/? 」\n☾\nAU, в котором Чимин — первый за несколько поколений маглорождённый ученик единственной магической академии Кореи. Вместо ожидаемого факультета Пом древний ритуал распределяет его на Ён — факультет драконов, веками принадлежавший наследникам влиятельных магических кланов. Теперь ему предстоит освоиться в мире старых традиций, семейных амбиций и магических интриг, где само его появление нарушает привычный порядок вещей.\n✦\n#jimsu@bulotkaff\n#artau@bulotkaff",
+      "url": "https://t.me/bulotkaff/18768",
+      "date": "2026-11-22T06:30:06+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/uWTvLrbzWZ7sn7_D9LN5J3QLhaGoff3uUld2bJLZbUvrBWdKzGdc4EFGCTQmSTy1ZtclKJ1QmGBC8xOsBk32g_cyyyA5s5MDROO-LKaZthB9UzANVoTFvYAzi7HbGnpwqMPxUIrTr4a2mydxUPA7izGfGdhFbKXte9yPeSbDIOiBAMkKMy3R4jVLeeisXn8STHNhq1FBk-BgsqL-yIffxveckj1lFJMbz6hgOjulqWUQn3hi_KrQcW1FACgkBb4PFY4cZefoQ50yVkmLZpWsaLi6Q5LsGBV9EvkJ7b3wX_oz8EV6ZySoFIqPhQAKJwwFjqVzKr8-bgbnWUMwsaYqyQ.jpg",
+        "https://cdn4.telesco.pe/file/ObJFpcbA5fRiDe3GgPCR6rKq7yoCx-Rj-SV3W3_xvKjHCYPXBnPEL4P17pltmoUv5TYrWhZQhzg_OmOWhqyH601vH3A7-e55g5RQ_HuXWEGXr0KTN78_T0n_LQnAF7GbAdmicqzUhVk65BScFAEceKdkfN2FhwTqrSGTSqctpeZeKhlTVwwe8Es8E5rKIrFRmJq6ImYLFfjly3Qld-5XnF4lw8sGrs5mBOPTdx5ehE4j3tfgXkzckPF7NYkUwvlu1Wz_AMfkCB0suEV-GUEcdCOI_MORHHjWVDtPTfMbFTidDgqdxcuA8eo2cBf0wSfJfws-8-vHOQ8kmEE4hl_yJQ.jpg",
+        "https://cdn4.telesco.pe/file/iWV8GiUcUwPl_HzoMzNWbRVdCnT1_uOnUxf157PDL4Gp25jUaZ6NqWjU8_EuDuNP49mbQ6W8vONYysL7VXBYwoBoXU3eMC_EM_eQAmuAmtUtPeQjWkMZ0HjTzDhDf5qjRtl5kFxSRYTmKaO6EnF7G6EoqnU5NYuy6yti-ifdAX1h2yo0vvtO0oa1U3yQiO_m5TUzKBWS8h0uZqfNumR_aatBMgzDJ2d7aR3Vh_ShPod4TJaWP93MFF2dRbnkTRsqCYdAM5rotdgUbHNUbqTpsO7XfEdI-5EyJdBIoVNkkW8XWnOHH7fHNSshdqPGKv8aK-6-wDb8ftn8LSb7d6nDRg.jpg",
+        "https://cdn4.telesco.pe/file/c4zu08dE_DVaaclVNDGT7erYUuFCufVWdWpMQdr5f_P3xeTiPaZimG9PN1ElhNeDYOtUCWc6ySrtGNXnH4PZQG_W4xSMg69GnO5vInopltZs6D9zEYdIeRvXfWkL0KydIS6UysN3aX1cbwpKV-2tnMSUezjiXMSWCOkx92x4sSfB6hAJBzS9W3vQ-qlzBnLoClLulYG6QbF8jp-3ZN1rMJSCc_q3tAf5gTMPEI-hG1FVzBOpaH3tEniGoB6-2Rv8_rSY2HbY2-STFTK4RXc-q3jT2kW26zuO3xmiRIC8O-2-Sw2OFJngtjhZt0Qfe2QCVssLSbkaAXAYrQMle_JdOQ.jpg",
+        "https://cdn4.telesco.pe/file/QoIKE_RU_hW13xOJenYH5DXs3v_FRlI0SKt8BecSJMWmnw-U0ndnAFV8SJb5CFF6YLfuYmpB5jiDkDKaERcp49M3DjCIKwOPLY1LASVwW2On3oCO5hesboYu0eg1OIgiAiC5Djz-trQlHWJiuriB-ynEYpx4PSFTPtOByGLJQNx65Gs-TY460Q-G_56QjNmDrJkbg4FYV1ocww3RWUZxq5Q4NeQA6IRBuEc8FuyHvM7wNI73lIob6ZLEPX4IKTAT8nvaIAsBZ1EZ1kWdqDAao7EEit4MbPEDm6eApdr4jGYiU31Iq3TP_fzukkMi9Pe2s4brbz5ga_vuXYiQiHzYaQ.jpg",
+        "https://cdn4.telesco.pe/file/Iv-u0yvRA43sF9EBbJetpqUDvFpmm25Yk9Vk4fSxk7s4v53ltxKSJprV-_qYl2AdigJvYuvsArc_hZr-BNnC9Qyrx6oU9aOATM8yX8BmQAsvvX6dR8gxpNKcJ0uDHgKm8GHDC-R-v6ZOfZUR4UsS2jBrBSWb-fv6tlCxwUp2yuhHYe-LQKdpHvLSIHcqQ1Q_DxKVU6s95hQe9IBCRNRei-dPrtraxu_Wc2gclzoVdRkUCycqAtQ0oRZzKqqv_ZI9vp4ikaXEbcC4DcC3_0IgES4EI5Z3zc0S5p454ru0-KHsP-KeJ0o66WSRUX9ClR8nvTT3la3oPel-JLAmTxGe_w.jpg",
+        "https://cdn4.telesco.pe/file/euGe4rSwi1xsx3Oy1crlu16e1ISjtmTVjVE1ni7RgSEjrz29z-ZB-BTPggfWnFqhanxKW0AQFTKY99xNDEIQ0toccLPHTkNxEbfNTq8q6pYkaVPYvmxhzZJ5xiJWIundmKHbsap6ioMvAycBMnO4_SCKuxhgRYssVQRHmGVIPjhpCVx8VNU6iCWZIo9chGF_i7tTRbWboxQma9nkVyi06sJUUmOkWD0P42xSylAwig5_fnaF6XTvHBFKy-csqhA-ZxSp7MarW4uMzDIKwrL3VtujMZQ-r9Len2s4r8594rtosy5zjU3GZeUgQWcR3VQUCvh-ZTmvPNxBoUq7t2XEqQ.jpg",
+        "https://cdn4.telesco.pe/file/t9O3hMN7Hy3r56LUMROwMoqAInUGE7TX9i-YT-egwB7Cq_8wuzYv7Ew-E3U5_gGBynN6VVagsUyfMMdAW_pChnlMcOKkq6joIstUPQP-2-WUyFBCylntBzuOI4w8YIpWh5GfwNvHTiFe6Wi82QbNf3VKau7zENfLv_OrMN8NtLAAB_8G9Dpl2hwi1E_IRgnTbtZm4tHz7_xw-vE5yXTOlLuz2fMVh21-ZBuXU1h2A8075Cw1pkvZ97ITEoNwFYmDWHu5UMFd_5tOwiMqm6jA9NezKA_DZfkEdZP29HwD73NGUNCkfsR1b9aOhSQDuwIAFy7So7A8fbmQxVU8OWT-0g.jpg",
+        "https://cdn4.telesco.pe/file/RME6LfoSuXC7aztJvDWIUz0q8yTTQoUjW3LIkPvrcboX7gRkT2cR2v8oxxNSNDkpitXFfPakL8jp3FpoDYQdmvBVbkKZ7e4L6jQf65r0Myfhd892xswAB91cvfWWwU5YPVniorghrE0tQMYshv6T-BeIUum-iqewkPPlP3JzTsq3nQcIui09w9eccL3MF2WDXvLY8_7_L5XSdB3XvbLPuK19AxqQaxjKIGU90d-UNf-6a28Z3b-gNGGPKf6-oZvXEnJHaN_InbSWLOdn_CLDyaQbpqIzmLxEgUqsbocW2ioDKldLrF7uFDzpeYAFWfyMu0rCtHeEYJNqW4yi2zEo4A.jpg",
+        "https://cdn4.telesco.pe/file/JQ4q1n6u_Lr_VB1G6R5Fxkfge_1Qmfk-kukH5PXFCLk8USvAJzHq9_aJ89LofLoQgQInz-R3qzfwv5KbLo4xX89Mw7Cg4CuJVo6tCnWasyaVl_qiIWBLAWAE9TE6GreTeMMBACUeJGWkIc2knWpmAmrtNsf1P_tokyA0q0VHpk3joB8r-LHlNGl7EY1eo6lLI8dfUJ9qfoWOlrvzVbUtgkVH5nuwv7erIYH5yO3ye1As8mkEmbHLhUQB2UoIodItQxebzzn5bkGmrLlctAIerNSTEO3kpIpB_FDTIZsdAT-OvatsoS0g784MPG6R73GNIfXPL8CAIXyh1StxhUl58A.jpg"
+      ]
+    },
+    {
+      "id": "telegram:bulotkaff/18761",
+      "sourceId": "telegram-bulotkaff",
+      "text": "#тигр_и_дракон@bulotkaff\n「 8/? 」\n☾\nAU, в котором Чимин — первый за несколько поколений маглорождённый ученик единственной магической академии Кореи. Вместо ожидаемого факультета Пом древний ритуал распределяет его на Ён — факультет драконов, веками принадлежавший наследникам влиятельных магических кланов. Теперь ему предстоит освоиться в мире старых традиций, семейных амбиций и магических интриг, где само его появление нарушает привычный порядок вещей.\n✦\n#jimsu@bulotkaff\n#artau@bulotkaff",
+      "url": "https://t.me/bulotkaff/18761",
+      "date": "2026-11-21T19:55:56+00:00",
+      "images": [
+        "https://cdn4.telesco.pe/file/jksgnOG-6xlfrM7kzDAqDJ3ynvEs_mJ-sPgxaKqOUO9njblIkVR1zk2KKG8avrcMFVifipUty3_ruXrwqxzu2x9ez-HVBJs_K2Ubej_ZhuS9VR45sGVbI-1dxR11VCLuVi-XUuI8kRkFUtYM9fkB_ZbXO1CbROrg3XdAOKjecoaTvZ87rx2j_oBIQPMVuq4qMw7vF11YuPw3bHKB6NlHyi-Zq7e1mOP6z5SDpooAamsltXjDGmXPK728Eqpv_WHP6zT15ksUi2-92Ybu0O_oP69lPWE8c83j_iPU2CUeTya0-lONzBq__4bQiJgDR96FQJacBCAYd9B42GjTJEBR5A.jpg",
+        "https://cdn4.telesco.pe/file/pDUyQqFN0isT217B-x-sqUMj_JAKd9TddntVeY5cOj2AFKFwTUF5lnFkviwRTKObt6M0Nx0tkM41fSyigEK7QtBKvnC_D5zcAdlSr6wyxaK0spKhY0GjY3agExAIhgvku_OdulgT9ANPfkxsD9CanR2MFkn6M1-mQQX9tAXxKqNbZ_JpyrUyDX7-12skOmAjaVIj54gjwBjNxxgem8qrIh7uZ3C2hwNEgUNaInUL0aWgpvKoTfR4mx6Z7mLRUhgY6_6tBXBT-uYQEPgMGt-TMnCNaDKqb-LxPkcRTcUGMEUrvQT-vg0CVovhOYKohLjH6MRLUplBeLHjVqUAp6-Trw.jpg",
+        "https://cdn4.telesco.pe/file/TColhqgguIMN_uNqMGLWGB0tm1XYqFA2_-4rWFj_ysA_jlVEKGDsiunJgMdMQy018k4bA4XQeQ3jQgE7cLvDixOH_VuIrnv6kOkt5sxWqawtvkmO1FmcPA-2w9N9czhL4M14eVMR3mBTzS71Kd0mjDiFgiarH4ODj_bRB63VCiJputl6SyxwMQby3tmGCJvZR_iDeA02lkNIDfDwKqNlOo-lTFmF_4Uar_T-0S4pI7gKWCg0y75FITt4wTbCaU9E-AW__yyvElZcCjGwP0CV5GMnRAiJmtFPyD0OPXGlfOFQup4mbJxKPFKfRHK2RfvnIc-QUQ_HHqjwodk-gfWZwA.jpg",
+        "https://cdn4.telesco.pe/file/T_CDGLB_J6F6b5MV4JYqRiJv4-iC1p-WIQUXizeJF1YcmSRns2NnZ5Krpw90uIm0DFD82DM7AEczYjyDj_ura4kbV9-yYR93mWkbtDELNd5ht5VWtuR4gHtZdADewGgeQoHLiz98pBK07KFTFeNW8Tw06moaLkKLU-rhXQv3uVrVPFlOAPCpPbIJS_HQJVeSkGxk7sEfi9xXQXvpAyT6jpAt1kClDhwWoKUJ3Urih1HROUOy4fEVfdpO20QmEA5WCretZ67ABpLlCVnWJOufOeHLkyA6B4CZTYyL8W_vawILhbPnCBXRaIKbZaVO58jHJq1MhUkyVsNVRDLxDNW2SA.jpg",
+        "https://cdn4.telesco.pe/file/YSNoOfMKpOKldTaAUfAa3dYXZQZdbQ5zQvwwPCV0bisvKk0QWgmPMHx515KU4bfW64B60tFgwL6YtfVlxTkXHgeWH4rh9aJm3Ecic0JQQazT4wZF_G-yzTkaay-yM5Xj-8mFQOA9WhdDp1Vo-H380_ywjZy2aGnnrOcMgr4bV8KUS1dNvsW6cfrsaOsc-tsPvMa3KTZhpOtKyKiJAqBG7AVgD7kw8wSVMe6DpZCFKK2jbZgZa6L57O9zndxMU3UEqkTOinizo68y_E4A-ypIYxaqbr7bjzgyrMpriqiZ_ykE4jsFlMVNz_i9mmnn32H-Ek9NpuR_71ymMDjfSpx-Iw.jpg",
+        "https://cdn4.telesco.pe/file/E2xbgfJtNeLZ8i7kvABaWqQQC3EZi7xJZufxkTwuqEn25jb0VHEGTnnMPEmXEl1X1SQkg4JtbIQGJJArr38wGMMphFED1MeDu_GuV206Nk_PGTFbhDAoGICtb1qR2-fvAJHaZJgRKQgClNp0RQAc1BISI8HVOT30g5okfc7HnHSNWUcCRv8UyO37j-vBCYq4co56KUy-Nvq_hGg1DqSN2bFF9J8O6G3LhPfHUJBR8v1SILonCO9jIY1qLqct4IEMx3EVZksKmie4SBq4XRQ24oMce94qN4_y-qpdtsSf8ifgXkgy5sjZI2FdQchya5KvDxvt6QuRgif0E0pPng2BFg.jpg",
+        "https://cdn4.telesco.pe/file/cUBXzl-pfrCSY_oXyDmsG_yqMcOIzyp9WYTij9doLeJiB7ZNe3bsjwIKkb5krT_Yvicr6c-fkJiSvfhF4oDjJklg_2aROo3bTJDGoZzqwlPpcsH-PtAqX9BlwefDI90iRquMoyW_yvIu6tqTGBPi8-X9NvZb0Lv6bbCpl-BH-hbRAClOMlQrZdfFqJHfyRKHI3yE_MGZdYJ9qP_hEkoQV2LdM9SJNhbV6v-UG4XdiKjPqcoR3nAWN1ZAC6V7aWNnJGws3RYz4PXFF1FNx7w5JB6f6fFhBImMN0q-vpDLSE7YZBDnGmFDkxK3W43uFHvr5MRj8a5cwhb7nOjz0psH2A.jpg"
+      ]
+    },
+    {
       "id": "telegram:bulotkaff/18754",
       "sourceId": "telegram-bulotkaff",
       "text": "#тигр_и_дракон@bulotkaff\n「 7/? 」\n☾\nAU, в котором Чимин — первый за несколько поколений маглорождённый ученик единственной магической академии Кореи. Вместо ожидаемого факультета Пом древний ритуал распределяет его на Ён — факультет драконов, веками принадлежавший наследникам влиятельных магических кланов. Теперь ему предстоит освоиться в мире старых традиций, семейных амбиций и магических интриг, где само его появление нарушает привычный порядок вещей.\n✦\n#jimsu@bulotkaff\n#artau@bulotkaff",
       "url": "https://t.me/bulotkaff/18754",
       "date": "2026-11-21T18:03:05+00:00",
       "images": [
-        "https://cdn4.telesco.pe/file/Fbmr_OZg8BL-fvPDlzscRO8AUHJ6Mmri0ZMZgO24siEhkbOk3qRI94ygwfM7XCr75niW65qovthDb4Ot0z_LCweNwKGe_q47IPr8bqL2Zcwq7-ERMQlWDtxeN92L0FFQ8msE7JAJUbjYbetP61enZQFjZrYZ5Je8odLdU0CqIKRkXQDv4dR83gYNoob1UNQh6b9EoemwaqBcUmiImEcdL6UT9lngXqQiz7mhMfw8wfzduQOOHOQelYwkEKB-B7dht3jgn6boOpX99YRoTYYCnec2FWbycVGNJqLwBVg6t9hRiwieTGtskefGHa-kfa6cHysGfvr7WRSCTcHVnoolZw.jpg",
-        "https://cdn4.telesco.pe/file/ZjIx-Ik8fpmldtYmqOOkE45icdZ_PnyFjnQDiU1lLLqzmoms7yqmkuTk0OvosBQ5CixXsd4D-jPwVi5kUUInKv3rjsqOxK3Dgh_panzse9QepKD4u0rmuTNiIQQ6jlDNPzm7hDzaS-o2rMq72OHJxactzIXH_U-g3R7nep6wt84mqfjjByoIw6_WtvXrOoCW5c3XZTV50-XGXpu72aJm8NIHh-YJfJa07z591FFQBvQZzfHCiBxkcZoHAvRr8Hxyctq_tuu_eO9OG90IZ601K7sEy8WzKHpZn2064kHelrVk1yiCpC-rE3GqVNCj8RYeUWBiCgYsLHDzCTBRMEW9DQ.jpg",
-        "https://cdn4.telesco.pe/file/tioHTclloXlGpTRw1aroWoKEWuELwZOfNMGOhGHH5fLGhA1P0y1LFSZ5tmk8JVCb8nwOwfApFooS_i9vG5Dtog3qNp3BEmLGmWN05lH9ww1d0GF8Ov6DciI0Tot9GnbSYZvaZXE4lxBhHtt4ApSCeJ82iRWBZBYGVVekfIouWCVuDNuWZRaz8g3MQLeoMXRu3bF8zOB9eS_ZJaoxkqd4nXTMges3SGA46I9-9vfAj23x2HmaATPKhAUFZP3FFllPkcBXFVFz4_izqXqj4zZTAgjvmV0cXKGAOSHjgQtiUKofK3H4ox8H5XrPI-rhU_8MwRg3cwJshgRlBjSXt6u1eQ.jpg",
-        "https://cdn4.telesco.pe/file/UX6pENx3spJr_WRZoowRnUAP9bwXqCodonlZ3rrgLMCuN0emT9x08voOdSDa7WS3j-IfdVYQo_BulieUh-LUfpgGM_gHG9C3b83YweskV8Hcqd5JIN9zu3m0txdihdOIXYdYOYD80UWXbS-QF9sKlNtxoFK6fw5fcQw6jKT814k_1U1FzxA0QY3jqCo5Y1Pk1Eww6jba-Ohno8Y1EQWTf7oszMh2R3wCFd64H68XVLz4Iy_dk7ubmtpZJq3r7MESnse8_4DHnCIwMU_l38lWiTmWYY8hDSWJSKqRWEML_GyCnjkC2VC-GHXHwBT7UKFnd1LgcqSjAPT_PcVPfD6XaQ.jpg",
-        "https://cdn4.telesco.pe/file/ClT_7bOxrM6PpnZ8riZSmM3WbFxlu86pL3bheqX-0b-e0TZx_AlA3FaBfArNXzA64RiDdQnIR1lmus7Nr2fG7Cv0EpHfPcpxbNB8ZVetlZ5YiNj_yqFatabAAsP3TXwBTO5VxtB9ZJSxXW9_itJK6tpOnGVao9cTLNEuPhozNjYzNuxcGSKyA5BXZIVKuA1qgOz1QGjmQWi23EAss3f0Evp0B6VaXwU9UKiKPmSiwGiVyrbQ4TTBZvZvyxjoVXvW7cNqbqyBmRodhQ_zFnZWgi-uLXqlH2fUnuR0Ck7n9HdL9cWlXa0JDxveROqpb84rsCKAHxWzmmXEds_poZ-AFQ.jpg",
-        "https://cdn4.telesco.pe/file/p4NrTq_mjE_3lRIrg-yHwtWyDMMmg8h2tuVq0t5Pr4UgCsicGChY89rgu3RjmKewNSR1jKelWD6WWcMxuuS81eWZGqnsMhp_q7kxITP--9aQHo_M2g4iY_GDGzTsPmJTbKCSzTgnW7XOl7IFW0PBxpDo-hrAek1KG1GP5O_M1jb5Jb4SiCadvhom28vS4fTwiKb_3rnbPypzQnSj8CqvRq1jkHKWDpqyaLxbgEFpNl6AEbRA7PouYFkhBRMZ7wCplJB_La7X5xlJCZjuWSFUUbV3xIt36STmtAZFyxpeIZGr9VRnUbFDPT8VEtl0wV2ogLgk7J3Xclsiug_DHfwqyw.jpg",
-        "https://cdn4.telesco.pe/file/AVV1nCyiMEFGOjeHQydJwgDqPxDiNLmHbfDyK8OzpTiDfBtjGD6c2BFrmZ_qQSkEjG7RHJcQe142fQUgUUVci0Ygrl0QnGjuwzJH51auC2VfvQsPtrH1TbnbriIshfST-HcEc-g2dYaA6cxBAZ-IpMZAlIxJ0Qp5b1Ej_BUkeLGjUFW6L-cevzznXBE5t-HTD9p-g1XunOM43X21a8AybA8kmuAoub92bNMzGWEZS0IxDXBXAfTqnIdyFBpjhjgaTJ0NRtkIYRkdXRIVSapjFmcb_xioJUQudCqBCB8B2vU5uvewmJmJTj1YRiEaauCm5BepTS0zse4srowNu0vjjA.jpg"
-      ]
-    },
-    {
-      "id": "telegram:bulotkaff/18753",
-      "sourceId": "telegram-bulotkaff",
-      "text": "#в_обязанности_не_входит@bulotkaff\n「 Анонс 」\n☾\nAU, в котором Юнги устраивается домашним помощником к двум братьям-близнецам Чон, чтобы наконец перестать считать деньги до следующей стипендии.\nПроблема в том, что Чонгук и Чонхён — два альфы из его университета, которые не только прекрасно знают, кто теперь убирает за ними дом, но и совершенно не собираются облегчать ему жизнь.\nОдин постоянно провоцирует, второй невозмутимо подыгрывает. Вместе они превращают работу Юнги в бесконечный аттракцион сомнительных решений, бытовых катастроф и испытаний на прочность нервной системы.\nЮнги собирался просто заработать денег. Но, кажется, в какой-то момент его работодатели решили, что он должен стать частью их семьи.\nА это уже совершенно не входило в договор.\n✦\nМоя римская империя, даже не спрашивайте. Будет с NSFW материалами и выходить в ВКдонат/за звезды\n✦\n#kookyoon@bulotkaff\n#au@bulotkaff",
-      "url": "https://t.me/bulotkaff/18753",
-      "date": "2026-11-21T17:47:17+00:00",
-      "images": [
-        "https://cdn4.telesco.pe/file/k4x5_LVZcx7egY1n7A3YeVVVRNsn4cygFsdP4x_8T1JIrvBUk3KGxKdypGhQD-NBRkASFHr30UMQxZuih93qDKzKDBAZjVBYIXOmyUYFXK1UHv2Ag0xwG6028TRz6uFNtb10nABpJUes_ejdskIgHnLAMsrnXbGeYdHmhHEVWD_0sUzUe0JS_wJbE4DadX4-jFvbyiaRMtg1-58Bf2MvjdPrdN1XKV6ZeGVwCa6tyEVyBVuWuWYQR73R-rh-j_a5iss_wGxQCXsLpZG0wOBopHlkZaWRvqpwjymyIZid4cFn7DKqzTh9m7PJ3NgM7228Q1NDLMw3WMiNi0oh1CL5Jw.jpg"
-      ]
-    },
-    {
-      "id": "telegram:bulotkaff/18745",
-      "sourceId": "telegram-bulotkaff",
-      "text": "#у_вашего_кота_есть_парень@bulotkaff\n「 3/6 」\n☾\nAU, в котором Чонгук несколько недель подкармливает соседского кота и называет его своим парнем, пока однажды не знакомится с его хозяином. Теперь Чонгуку предстоит объяснить, почему он пытается погладить за ухом взрослого мужчину.\n✦\n#kookyoon@bulotkaff\n#au@bulotkaff\n#miniau@bulotkaff",
-      "url": "https://t.me/bulotkaff/18745",
-      "date": "2026-11-21T16:01:13+00:00",
-      "images": [
-        "https://cdn4.telesco.pe/file/p1_XSSQ0XEWWdHtImYTB6a4o6wkKXFMZNw5p-ZmoEig7e8iLznW2Ayn7s_3CLz9I6bPwHP_IIMqmtUkoOL7twPwriJjLvngYAkREaZbJBz4aK8BA-Nc_24K8PsnSjuO86NZiBLr6zuF8XegyumyuOiO7Nc6Y3TBtqZtIxw8S1N0jZH4PRbepcfnerJubZpvKJ5gtgdBA1su6V2aOywFx5leYvfa8Of9MnnNh38WrJ1L9tgafL0LqeT9eXG1uF7rkh88qVCjukGHnabofPWFEAzc0eB2sTc1FyLQsWbuabPF7BG7_O8XuivyUzYa629O6yUNd2N7mRrCjKEmnqc77NQ.jpg",
-        "https://cdn4.telesco.pe/file/Z6-vAWD4H9JwuMXFuivlCAKSGOh4szb_Q3kYcx3j0REzF6--lszU1Uy7cN8dgoYGl1alI50IcAbOGenas9QhBDx4OdrgiLIRMUdadGPyMzNJroomUnuKQHcWkRjqHC9zOWGHZuPq1ButlPdrqQI_W7qPv6R9KObD5tYNj9qXXw_K_J1fqHfAnZyr0VUUbGgoAqkQfk8wEhJqB-CQCdCPBVHOsqAeXxJW3m5BZ8jivunfL-sZfhfoKrlU_l0mP46QiuKKcsSwgqN7xzTuq6ecJdSVeZPRYQdL5UcYAoho7E7GTH5HGBlP_zRJgbM-xHvGZcm63WhNB-qHpr3Tgi9FKg.jpg",
-        "https://cdn4.telesco.pe/file/DcAyxEDuyPsUBSVIZbMTbhzVJ1F9Osw269nlXcE5vhV1XlIB-annnCK02r1KdVEROnByuLdN5aAr3g5rsdGlxWZDuQQCk01V9v5OWGxTpui2E6YJmht3AvNB4Buborf2bSpwcTA43YYNxX2EkS0zesfkZKGNHiC2R_Lo5aqEZ-jVWjaZu09_IJPGrL4tf0t3XiLOtuAE0Uub1NQKI5wb4p7jZoDi_3WwGfg5RzasoFmCrhP47HxYxlWCwPjyfktzCuv1_xxA5OQUwHSf1KEuydKU_Nf5BsjOgTHhcmfk28YJUyBZJoifzKoPlwDvyiCmCVHn7XJAstJ6V9NFZwr8DQ.jpg",
-        "https://cdn4.telesco.pe/file/X3Pxg-e2fu85VhxMEv2lk6IQKRzQPT8A1K0T08ubm7r5u2pnKHEBLozLpoQBLJSfePZbY6mu4tS8jrTf3gse_oeSUoPPaZkpLf2ph2WRZOB7E3GxnG-wVrDUqzUEbjf1uSk_pTouGQPp2NeouLagc2xX292oJtJeif5PlMlqne_3M4UYoS5v0d8-GbcGEBp8HvSw6pzDFvkz3kUd0zxaluf23_nzn-3oIjifUBbWbxPUIV6ayFOu6rUzIVeE0OJ8QJ6h7-Z5zjBnPkKt0ZE2AT8p0D3qaprmUoC33LePszcA9eECreTvLQKrdgNFBov2n6EpDbUPNG3tAFgwk98-PQ.jpg",
-        "https://cdn4.telesco.pe/file/giVFHfhqgaNm1T7OP6NUehoKj73vZ38sxesF95msVsUnSMaItChSWzYsd1cpEgUvXwHM2DXzPa8178H5lHq5bOziio7uiL3moyTiqD4GZBzFL9_z87Civ5IXVCzLoJwqYtjf7D-b8pVX_dUhI0FMXzA73_8ErQtOO-Y6LIFh4cU0GpW1SPr2UR_EFatk5ZHYKKJ3hvVhd0IQIPvW25vuNwKRH8fN0VHxXLbDYdLwDtAxbHyurDaDhjsTRZI0yiq29n3YexMBh1LEvnBAPPMJvU7ok9DNtjXHF_NoMke-6CkjB82uKL0we6wQxshJ-YV6-if8QAoUWXo2-niXybF9RA.jpg",
-        "https://cdn4.telesco.pe/file/Jq6lQFtQjDm1p8EWsoNPp6IbDE9MNNK6dTIJHETszeJ6qzV0AJqGOqEeMBAAZU3YJfInTZjzId2T2WgbXBxVSSv99x3hbHgJzBOI63-4VvWnl8T8ni_s43jFdpDop3iOfFTUyIIRzMuLj5VoXTb5SdE3X6Fq5PXRDg374-O6k7avyulehbo4RR_aLgd_uTuT9EGSJepxVpbt-MnPcN-SrbemyOFYdzXmn2PvkCllAalkcTl_IANIJ6SCmVJs8GCa-_Cz6PZLG88IFzdCXKZWZb0V1HuKgFnHODHB8fhI0YUrPYN_u4fBmbO8N7eBqw6NBCNmuayJxYI_HxGrXLVu_w.jpg",
-        "https://cdn4.telesco.pe/file/QzVy7yvBahluR7e7lQpkTa3eqJoxNdbX8EBUm5509sSU8HBTW5exhDtk-bC0Oyjoo0cZcBpL1kOt923E9W0C0cGlb4T7FSsQkrDw6zW8PM8iNkOUSGFyMjBLpeZYnsy_LxHlw67ljhh4y79vaRtSjRGxTVv1qyAuE2mdzQjSEWDjQ-UlfduD8dkAHpska9tSd-DkDTkjRpyhlGSV3oxZdYHsXk7T8y9XYsnn6TpL54_9imNLhNb0LzOdcGUEG23aIfHDjCr6KwAmWi4AF5u4_2OHQNh8OEKDbDqohsmLgXBExdoPh3FHb2nu64LFwwcsqbm8QATKEWa0ny_wuk_0sg.jpg",
-        "https://cdn4.telesco.pe/file/B2Lzc50ttvADPgiKnAd8nDh65bcStsCRG-N7vkbGrnFzUgS0cISK2UPQkxh_fobryapq07acTlOwLRjkx_NXr7Q3DMGQ1WP4EWJz5c_bJt700VfZIHLyJpLfN5ojpgK3ZIikqtxG_4Tj2TTo_rEJWF0YZWzF4hsc9tdvSqzqnaLS86hWSN7EN2IlX9Lld27aLI8U8uS1izXv5MX7Ysd1JTc9tCzjKFDXh5ThrJ1YZQ60kJcwWBisRhOTb-NPAFIIdkHtZVrEO3oXpmWBmfPPppyyVji_pykj_Pwg2RheW9GOpPaYq0KOmPCCYGE6ALC5ldffiRWa5kjVj-ZcYeGrrQ.jpg"
-      ]
-    },
-    {
-      "id": "telegram:bulotkaff/18735",
-      "sourceId": "telegram-bulotkaff",
-      "text": "#winter_flower@bulotkaff\n「 18/? 」\n☾\nAU, в котором Чимин — студент-медик, только-только закончивший университет и по распределению попавший в глушь на северной границе страны. Чимин должен отработать в больнице вымирающей деревни два года, а после может возвращаться обратно в Пусан и попробовать получить место в большой клинике. Чимину тяжело даётся переезд в крохотный населённый пункт, к тому же, здесь намного холоднее, чем в Пусане, что совсем не радует. Житель побережья оказывается совсем не приспособленным к выживанию в горной местности, особенно зимой, и один раз Пак пробует вернуться из клиники в усилившуюся метель, но по дороге забредает не туда и падает с обрыва, приложившись головой.\n✦\n#jimsu@bulotkaff\n#artau@bulotkaff\n#au@bulotkaff",
-      "url": "https://t.me/bulotkaff/18735",
-      "date": "2026-11-20T20:18:57+00:00",
-      "images": [
-        "https://cdn4.telesco.pe/file/hwmLbVVdcs3nlHz1LF3-s0Rq1Fz0b9nPo5OXJ_3saTTLpnh-SdYmDKE20mNScpGqu_4PVfkKbnXTr8jWlZmv-rPqHasTYYmXZJI5SmrTVONzFcFjPjEmQEY2jL0bKBVTGTGj-KLhJmqGL-AfHYTs30eEqV4EFac0dqxhoiB1W-_aIcS5egLCpVvgIlVjUaBTF-WxAZ5tBWPEqzhZCRhBJOnwgfSreE-hE4XjBdtVMpwgy9AhqOkDMZg3Dlyyk8jAqnrrs-aVg5bh9ofmpdQPM-0NGjfHvAwisC8L9tBOfV2p0scfOVLRextp1u9wqTyyd9TPKWJa6uSKQUgdcwsbrg.jpg",
-        "https://cdn4.telesco.pe/file/ijt4Eue6zxovO-k_lGH7s6Mw6WX9i92gegiXdk7BhLnTbjclCIktpR7DNHelXc6ZAHTtZ7qDJnXDKj_cyWt4i7uOgCaCgGLzOiaRWlyWyjZGjwoM4SMC3jVcYfmzIHdJm2LUoOvyEEXA8jJlSDhbRLeCHjbbmmy3MK8k8bI5WGR59tlcEQEk7_Q40NW5xp5_qK8UQmv-thvuz4nNQOhaYtSFiiy-36vR01YPHOmgHCW7cHQ-grZf0Xl62ZkBZDZl7ZJHBSNWdu3k9iBaFp_yV8RisCC30RFjyCBbCEpc8XcJw13bhi8rteUSiabp2AR2bSj6YpV9O8hS7SnTWbq_hQ.jpg",
-        "https://cdn4.telesco.pe/file/qD03lWe5HxseM7Qus-e3VZCr0aCk00sBcwkbPYS0K9eGgNRgHSTb-GrZmsomCiWreMSuJZAeThw_4XX8fDNU0sqpAqdfdBuFAdfRCGEQBSyt5GtJtcN1_12km8OR-dY09-RYNsTxe34TdDGBmNXON1mI_jtwbo5W6TM_Vwhmv5SyfNm03Ij4fu0e1ZDFH4aVo1ces_3OLioWzhygeF94L4Q9YSZNxPs9QcnoBtnFxVbg515-Q2QkmbWU4_GSI6Fyl8kRJGb6qLTLN1jkAAv4OTRtV3LsU-R1V3F1Wh1OKx9sNOLpTY6-bOUAP2HhZmTS_9L7-yaonH7_wpegPg0e_A.jpg",
-        "https://cdn4.telesco.pe/file/WYnqw4CJ_L0OnYWONOElVgDtQceGreIDpHNOCjWuSKM6a7qlI0t6drmMnN9PLdofEPzsE0QKr8QP4Eow0KJFVtJMTZw-mnjumKvsE6opzxYB5v37wIMEc1UIfB5Kbw_scw0zYiBWjGV4CsGT1EioPDgJ8PfwPlAdgH-8fsRT_d9nYdFmwzXKNLWBswkdgdzZMtq9TGIEW3I52ZNP1xsAiqR1yZXIliwwchGZZ4CQR_iJGR5vmxrhwBYtxFWAsxNzGZwjlN7a8eL3yhwpFKoAHH64CA9cQ1nxMxICiG0O9rSDkMoLIC20ECfVjRDb9xMiVdRdUVPPEUb7TvUt5QUBSg.jpg",
-        "https://cdn4.telesco.pe/file/JCvssMyV4N0p0lymfA6bFf9FaZ7w0GEMsoDTqYOZjpW5DBDRZIS0Lv0qGfYoT7hYB05yU2AUHx0gEZeIAHoG71eo5Gpr406BGkd0vja7Fh8nlzQIyL1UPtSi0Nq0x2yQTk93bP4jUezC_AwOgrcqg9mtkB_kXos6QUuubVdsqkJTabPE880xSvinAEKmhYom_Lgq7vXVPmgSnNvwZMB6vMJjsuuBtRWLxg8hcjO12HtU-AiGflJY11A1GxQ14VWOSkVkySv2_MA3hM8yrMNUh2dhb7pBzAlpmYoUKlUl0VRRBdViaBVq2dLTUmXuDKJawS7gAgCLQNe4jgRBjaxj7A.jpg",
-        "https://cdn4.telesco.pe/file/u-1NVKzvIqCf4utDy-TtIbiCi_rsUyIuOdJoR5iKYpnRTkuvQVwPnibRoOKdggoREa4Mi9CrpoCk2dpNK60H8nCY1TRAB8jaORflkfjVI22Xsmg-xZVWnMWFi-Pbj3lDjEXMwhpG6mN6TgxIFrNYPElpECHUDkdybGY2BGbz7p2elQoQXARQPhrUAGhhyUo0GvMKnqsMR9fZA3xH3gIKIM9FcGirbmi18qmubn5JcWasvilOLF6EQSiDLVE6O-kmbn52Mg5iJenSS2nRTKtFp3NfH8hPzSc7xXNiT3STNOm-59xmiqCiKn0m-J6gAYQjihg7MPAx8_GgdYaTV3h36g.jpg",
-        "https://cdn4.telesco.pe/file/gd8c7wlis_WuKHyB8u93sIP5otjbLmqnH6T9aJeAd8VggWr-OZQdZ3sSA6ZnRqbcmFfjATlXLevoDutcfN9_bgh2vc1ojZxbCv9d9VFWKJhYc99kr6IneZde-P0QTV_lynC1W8lyW8PhLbXvRZ_BQgx4SGmPra_OoIHKm0VuzKBdxgyC6UkhBZ6cR5nLcujwmtr71vB7xXA6C-dWF-8epgllJ0_mKucbGddgfVOQdUj2d2GK7PYFOhtAVRoqJ3p83fW8lAr840lELPc_AQk8qWZAYb__HbgyH4XTWIAalEEnGLljFstgG-uN4nnPt_BEegjhmvY25HgrjSQhRta5Sg.jpg",
-        "https://cdn4.telesco.pe/file/W3hbfJLA4dr81ox5a_iUocA9DMFURyVD81OZfWI7fLEYbQGLSKX5mJHFlIXIlKP8fXflE0X6DFQug0S9XPd1GIqci9YY3HwJXjTX6-cHZH5WH3jUiFLcNcLUDwkZZEbFpjhZSvS10nra55Cd5w-jEQN_bZKsy20alP6nzjBRdLpYjLT6frYU0I_JeDCWk27EG5q52DpKXcPtTe-3rs1J9runCkzXOc1Nl2Ci5YecyRLvd1jdUYk4fImetjaE5gBGuVogUTsw_fcdfkxINTcOpqimaIydCWagdabZBJR4Q5U-gTZQMsiRnOdobb7xzM0YHnWb_-Q-adn-bf_FVG6tvA.jpg",
-        "https://cdn4.telesco.pe/file/vVbv2dn-T4OR4bjXe5gplfTkV5r_upRQ3kDOYbzvL0-0wN-8xjqOeu79t11m5Y4Z6P5980g1Ml1OaPlzbylbwfWy77ww4w9jN5ULQeBMkdJdlJ2yel6904RvmYA2Rxprt1appHsjVEcCD6Y2LxEfmyPeL8-5rwyHWdJ1WB4VXTx0-KwUEPJdTqud3u5QjMpcNsQFIVtMK2Yk7H6yjGcidOgPIn6fpAZjIgFffptSK3-EMNGrpZFCqbdiXGjOCpi8HdBJDR9BIxvxQdsDMNrUYizcU9NNIg3NcHdnga-NB3jkiMk5p8-ll4UnoXZAj1jUbd1c-g-HuUADM-Ghl4fQDw.jpg"
+        "https://cdn4.telesco.pe/file/T-oEkSJh9RwVj098PD2AxPFamyX7zUY7XOxzIaQmqxj1U6JsqRnTiG2TXIq-djaww0NBZddCE2JccoSvEC1Rw5-Ld0H-6ItD67Ca2BfyW6zpJnOvoh7FHPUT22napUZp7cHDNsPHcVSg91qbrAR_lnI4SbacsLtVlx2DwV-LtCyr0SwGghpvrZbJmsd7YMbuBPH1ZnsUrWBazC96N3Gj8SH4cdXvT8AUZp9xJuQSTsohfaQG_RrtDheLa9gwf_oDea-30USPrAquJFUoeft74OSVK7qPbebZ9G-iqAb01qgLhLFa17_KUVQYx-YpRjQ4hYsMOPh67jny3EVmMUO_vg.jpg",
+        "https://cdn4.telesco.pe/file/LTO0CDxpK0bqVUmMGcn5dI4O-zz4ayXP3VG-HlY_q-F-dMDTPifKhVVNmyyINGaFdeop2jktO5Av9e1D8FgmO4z49y2pg7sbwj8DlrmM75eKSWB2xhcHDu0KIvFGx_crl73EN0GaBwFGyrji6L-5D0mxU4FA4-ldoHU1GNpSAZCiNoet1ADEm3-ubz_YQPcXDL8KU4R7pVvf3QmVMD3QTj-zca3St0GOfHavY0NonHx5M14Cn76gHbMb4VQFQaYz1WVnKENA__XCKl3kfD3rUw9jL464HveZLrNwOGd8cutroZpraiqECXrDsU7X4L7fmHVblRAuOL9IJf-HjHtDsA.jpg",
+        "https://cdn4.telesco.pe/file/mwwxTrP70Fq1Dte0PqCy2uRvg4O7ZOeiKCkoj2YeEGOdM_7HOMjm7mPq8c54xkjaQthJTNVU7IpgkdCU42TY3KJEnKKrSwhznU2ND-CjFp9T91C7zJeRQ4oPP7Zku9aOiLOm00VbxXh-PtDMpW8f69L9aM1o6hRTuS2kzrzx6Yz0V_KleOGZyj-qg-qidFgzIwi72gGdbwgYHRZXNMF8wXN_9Vkm3EsCStPAw-kin5WmIEoJNCOsHJjvl3NfEnK_3Qc8sLEKnT1VNuE730nAt_42CD8Eag4ffV9Ng4CI5I_Gaxz5kedgXTUZ8Y9Ydd09ysUP5L3HbgcAvQ-Y-8Y01w.jpg",
+        "https://cdn4.telesco.pe/file/L-dq0DmiTUEJjY9dv0KXpH68S9iYziiHuKx4K4VEYydHqr4Ge0FFjYFWkrECTEnyKY_SNDh-ZQe08O8t8AUT_3N0HfEvX_xJY4bcMs8Kk9RexThO6LECZDLdQ5oybpv79zJDlebfQgG0hHOi1N8VHxEUOxupcAcR7_D0oC3Jc40PEcp_BlNrMZDFXcrdNAcWM_2j53Ofk1RuuF9ZwL-i__AgwwVjShcyvJ6HgCsdFLG0CG_j-Gpv3RVsrL85ljMPEu3SLIBB950ksOlQXYQI6HJkPWbl-ujD4Blc2zf-BNMQVCnwn-HczRp2GIMnmbfvpUc8vl2K7xXBeCZjs8X9yQ.jpg",
+        "https://cdn4.telesco.pe/file/r1wXU9CJLmRdm5Unu662-7X0A0OLoB6hdxz0bF39_pToQwDq0ZS4_jZ-PTO0gKPDOSkavDWLCBbAETxspZZG3zlStYdSpby5quuqSoFs8tmoZuAIDukfMSNWzUW5SOsCRkwcU4x5XgqE-JsFghJ4B9LatmqwsMfI_T-RJOBKBk4GK1rZlHy6aql8wH99hj54ZtdnNVgtKioOlRqekO8zjWAOhxItpFjpq7xhoYk1Atr2CDHqT9GatnMUtjpmw0T7VrbLHqVQNhQc9r85J5smrR_JDKfWchYCfDzDDP31PabZMbU5GwkAPvY-l2-14qoVllOmtzYkKFbCF4A0wXXIIg.jpg",
+        "https://cdn4.telesco.pe/file/F4ygZsO83bjlAtUuWHqL9qahHbmSQ442tksp5C4Q5zM4HY-wWwOuJYg_5Qk54ziVcdoyZFK9IlDvMDolZhejFSMx3_tD1gDAEt7-HHpfKkZoVzGFu5m4Y-UdXgM2MBd11BZVp8kngXPprCHwk8gV_i4f61ZtN5KcAFJF6KiXUBacu2YHnh-ttXoDz-w4hqHCKxzn-xdd33lpY3zV_m7sOQh5v216t3WfRRJNExSnlt_vSwzyv0sjy9EjgBGA-rGtzpGZ_BmnKhs7ILlcrPc4c6pkl4robKIwH38wN3Z2gxujzydArC62vlM4xd6x2wWX4ChG-3MkzwWEYSgS_aa5dg.jpg",
+        "https://cdn4.telesco.pe/file/Ob8D2uC8iYBSgXklz9fXV50h88_RqZ0heGbJyH4G6XiLwqwf0-l4TGjVHylVG8eSifM6j9Df26snOVH5N3XkiTSuQ24tABbHrtK9Ovpn9QgjPcJFCjMm2BG8QDiAymhYnycQZRpnd85BxLJ3nVcy3gS6Q8CMJBLyDgwKvHRg4eNFP_PwebR-B2Vablr_m-2wjJRgpB1BxwFX5hmkUaDxKfIKSfFAS4y6Yrad0zIZgZLMtDF1wiTsWHY3vTY-gYb40n9MTNu8Li85GrnGI81cXyzsMit4KG7nxYdIk6gIoPfKJ0STvoLJ61U5vDm_B3bGjGz5Y4fbJGlf6M5dDgTCmw.jpg"
       ]
     }
   ]
