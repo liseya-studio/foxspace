@@ -65,7 +65,7 @@ npm run tauri:build
 
 The DMG is written under `src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/` on an M-series Mac. The GitHub Actions workflow **Build Fox Space for macOS Apple Silicon** builds the same target and uploads the DMG as a 14-day artifact.
 
-In the native shell, structured workspace records are atomically saved to the operating-system application-data directory as `workspace.json`; native snapshots are versioned and the latest ten are retained. Browser mode continues to use localStorage with an IndexedDB recovery mirror. **Current migration boundary:** user file blobs and folder metadata still use the existing IndexedDB file store; moving those binary assets into the native app-data directory is a separate migration step. This build is an unsigned development DMG; code signing, notarization, auto-updater and installer distribution are not configured yet.
+In the native shell, structured workspace records are atomically saved to the operating-system application-data directory as `workspace.json`; file blobs are stored under `files/`, and existing IndexedDB files are migrated into this native store on first access. Native snapshots include both workspace data and file blobs, retain the latest ten versions, and can be restored from Backup settings. Portable JSON exports also include file contents. Browser mode continues to use localStorage with an IndexedDB recovery mirror and keeps file blobs in IndexedDB. This build is an unsigned development DMG; code signing, notarization, auto-updater and installer distribution are not configured yet.
 
 ## Run locally
 ```bash
