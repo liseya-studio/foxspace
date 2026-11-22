@@ -16,7 +16,9 @@ export default function BackupPanel(){
     setBusy(true);setError("");setStatus("");
     try{
       const result=await exportBackup();
-      setStatus("Резервная копия скачана. Файлов: "+result.fileCount+". Сохраните её в надёжном месте.");
+      await createAutoBackup(true);
+      const backupStatus=await getAutoBackupStatus();setLastAuto(backupStatus.createdAt);setAutoCount(backupStatus.count);
+      setStatus("Резервная копия скачана. Файлов: "+result.fileCount+". Локальная копия также сохранена.");
     }catch(e){setError(e instanceof Error?e.message:"Экспорт не удался");}
     finally{setBusy(false);}
   }
