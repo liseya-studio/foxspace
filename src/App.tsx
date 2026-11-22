@@ -6,6 +6,7 @@ import { listItems, type StoredItem } from "./features/files/storage";
 import FoxEditor from "./features/editor/FoxEditor";
 import NotesTasks from "./features/notes/NotesTasks";
 import ProjectsCenter from "./features/projects/ProjectsCenter";
+import OperationsCenter from "./features/operations/OperationsCenter";
 import "./features/projects/projects.css";
 import { createAutoBackup } from "./features/backup/autoBackup";
 import { readNotesTasks } from "./features/notes/data";
@@ -230,6 +231,8 @@ export default function App() {
           <NotificationCenter onOpenTask={navigateToTask}/>
         ) : active === "messages" ? (
           <MessagesCenter />
+        ) : active === "operations" ? (
+          <OperationsCenter />
         ) : active === "projects" ? (
           <ProjectsCenter onOpenTask={navigateToTask}/>
         ) : active === "files" ? (
@@ -269,6 +272,8 @@ export default function App() {
 
       <nav className="dock" aria-label="Основная навигация">
         <div className="dock-fixed">
+          <button className={active==="projects"?"dock-item active":"dock-item"} onClick={()=>setActive("projects")}><BriefcaseBusiness size={19}/><span>Проекты</span></button>
+          <button className={active==="operations"?"dock-item active":"dock-item"} onClick={()=>setActive("operations")}><CalendarDays size={19}/><span>Управление</span></button>
           <button className={active === "files" ? "dock-item active" : "dock-item"} onClick={() => setActive("files")}><FileSpreadsheet size={19}/><span>Файлы<br/>и таблицы</span></button>
           <button className={active === "notes" ? "dock-item active" : "dock-item"} onClick={() => setActive("notes")}><StickyNote size={19}/><span>Заметки<br/>и задачи</span></button>
         </div>
