@@ -12,3 +12,7 @@ export type IntegrationProvider="github"|"railway"|"telegram"|"vk"|"youtube"|"ti
 export type IntegrationState={provider:IntegrationProvider;connected:boolean;accountLabel?:string;lastSyncAt?:string;scopes:string[];status:"disconnected"|"connected"|"error"|"needs_reauth"};
 /** Provider adapters must request minimum scopes and keep credentials in OS keychain/server secret storage. */
 export interface IntegrationAdapter { readonly provider:IntegrationProvider; connect():Promise<IntegrationState>; disconnect():Promise<void>; getState():Promise<IntegrationState>; }
+
+import { LocalAgentTransport } from "./runtime";
+/** Local prototype transport. Production desktop/server adapters must authenticate actor IDs outside the renderer. */
+export function createLocalAgentApi(){return new FoxSpaceApi(new LocalAgentTransport());}
