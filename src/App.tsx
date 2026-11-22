@@ -231,7 +231,7 @@ export default function App() {
         ) : active === "messages" ? (
           <MessagesCenter />
         ) : active === "projects" ? (
-          <ProjectsCenter />
+          <ProjectsCenter onOpenTask={navigateToTask}/>
         ) : active === "files" ? (
           <FilesHub createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
         ) : active === "notes" ? (
