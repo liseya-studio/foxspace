@@ -22,7 +22,10 @@ function fromBase64(input:string):Blob{
 }
 function validateRecords(records:unknown):Record<string,unknown>{
   if(!records||typeof records!=="object"||Array.isArray(records))throw Error("Повреждены настройки рабочего пространства");
-  const values=records as Record<string,unknown>;\n  if(!("fox-projects-v1" in values))values["fox-projects-v1"]={version:1,projects:[]};\n  const projects=values["fox-projects-v1"];\n  if(!projects||typeof projects!=="object"||!Array.isArray((projects as {projects?:unknown}).projects))throw Error("Повреждены проекты и цели");
+  const values=records as Record<string,unknown>;
+  if(!("fox-projects-v1" in values))values["fox-projects-v1"]={version:1,projects:[]};
+  const projects=values["fox-projects-v1"];
+  if(!projects||typeof projects!=="object"||!Array.isArray((projects as {projects?:unknown}).projects))throw Error("Повреждены проекты и цели");
   if(!Array.isArray(values["fox-screens"]))throw Error("Не найден список экранов");
   if(!Array.isArray(values["fox-tables-v1"]))throw Error("Не найдены таблицы");
   const data=values["fox-notes-tasks-v1"];
