@@ -4,7 +4,7 @@ import {homedir} from "node:os";
 import {randomUUID} from "node:crypto";
 
 const KEYS={projects:"fox-projects-v1",tasks:"fox-notes-tasks-v1",finance:"fox-operations-v1",trackers:"fox-trackers-v1"};
-export const DEFAULT_PATH=join(homedir(),"Library","Application Support","com.liseya.foxspace","workspace.json");
+export const DEFAULT_PATH=join(homedir(),"Library","Application Support","studio.liseya.foxspace","workspace.json");
 export const FILE=process.env.FOXSPACE_WORKSPACE_PATH||DEFAULT_PATH;
 export const MAX_SIZE=30*1024*1024;
 
@@ -81,7 +81,7 @@ export async function createTask({title,description="",dueDate="",projectId=""},
   if(!Array.isArray(data.tasks))throw Error("Invalid tasks collection");
   if(projectId){const projects=decodeRecord(snapshot,KEYS.projects,{projects:[]}).projects;if(!projects.some(p=>p.id===projectId))throw Error("Project does not exist");}
   const now=new Date().toISOString();
-  task={id:randomUUID(),title:taskTitle,description,dueDate,projectId,goalId:"",status:"todo",priority:"medium",important:false,urgent:false,tags:[],checklist:[],createdAt:now,updatedAt:now,history:[]};
+  task={id:randomUUID(),title:taskTitle,description,dueDate,projectId,goalId:"",status:"todo",priority:"medium",important:false,urgent:false,tags:[],checklist:[],createdAt:now,updatedAt:now,history:[],repeat:"none"};
   data.tasks.unshift(task);snapshot[KEYS.tasks]=JSON.stringify(data);
   updateLog(snapshot,"task.created","tasks",task.id);
   return snapshot;
@@ -90,7 +90,7 @@ export async function createTask({title,description="",dueDate="",projectId=""},
 }
 export async function updateTaskStatus({taskId,status},file=FILE){
  validateId(taskId);
- if(!["todo","in_progress","done"].includes(status))throw Error("Invalid task status");
+ if(!["todo","doing","done"].includes(status))throw Error("Invalid task status");
  let result;
  await updateWorkspace(snapshot=>{
   const data=decodeRecord(snapshot,KEYS.tasks,{tasks:[],notes:[]});
