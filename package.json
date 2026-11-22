@@ -10,7 +10,8 @@
     "test:e2e": "playwright test",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "npm run tauri:icons && tauri build",
+    "tauri:icons": "tauri icon src-tauri/icons/foxspace.svg --output src-tauri/icons"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
