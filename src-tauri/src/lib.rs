@@ -101,6 +101,7 @@ fn restore_latest_native_backup(app: AppHandle) -> Result<String, String> {
     let previous = root.join("files.restore-previous");
     if staged.exists() { fs::remove_dir_all(&staged).map_err(|e| e.to_string())?; }
     if previous.exists() { fs::remove_dir_all(&previous).map_err(|e| e.to_string())?; }
+    fs::create_dir_all(&staged).map_err(|e| e.to_string())?;
     copy_directory(&latest.join("files"), &staged)?;
     if files_dir.exists() { fs::rename(&files_dir, &previous).map_err(|e| format!("Cannot stage current files: {e}"))?; }
     if let Err(error) = fs::rename(&staged, &files_dir) {
