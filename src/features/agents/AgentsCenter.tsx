@@ -22,9 +22,9 @@ export default function AgentsCenter(){
   try{
    const tools=[
     {type:"function",name:"foxspace_read",description:"Прочитать записи рабочего пространства. Доступ разрешается политикой выбранного агента.",parameters:{type:"object",properties:{resource:{type:"string",enum:["projects","goals","tasks","tables","finance","content","trackers"]},id:{type:["string","null"]}},required:["resource","id"],additionalProperties:false}},
-    {type:"function",name:"foxspace_create",description:"Создать запись. Действие может потребовать подтверждения пользователя.",strict:true,parameters:{type:"object",properties:{resource:{type:"string",enum:["projects","tasks","tables","finance","content","trackers"]},data:{type:"object",additionalProperties:true},summary:{type:"string"}},required:["resource","data","summary"],additionalProperties:false}},
-    {type:"function",name:"foxspace_update",description:"Изменить существующую запись. Действие может потребовать подтверждения пользователя.",strict:true,parameters:{type:"object",properties:{resource:{type:"string",enum:["projects","tasks","tables","finance","content","trackers"]},id:{type:"string"},data:{type:"object",additionalProperties:true},summary:{type:"string"}},required:["resource","id","data","summary"],additionalProperties:false}},
-    {type:"function",name:"foxspace_delete",description:"Удалить существующую запись. Действие может потребовать подтверждения пользователя.",strict:true,parameters:{type:"object",properties:{resource:{type:"string",enum:["projects","tasks","tables","finance","content","trackers"]},id:{type:"string"},summary:{type:"string"}},required:["resource","id","summary"],additionalProperties:false}}
+    {type:"function",name:"foxspace_create",description:"Создать запись. Действие может потребовать подтверждения пользователя.",parameters:{type:"object",properties:{resource:{type:"string",enum:["projects","tasks","tables","finance","content","trackers"]},data:{type:"object",additionalProperties:true},summary:{type:"string"}},required:["resource","data","summary"],additionalProperties:false}},
+    {type:"function",name:"foxspace_update",description:"Изменить существующую запись. Действие может потребовать подтверждения пользователя.",parameters:{type:"object",properties:{resource:{type:"string",enum:["projects","tasks","tables","finance","content","trackers"]},id:{type:"string"},data:{type:"object",additionalProperties:true},summary:{type:"string"}},required:["resource","id","data","summary"],additionalProperties:false}},
+    {type:"function",name:"foxspace_delete",description:"Удалить существующую запись. Действие может потребовать подтверждения пользователя.",parameters:{type:"object",properties:{resource:{type:"string",enum:["projects","tasks","tables","finance","content","trackers"]},id:{type:"string"},summary:{type:"string"}},required:["resource","id","summary"],additionalProperties:false}}
    ];
    const api=createLocalAgentApi();
    const inputItems:unknown[]=[{role:"user",content:prompt.trim()}];
@@ -53,7 +53,9 @@ export default function AgentsCenter(){
       else throw new Error("Неизвестный инструмент");
       if(result&&typeof result==="object"&&(result as {status?:string}).status==="pending_approval")pendingCreated=true;
      }catch(error){result={status:"error",message:error instanceof Error?error.message:String(error)};}
-     inputItems.push({type:"function_call_output",call_id:callId,output:JSON.stringify(result)});
+     const serializedResult=JSON.stringify(result);
+     const toolOutput=serializedResult.length>45_000?JSON.stringify({truncated:true,preview:serializedResult.slice(0,44_000)}):serializedResult;
+     inputItems.push({type:"function_call_output",call_id:callId,output:toolOutput});
      if(pendingCreated){
       for(const skipped of calls.slice(callIndex+1))inputItems.push({type:"function_call_output",call_id:String(skipped.call_id??""),output:JSON.stringify({status:"not_executed",message:"Остановлено: предыдущее действие ожидает подтверждения пользователя."})});
       break;
