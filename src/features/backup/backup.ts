@@ -3,7 +3,9 @@ import { listItems, replaceItems, type StoredItem } from "../files/storage";
 const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1"] as const;
 const FORMAT = "fox-space-backup-v1";
 type SerializedFile = Omit<StoredItem,"blob"> & {blobBase64?:string};
-type Backup = {format:string;createdAt:string;records:Record<string,unknown>;files:SerializedFile[]};
+type Backup = {format:string;createdAt:string;records:Record<string,unknown>;files:SerializedFile[];integrity?:{algorithm:"SHA-256";digest:string}};
+async function digestJson(value:unknown):Promise<string>{const bytes=new TextEncoder().encode(JSON.stringify(value));const digest=await crypto.subtle.digest("SHA-256",bytes);return Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,"0")).join("");}
+async function verifyIntegrity(backup:Backup):Promise<boolean>{if(!backup.integrity)return false;if(backup.integrity.algorithm!=="SHA-256")throw Error("Неподдерживаемый алгоритм проверки архива");const {integrity,...payload}=backup;const actual=await digestJson(payload);if(actual!==integrity.digest)throw Error("Контрольная сумма не совпадает. Архив повреждён или был изменён.");return true;}
 const MAX_IMPORT=150*1024*1024;
 const MAX_FILE=60*1024*1024;
 
@@ -65,7 +67,8 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
     if(totalBytes>MAX_IMPORT*0.70)throw Error("Размер файлов превышает лимит JSON-копии");
     files.push({...metadata,...(blob?{blobBase64:toBase64(new Uint8Array(await blob.arrayBuffer()))}:{})});
   }
-  const backup:Backup={format:FORMAT,createdAt:new Date().toISOString(),records,files};
+  const payload={format:FORMAT,createdAt:new Date().toISOString(),records,files};
+  const backup:Backup={...payload,integrity:{algorithm:"SHA-256",digest:await digestJson(payload)}};
   const bytes=new Blob([JSON.stringify(backup)],{type:"application/json"});
   if(bytes.size>MAX_IMPORT)throw Error("Объём архива превышает лимит 150 МБ");
   const url=URL.createObjectURL(bytes);
@@ -80,6 +83,7 @@ export async function inspectBackup(file:File):Promise<{backup:Backup;items:Stor
   if(file.size>MAX_IMPORT)throw Error("Архив больше 150 МБ");
   const raw=JSON.parse(await file.text()) as Backup;
   if(raw?.format!==FORMAT)throw Error("Неподдерживаемая версия резервной копии");
+  const integrityVerified=await verifyIntegrity(raw);
   const records=validateRecords(raw.records);
   if(!Array.isArray(raw.files)||raw.files.length>10000)throw Error("Повреждён список файлов");
   const ids=new Set<string>();
@@ -101,10 +105,11 @@ export async function inspectBackup(file:File):Promise<{backup:Backup;items:Stor
     items.push({...metadata,blob:blob?new Blob([blob],{type:entry.mime||"application/octet-stream"}):undefined});
   }
   for(const item of items)if(item.parentId!==null&&!ids.has(item.parentId))throw Error("Найдена папка с отсутствующим родителем");
-  const summary=`${(records["fox-screens"] as unknown[]).length} экранов · ${(records["fox-tables-v1"] as unknown[]).length} таблиц · ${((records["fox-projects-v1"] as {projects:unknown[]}).projects).length} проектов · ${items.filter(x=>x.kind==="file").length} файлов`;
+  const summary=`${(records["fox-screens"] as unknown[]).length} экранов · ${(records["fox-tables-v1"] as unknown[]).length} таблиц · ${((records["fox-projects-v1"] as {projects:unknown[]}).projects).length} проектов · ${items.filter(x=>x.kind==="file").length} файлов · ${integrityVerified?"SHA-256 проверен":"старый архив без контрольной суммы"}`;
   return {backup:raw,items,summary};
 }
 export async function restoreBackup(backup:Backup,items:StoredItem[]):Promise<void>{
+  await verifyIntegrity(backup);
   const records=validateRecords(backup.records);
   const existing=await listItems(true);
   const old=new Map<string,string|null>();
