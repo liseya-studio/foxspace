@@ -47,8 +47,8 @@ fn create_native_backup(app: AppHandle) -> Result<String, String> {
 
 fn chrono_stamp() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
-    let seconds = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
-    format!("{seconds}")
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
+    format!("{}-{:09}", now.as_secs(), now.subsec_nanos())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
