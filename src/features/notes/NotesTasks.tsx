@@ -12,6 +12,7 @@ import {
   STATUS_LABELS, type NotesTasksData, type Note, type Priority,
   type Task, type TaskStatus, type TaskRepeat
 } from "./data";
+import { readProjects } from "../projects/data";
 
 type Area = "tasks" | "notes";
 type TaskView = "board" | "list" | "matrix" | "timeline" | "calendar";
@@ -70,7 +71,15 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
   function updateTask(id:string, patch:Partial<Task>) {
     setData(prev=>{
       const now=new Date().toISOString();
-      const tasks=prev.tasks.map(task=>task.id===id?{...task,...patch,updatedAt:now}:task);
+      const tasks=prev.tasks.map(task=>{
+        if(task.id!==id)return task;
+        const changes:string[]=[];
+        if(patch.status&&patch.status!==task.status)changes.push("Статус: "+STATUS_LABELS[task.status]+" → "+STATUS_LABELS[patch.status]);
+        if(patch.dueDate!==undefined&&patch.dueDate!==task.dueDate)changes.push("Изменён срок: "+(patch.dueDate||"без даты"));
+        if(patch.projectId!==undefined&&patch.projectId!==task.projectId)changes.push("Изменён связанный проект");
+        if(patch.goalId!==undefined&&patch.goalId!==task.goalId)changes.push("Изменена связанная цель");
+        return {...task,...patch,updatedAt:now,history:changes.length?[...(task.history??[]),{at:now,changes:changes.join("; ")}]:task.history};
+      });
       const original=prev.tasks.find(task=>task.id===id);
       if(original && patch.status==="done" && original.status!=="done" && original.repeat && original.repeat!=="none"){
         const scheduled=nextRepeatDate(original.dueDate,original.repeat);
@@ -208,9 +217,11 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
         <label className="fox-item-title-label">Название<input value={selectedTask.title} onChange={e=>updateTask(selectedTask.id,{title:e.target.value})}/></label>
         <label>Описание<textarea rows={5} value={selectedTask.description} onChange={e=>updateTask(selectedTask.id,{description:e.target.value})} placeholder="Подробности задачи"/></label>
         <div className="fox-item-editor-pair"><label>Статус<select value={selectedTask.status} onChange={e=>updateTask(selectedTask.id,{status:e.target.value as TaskStatus})}>{statusOrder.map(s=><option key={s} value={s}>{STATUS_LABELS[s]}</option>)}</select></label><label>Приоритет<select value={selectedTask.priority} onChange={e=>updateTask(selectedTask.id,{priority:e.target.value as Priority})}>{priorityOrder.map(p=><option key={p} value={p}>{PRIORITY_LABELS[p]}</option>)}</select></label></div>
+        <label>Проект<select value={selectedTask.projectId??""} onChange={e=>updateTask(selectedTask.id,{projectId:e.target.value||undefined,goalId:undefined})}><option value="">Без проекта</option>{readProjects().projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}</select></label>{selectedTask.projectId&&<label>Цель<select value={selectedTask.goalId??""} onChange={e=>updateTask(selectedTask.id,{goalId:e.target.value||undefined})}><option value="">Без цели</option>{readProjects().projects.find(project=>project.id===selectedTask.projectId)?.goals.map(goal=><option key={goal.id} value={goal.id}>{goal.title}</option>)}</select></label>}
         <label>Срок<input type="date" value={selectedTask.dueDate} onChange={e=>updateTask(selectedTask.id,{dueDate:e.target.value})}/></label><label>Повторение<select value={selectedTask.repeat??"none"} onChange={e=>updateTask(selectedTask.id,{repeat:e.target.value as TaskRepeat})}>{(Object.keys(REPEAT_LABELS) as TaskRepeat[]).map(key=><option key={key} value={key}>{REPEAT_LABELS[key]}</option>)}</select></label>
         <div className="fox-item-editor-pair fox-task-flags"><label><input type="checkbox" checked={selectedTask.important} onChange={e=>updateTask(selectedTask.id,{important:e.target.checked})}/> Важно</label><label><input type="checkbox" checked={selectedTask.urgent} onChange={e=>updateTask(selectedTask.id,{urgent:e.target.checked})}/> Срочно</label></div>
         <label>Теги (через запятую)<TagsInput key={selectedTask.id} tags={selectedTask.tags} onCommit={tags=>updateTask(selectedTask.id,{tags})}/></label>
+        {!!selectedTask.history?.length&&<div className="fox-task-history"><h4>История выполнения</h4>{[...selectedTask.history].reverse().slice(0,10).map((entry,index)=><div key={index}><span>{entry.changes}</span><small>{new Date(entry.at).toLocaleString("ru-RU")}</small></div>)}</div>}
         <div className="fox-checklist"><h4>Подзадачи <small>{selectedTask.checklist.filter(c=>c.done).length}/{selectedTask.checklist.length}</small></h4>{selectedTask.checklist.map(sub=><div key={sub.id}><input type="checkbox" checked={sub.done} onChange={e=>updateTask(selectedTask.id,{checklist:selectedTask.checklist.map(s=>s.id===sub.id?{...s,done:e.target.checked}:s)})}/><span>{sub.title}</span><button onClick={()=>updateTask(selectedTask.id,{checklist:selectedTask.checklist.filter(s=>s.id!==sub.id)})}><X size={13}/></button></div>)}<div className="fox-add-subtask"><input placeholder="Новая подзадача" value={checklistText} onChange={e=>setChecklistText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&checklistText.trim()){updateTask(selectedTask.id,{checklist:[...selectedTask.checklist,{id:newId(),title:checklistText.trim(),done:false}]});setChecklistText("");}}}/><button onClick={()=>{if(!checklistText.trim())return;updateTask(selectedTask.id,{checklist:[...selectedTask.checklist,{id:newId(),title:checklistText.trim(),done:false}]});setChecklistText("");}}><Plus size={16}/></button></div></div>
         <button className="fox-remove-item" onClick={()=>removeTask(selectedTask)}><Trash2 size={15}/> Удалить задачу</button>
       </div>}

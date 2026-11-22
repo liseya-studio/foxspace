@@ -527,3 +527,7 @@
   .finance-dashboard-grid .fox-finance-expenseCategories,
   .finance-dashboard-grid .fox-finance-incomeCategories{min-height:280px!important}
 }
+
+.fox-backup-auto{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;margin:14px 0;border:1px solid var(--line);border-radius:8px;background:var(--canvas)}.fox-backup-auto div{display:grid;gap:5px}.fox-backup-auto strong{font-size:11px}.fox-backup-auto span{font-size:10px;color:var(--muted);line-height:1.5}.fox-backup-auto button{border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--text);padding:8px;font-size:10px;white-space:nowrap}.fox-backup-auto button:disabled{opacity:.4}
+
+.fox-task-history{margin:16px 0;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--canvas)}.fox-task-history h4{font-size:11px;margin:0 0 8px}.fox-task-history>div{display:grid;gap:4px;padding:8px 0;border-top:1px solid var(--line)}.fox-task-history span{font-size:10px}.fox-task-history small{font-size:9px;color:var(--muted)}
