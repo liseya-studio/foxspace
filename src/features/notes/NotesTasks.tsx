@@ -52,6 +52,7 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
   const [area,setArea] = useState<Area>("tasks");
   const [view,setView] = useState<TaskView>("board");
   const [filter,setFilter] = useState<TaskFilter>("all");
+  const [projectFilter,setProjectFilter] = useState("");
   const [query,setQuery] = useState("");
   const [selection,setSelection] = useState<{type:Area;id:string}|null>(null);
   const [creating,setCreating] = useState<Area|null>(null);
@@ -147,6 +148,8 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
     const text=query.toLocaleLowerCase("ru");
     const selected=data.tasks.filter(task=>{
       if(text&&!([task.title,task.description,...task.tags].join(" ").toLocaleLowerCase("ru").includes(text)))return false;
+      if(projectFilter==="__none__"&&task.projectId)return false;
+      if(projectFilter&&projectFilter!=="__none__"&&task.projectId!==projectFilter)return false;
       if(filter==="active")return task.status!=="done";
       if(filter==="done")return task.status==="done";
       if(filter==="overdue")return task.status!=="done"&&markDate(task.dueDate);
@@ -159,7 +162,7 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
       if(sort==="created")return b.createdAt.localeCompare(a.createdAt);
       return (a.dueDate||"9999").localeCompare(b.dueDate||"9999");
     });
-  },[data.tasks,filter,query,sort]);
+  },[data.tasks,filter,projectFilter,query,sort]);
   const filteredNotes=useMemo(()=>data.notes.filter(n=>(n.title+" "+n.body+" "+n.tags.join(" ")).toLocaleLowerCase("ru").includes(query.toLocaleLowerCase("ru"))).sort((a,b)=>Number(b.pinned)-Number(a.pinned)||b.updatedAt.localeCompare(a.updatedAt)),[data.notes,query]);
   const openCount=data.tasks.filter(t=>t.status!=="done").length;
   const doneCount=data.tasks.filter(t=>t.status==="done").length;
@@ -196,6 +199,7 @@ export default function NotesTasks({createAction,onCreateConsumed,openTaskId,onT
             <button className={view==="timeline"?"active":""} onClick={()=>setView("timeline")}><Clock3 size={15}/> Хронология</button><button className={view==="calendar"?"active":""} onClick={()=>setView("calendar")}><CalendarDays size={15}/> Календарь</button>
           </div>
           <select aria-label="Фильтр задач" value={filter} onChange={e=>setFilter(e.target.value as TaskFilter)}><option value="all">Все задачи</option><option value="active">Активные</option><option value="done">Завершённые</option><option value="overdue">Просроченные</option><option value="today">На сегодня</option><option value="upcoming">Ближайшие 7 дней</option></select>
+          <select aria-label="Фильтр по проекту" value={projectFilter} onChange={e=>setProjectFilter(e.target.value)}><option value="">Все проекты</option><option value="__none__">Без проекта</option>{readProjects().projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}</select>
           <select aria-label="Сортировка задач" value={sort} onChange={e=>setSort(e.target.value as "date"|"priority"|"created")}><option value="date">По дате</option><option value="priority">По приоритету</option><option value="created">По созданию</option></select>
         </div>
         {view==="board"&&<div className="fox-kanban">{statusOrder.map(status=><div className="fox-kanban-column" key={status} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const id=e.dataTransfer.getData("text/fox-task");if(data.tasks.some(t=>t.id===id))updateTask(id,{status});}}><div className="fox-kanban-title"><span>{STATUS_LABELS[status]}</span><small>{filteredTasks.filter(t=>t.status===status).length}</small></div><div className="fox-kanban-items">{filteredTasks.filter(t=>t.status===status).map(card)}{filteredTasks.filter(t=>t.status===status).length===0&&<div className="fox-kanban-empty">Перетащите задачу сюда</div>}</div></div>)}</div>}
