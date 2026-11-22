@@ -1,6 +1,6 @@
 import { listItems, replaceItems, type StoredItem } from "../files/storage";
 
-const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1"] as const;
+const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-projects-v1"] as const;
 const FORMAT = "fox-space-backup-v1";
 type SerializedFile = Omit<StoredItem,"blob"> & {blobBase64?:string};
 type Backup = {format:string;createdAt:string;records:Record<string,unknown>;files:SerializedFile[]};
@@ -22,7 +22,7 @@ function fromBase64(input:string):Blob{
 }
 function validateRecords(records:unknown):Record<string,unknown>{
   if(!records||typeof records!=="object"||Array.isArray(records))throw Error("Повреждены настройки рабочего пространства");
-  const values=records as Record<string,unknown>;
+  const values=records as Record<string,unknown>;\n  if(!("fox-projects-v1" in values))values["fox-projects-v1"]={version:1,projects:[]};\n  const projects=values["fox-projects-v1"];\n  if(!projects||typeof projects!=="object"||!Array.isArray((projects as {projects?:unknown}).projects))throw Error("Повреждены проекты и цели");
   if(!Array.isArray(values["fox-screens"]))throw Error("Не найден список экранов");
   if(!Array.isArray(values["fox-tables-v1"]))throw Error("Не найдены таблицы");
   const data=values["fox-notes-tasks-v1"];
@@ -36,7 +36,7 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
   const records:Record<string,unknown>={};
   for(const key of KEYS){
     const raw=localStorage.getItem(key);
-    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-theme"?"light":"#f06432";
+    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-theme"?"light":"#f06432";
   }
   const items=await listItems();
   let totalBytes=0;
@@ -85,7 +85,7 @@ export async function inspectBackup(file:File):Promise<{backup:Backup;items:Stor
     items.push({...metadata,blob:blob?new Blob([blob],{type:entry.mime||"application/octet-stream"}):undefined});
   }
   for(const item of items)if(item.parentId!==null&&!ids.has(item.parentId))throw Error("Найдена папка с отсутствующим родителем");
-  const summary=`${(records["fox-screens"] as unknown[]).length} экранов · ${(records["fox-tables-v1"] as unknown[]).length} таблиц · ${items.filter(x=>x.kind==="file").length} файлов`;
+  const summary=`${(records["fox-screens"] as unknown[]).length} экранов · ${(records["fox-tables-v1"] as unknown[]).length} таблиц · ${((records["fox-projects-v1"] as {projects:unknown[]}).projects).length} проектов · ${items.filter(x=>x.kind==="file").length} файлов`;
   return {backup:raw,items,summary};
 }
 export async function restoreBackup(backup:Backup,items:StoredItem[]):Promise<void>{
