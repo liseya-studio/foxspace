@@ -1,3 +1,4 @@
+import { readProjects, type Project } from "../projects/data";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   Plus, Search, Filter, ArrowUpDown, MoreHorizontal, ChevronDown, Table2, FolderKanban,
