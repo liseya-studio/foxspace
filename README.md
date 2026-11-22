@@ -74,6 +74,9 @@ In the native shell, structured workspace records are atomically saved to the op
 - Goals support annual, quarterly and monthly horizons with numeric, percentage, boolean and text key results.
 - Global task views can be filtered by project; tasks can link to projects and goals and retain execution history.
 - Finance includes income, expenses, planned transactions, automatically generated next-month recurring payments, project budgets, debt and savings goals.
+- Personal trackers provide reusable templates for health, body measurements, nutrition, workouts, cycle observations, relationships, learning and habits, plus custom fields and entry history.
+- Automations support one-time/daily/weekly schedules and conditional alerts for upcoming task deadlines, goal deadlines and exceeded monthly project budgets. Conditions are evaluated while Fox Space is open and require notification permission.
+- AI-agent foundations include per-agent resource permissions, a local API transport, a pending-action approval inbox and an audit log. Writes are blocked by default until explicitly approved; external agents still require a trusted authenticated adapter.
 - Content planning supports source publications, platform-specific text variants, attached media files, publication status and a week/month calendar view.
 - Analytics compares equivalent weekly or monthly periods and includes project results, goals, publication views, manually recorded social audience/bot activity snapshots and personal tracker entries.
 
