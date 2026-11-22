@@ -44,6 +44,7 @@ export class LocalAgentTransport implements FoxSpaceTransport{
   const {resource,id}=parsed;
   let policy:AgentPolicy;try{policy=policyFor(request.actorId);}catch(error){audit(request.actorId,"api.auth",resource,String(error),"denied",false,id);throw error;}
   if(request.method==="GET"){
+   if(request.capability!=="read")throw new Error("Для GET требуется read capability");
    if(!canAgent(policy,resource,"read")){audit(request.actorId,"api.read",resource,"Чтение запрещено политикой доступа","denied",false,id);throw new Error("Агенту не разрешено читать этот ресурс");}
    if(resource==="goals"){const projects=getCollection("projects").items;const goals=projects.flatMap(p=>Array.isArray(p.goals)?(p.goals as Record<string,unknown>[]).map(g=>({...g,projectId:p.id})):[]);return respond(id?goals.find(g=>g.id===id)??null:goals);}
    const items=getCollection(resource).items;return respond(id?items.find(x=>x.id===id)??null:items);
@@ -51,7 +52,8 @@ export class LocalAgentTransport implements FoxSpaceTransport{
   const action=request.method==="POST"?"create":request.method==="PATCH"?"update":"delete";
   if(request.capability!==(request.method==="DELETE"?"delete":"write"))throw new Error("Несовпадение API capability и HTTP-метода");
   if(!canAgent(policy,resource,action)){audit(request.actorId,"api."+action,resource,"Действие запрещено политикой доступа","denied",false,id);throw new Error("Агенту не разрешено выполнять это действие");}
-  if(request.body!==undefined&&JSON.stringify(request.body).length>100_000)throw new Error("Тело запроса превышает 100 КБ");
+  const bodyText=request.body===undefined?"":JSON.stringify(request.body)||"";
+  if(bodyText.length>100_000)throw new Error("Тело запроса превышает 100 КБ");
   const summary=request.method==="POST"?"Создание записи через AI API":request.method==="PATCH"?"Изменение записи через AI API":"Удаление записи через AI API";
   const pending:PendingAgentAction={id:crypto.randomUUID(),actorId:request.actorId,resource,method:request.method as PendingAgentAction["method"],recordId:id,body:request.body&&typeof request.body==="object"&&!Array.isArray(request.body)?request.body as Record<string,unknown>:undefined,path:request.path,summary,createdAt:new Date().toISOString(),status:"pending"};
   if(requiresApproval(policy,resource,action)){writePending([pending,...readPendingAgentActions()]);audit(request.actorId,"api."+action,resource,"Действие ожидает подтверждения пользователя","pending_approval",true,id);return respond({status:"pending_approval",requestId:pending.id});}
