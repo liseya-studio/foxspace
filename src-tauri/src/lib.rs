@@ -180,6 +180,119 @@ fn create_native_backup(app: AppHandle) -> Result<String, String> {
     for entry in entries.into_iter().take(excess) { let _ = fs::remove_dir_all(entry.path()); }
     Ok(backup_dir.to_string_lossy().into_owned())
 }
+
+const OPENAI_KEY_SERVICE: &str = "studio.liseya.foxspace";
+const OPENAI_KEY_ACCOUNT: &str = "openai-api-key";
+
+#[tauri::command]
+fn openai_key_status() -> Result<bool, String> {
+    #[cfg(target_os = "macos")] {
+        let entry = keyring::Entry::new(OPENAI_KEY_SERVICE, OPENAI_KEY_ACCOUNT)
+            .map_err(|e| format!("Не удалось открыть macOS Keychain: {e}"))?;
+        return Ok(entry.get_password().is_ok());
+    }
+    #[cfg(not(target_os = "macos"))] {
+        Ok(false)
+    }
+}
+
+#[tauri::command]
+fn save_openai_api_key(key: String) -> Result<(), String> {
+    let key = key.trim();
+    if !key.starts_with("sk-") || key.len() < 20 || key.len() > 512 {
+        return Err("Проверьте формат API-ключа OpenAI.".into());
+    }
+    #[cfg(target_os = "macos")] {
+        let entry = keyring::Entry::new(OPENAI_KEY_SERVICE, OPENAI_KEY_ACCOUNT)
+            .map_err(|e| format!("Не удалось открыть macOS Keychain: {e}"))?;
+        return entry.set_password(key).map_err(|e| format!("Не удалось сохранить ключ в macOS Keychain: {e}"));
+    }
+    #[cfg(not(target_os = "macos"))] {
+        let _ = key;
+        Err("Хранение ключа OpenAI доступно в нативной macOS-версии Fox Space.".into())
+    }
+}
+
+#[tauri::command]
+fn delete_openai_api_key() -> Result<(), String> {
+    #[cfg(target_os = "macos")] {
+        let entry = keyring::Entry::new(OPENAI_KEY_SERVICE, OPENAI_KEY_ACCOUNT)
+            .map_err(|e| format!("Не удалось открыть macOS Keychain: {e}"))?;
+        return match entry.delete_credential() {
+            Ok(()) => Ok(()),
+            Err(keyring::Error::NoEntry) => Ok(()),
+            Err(e) => Err(format!("Не удалось удалить ключ из macOS Keychain: {e}")),
+        };
+    }
+    #[cfg(not(target_os = "macos"))] {
+        Err("Управление ключом OpenAI доступно в нативной macOS-версии Fox Space.".into())
+    }
+}
+
+#[tauri::command]
+async fn openai_responses_create(model: String, prompt: String, instructions: Option<String>) -> Result<String, String> {
+    let model = model.trim();
+    if !["gpt-6.2-sol", "gpt-6.2-astra"].contains(&model) {
+        return Err("Выбрана неподдерживаемая модель.".into());
+    }
+    let prompt = prompt.trim();
+    if prompt.is_empty() || prompt.len() > 50_000 {
+        return Err("Запрос должен содержать от 1 до 50 000 символов.".into());
+    }
+    let instructions = instructions.unwrap_or_else(|| "Ты — AI-помощник Fox Space. Отвечай на русском языке, кратко и структурированно. Не утверждай, что изменил данные рабочего пространства: этот режим только отвечает на вопросы.".into());
+    if instructions.len() > 8_000 {
+        return Err("Инструкции превышают лимит 8 000 символов.".into());
+    }
+    #[cfg(target_os = "macos")] {
+        let entry = keyring::Entry::new(OPENAI_KEY_SERVICE, OPENAI_KEY_ACCOUNT)
+            .map_err(|e| format!("Не удалось открыть macOS Keychain: {e}"))?;
+        let key = entry.get_password().map_err(|_| "Сначала сохраните API-ключ OpenAI в настройках AI-помощника.".to_string())?;
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(90))
+            .build()
+            .map_err(|e| format!("Не удалось создать HTTPS-клиент: {e}"))?;
+        let payload = serde_json::json!({
+            "model": model,
+            "instructions": instructions,
+            "input": prompt,
+            "store": false,
+            "max_output_tokens": 1800
+        });
+        let response = client.post("https://api.openai.com/v1/responses")
+            .bearer_auth(key)
+            .json(&payload)
+            .send().await
+            .map_err(|e| format!("Ошибка соединения с OpenAI: {e}"))?;
+        let status = response.status();
+        let body: serde_json::Value = response.json().await
+            .map_err(|e| format!("OpenAI вернул некорректный ответ: {e}"))?;
+        if !status.is_success() {
+            let detail = body.pointer("/error/message").and_then(|v| v.as_str()).unwrap_or("Неизвестная ошибка API");
+            return Err(format!("OpenAI API ({}): {}", status.as_u16(), detail));
+        }
+        let mut output = Vec::new();
+        if let Some(items) = body.get("output").and_then(|v| v.as_array()) {
+            for item in items {
+                if item.get("type").and_then(|v| v.as_str()) != Some("message") { continue; }
+                if let Some(parts) = item.get("content").and_then(|v| v.as_array()) {
+                    for part in parts {
+                        if part.get("type").and_then(|v| v.as_str()) == Some("output_text") {
+                            if let Some(text) = part.get("text").and_then(|v| v.as_str()) { output.push(text); }
+                        }
+                    }
+                }
+            }
+        }
+        if output.is_empty() {
+            return Err("Модель не вернула текстовый ответ. Попробуйте изменить запрос.".into());
+        }
+        return Ok(output.join("\n\n"));
+    }
+    #[cfg(not(target_os = "macos"))] {
+        Err("AI-помощник с защищённым хранилищем ключа доступен в нативной macOS-версии Fox Space.".into())
+    }
+}
+
 fn chrono_stamp() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
@@ -191,7 +304,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
-        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup])
+        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup, openai_key_status, save_openai_api_key, delete_openai_api_key, openai_responses_create])
         .run(tauri::generate_context!())
         .expect("error while running Fox Space");
 }
