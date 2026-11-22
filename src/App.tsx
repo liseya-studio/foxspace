@@ -6,6 +6,8 @@ import { listItems, type StoredItem } from "./features/files/storage";
 import FoxEditor from "./features/editor/FoxEditor";
 import NotesTasks from "./features/notes/NotesTasks";
 import ProjectsCenter from "./features/projects/ProjectsCenter";
+import "./features/projects/projects.css";
+import { createAutoBackup } from "./features/backup/autoBackup";
 import { readNotesTasks } from "./features/notes/data";
 import NotificationCenter from "./features/notifications/NotificationCenter";
 import MessagesCenter from "./features/messages/MessagesCenter";
@@ -67,7 +69,7 @@ export default function App() {
     update();
     const timer=window.setInterval(update,5*60*1000);
     window.addEventListener("fox-notes-tasks-updated",update);
-    return ()=>{window.clearInterval(timer);window.removeEventListener("fox-notes-tasks-updated",update);};
+    return ()=>{window.clearInterval(timer);window.clearInterval(backupTimer);window.removeEventListener("fox-notes-tasks-updated",update);};
   },[]);
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
   useEffect(()=>{const update=()=>setTableRevision(v=>v+1);window.addEventListener("fox-tables-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-tables-updated",update);window.removeEventListener("storage",update);};},[]);
