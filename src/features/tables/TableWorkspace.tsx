@@ -1,4 +1,5 @@
 import { readProjects, type Project } from "../projects/data";
+import {downloadXlsx} from "./xlsx";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   Plus, Search, Filter, ArrowUpDown, MoreHorizontal, ChevronDown, Table2, FolderKanban, History, FileSpreadsheet,
@@ -34,8 +35,6 @@ function loadTables(): DataTable[] {
   catch { return initialTables; }
 }
 const id = () => crypto.randomUUID();
-import {downloadXlsx} from "./xlsx";
-
 
 export default function TableWorkspace({openCreate=false,onCreateConsumed}:{openCreate?:boolean;onCreateConsumed?:()=>void}) {
   const [tables, setTables] = useState<DataTable[]>(loadTables);
