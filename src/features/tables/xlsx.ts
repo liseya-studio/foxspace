@@ -38,6 +38,7 @@ export function downloadXlsx(name:string,headers:string[],rows:SpreadsheetValue[
  {name:"xl/_rels/workbook.xml.rels",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`)},
  {name:"xl/worksheets/sheet1.xml",data:encoder.encode(sheet)}
  ];
- const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+ const bytes=zipStore(files);const buffer=new ArrayBuffer(bytes.byteLength);new Uint8Array(buffer).set(bytes);
+ const blob=new Blob([buffer],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
  const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(name.trim()||"table")+".xlsx";link.click();window.setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
