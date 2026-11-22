@@ -1,4 +1,5 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{collections::BTreeMap, fs, path::{Path, PathBuf}};
+use sha2::{Digest, Sha256};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use tauri::{AppHandle, Manager};
 
@@ -69,6 +70,44 @@ fn delete_file_blob(app: AppHandle, id: String) -> Result<(), String> {
     Ok(())
 }
 
+fn sha256_file(path: &Path) -> Result<String, String> {
+    let bytes = fs::read(path).map_err(|e| format!("Cannot read backup file for checksum: {e}"))?;
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn collect_backup_hashes(root: &Path, current: &Path, hashes: &mut BTreeMap<String, String>) -> Result<(), String> {
+    for entry in fs::read_dir(current).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
+            collect_backup_hashes(root, &path, hashes)?;
+        } else if entry.file_name().to_string_lossy() != "manifest.json" {
+            let relative = path.strip_prefix(root).map_err(|e| e.to_string())?.to_string_lossy().to_string();
+            hashes.insert(relative, sha256_file(&path)?);
+        }
+    }
+    Ok(())
+}
+
+fn verify_native_backup(backup_dir: &Path) -> Result<(), String> {
+    let manifest_path = backup_dir.join("manifest.json");
+    if !manifest_path.exists() { return Err("Нативная копия не содержит манифест целостности".into()); }
+    let manifest: serde_json::Value = serde_json::from_slice(&fs::read(manifest_path).map_err(|e| e.to_string())?)
+        .map_err(|e| format!("Манифест резервной копии повреждён: {e}"))?;
+    if manifest.get("algorithm").and_then(|v| v.as_str()) != Some("SHA-256") { return Err("Неподдерживаемый алгоритм целостности резервной копии".into()); }
+    let expected = manifest.get("files").and_then(|v| v.as_object()).ok_or("В манифесте отсутствует список файлов")?;
+    let mut actual = BTreeMap::new();
+    collect_backup_hashes(backup_dir, backup_dir, &mut actual)?;
+    if expected.len() != actual.len() { return Err("Состав файлов резервной копии не совпадает с манифестом".into()); }
+    for (path, digest) in expected {
+        let expected_digest = digest.as_str().ok_or("Некорректная контрольная сумма в манифесте")?;
+        if actual.get(path).map(String::as_str) != Some(expected_digest) { return Err(format!("Контрольная сумма файла «{path}» не совпадает")); }
+    }
+    Ok(())
+}
+
 fn copy_directory(source: &Path, destination: &Path) -> Result<(), String> {
     if !source.exists() { return Ok(()); }
     fs::create_dir_all(destination).map_err(|e| format!("Cannot create backup folder: {e}"))?;
@@ -90,9 +129,10 @@ fn restore_latest_native_backup(app: AppHandle) -> Result<String, String> {
     let backups = root.join("backups");
     if !backups.exists() { return Err("Нативных резервных копий пока нет".into()); }
     let mut entries: Vec<_> = fs::read_dir(&backups).map_err(|e| e.to_string())?
-        .filter_map(Result::ok).filter(|entry| entry.path().is_dir() && entry.path().join("workspace.json").exists()).collect();
+        .filter_map(Result::ok).filter(|entry| entry.path().is_dir() && entry.path().join("workspace.json").exists() && entry.path().join("manifest.json").exists()).collect();
     entries.sort_by_key(|entry| entry.metadata().and_then(|m| m.modified()).ok());
     let latest = entries.pop().ok_or("Нативных резервных копий пока нет")?.path();
+    verify_native_backup(&latest)?;
     let snapshot = fs::read_to_string(latest.join("workspace.json")).map_err(|e| format!("Cannot read native backup: {e}"))?;
     serde_json::from_str::<serde_json::Value>(&snapshot).map_err(|e| format!("Native backup is invalid JSON: {e}"))?;
 
@@ -128,6 +168,11 @@ fn create_native_backup(app: AppHandle) -> Result<String, String> {
     fs::create_dir_all(&backup_dir).map_err(|e| format!("Cannot create backup version: {e}"))?;
     fs::copy(&source, backup_dir.join("workspace.json")).map_err(|e| format!("Cannot create native backup: {e}"))?;
     copy_directory(&root.join("files"), &backup_dir.join("files"))?;
+    let mut hashes = BTreeMap::new();
+    collect_backup_hashes(&backup_dir, &backup_dir, &mut hashes)?;
+    let manifest = serde_json::json!({"algorithm":"SHA-256","files":hashes});
+    let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
+    fs::write(backup_dir.join("manifest.json"), manifest_bytes).map_err(|e| format!("Cannot write backup integrity manifest: {e}"))?;
     let mut entries: Vec<_> = fs::read_dir(&backups).map_err(|e| e.to_string())?
         .filter_map(Result::ok).filter(|entry| entry.path().is_dir()).collect();
     entries.sort_by_key(|entry| entry.metadata().and_then(|m| m.modified()).ok());
