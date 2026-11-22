@@ -7,7 +7,10 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -21,14 +24,16 @@
     "topojson-client": "^3.1.0",
     "d3-geo": "^3.1.1",
     "world-countries": "^5.1.0",
-    "simple-icons": "^16.0.0"
+    "simple-icons": "^16.0.0",
+    "@tauri-apps/api": "^2.8.0"
   },
   "devDependencies": {
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@playwright/test": "^1.58.0",
     "@types/topojson-client": "^3.1.0",
-    "@types/d3-geo": "^3.0.0"
+    "@types/d3-geo": "^3.0.0",
+    "@tauri-apps/cli": "^2.8.4"
   },
   "overrides": {
     "csstype": "3.1.3"
