@@ -24,8 +24,10 @@ export default function ProjectsCenter({onOpenTask}:{onOpenTask?:(id:string)=>vo
   const [filter,setFilter]=useState<"all"|ProjectStatus>("all");
   const [query,setQuery]=useState("");
   const [fileItems,setFileItems]=useState<StoredItem[]>([]);
+  const [tableRevision,setTableRevision]=useState(0);
   const fileInputRef=useRef<HTMLInputElement>(null);
-  useEffect(()=>{let mounted=true;const refresh=()=>{void listItems().then(items=>{if(mounted)setFileItems(items.filter(item=>item.kind==="file"));}).catch(error=>console.error("Could not load project files",error));};refresh();window.addEventListener("fox-files-updated",refresh);return ()=>{mounted=false;window.removeEventListener("fox-files-updated",refresh);};},[]);
+  useEffect(()=>{let mounted=true;const refresh=()=>{void listItems().then(items=>{if(mounted)setFileItems(items.filter(item=>item.kind==="file"));}).catch(error=>console.error("Could not load project files",error));};const updateTables=()=>setTableRevision(value=>value+1);refresh();window.addEventListener("fox-files-updated",refresh);window.addEventListener("fox-tables-updated",updateTables);return ()=>{mounted=false;window.removeEventListener("fox-files-updated",refresh);window.removeEventListener("fox-tables-updated",updateTables);};},[]);
+  void tableRevision;
   const selected=data.projects.find(p=>p.id===selectedId);
   const taskData=readNotesTasks();
   const tableOptions=(()=>{try{return JSON.parse(localStorage.getItem("fox-tables-v1")||"[]") as {id:string;name:string;columns:{id:string;name:string;type:string}[];rows:{id:string;cells:Record<string,string|number|boolean>}[]}[];}catch{return [];}})();
