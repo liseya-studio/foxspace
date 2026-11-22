@@ -1,6 +1,6 @@
 import { listItems, replaceItems, type StoredItem } from "../files/storage";
 
-const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1"] as const;
+const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1","fox-agent-pending-v1"] as const;
 const FORMAT = "fox-space-backup-v1";
 type SerializedFile = Omit<StoredItem,"blob"> & {blobBase64?:string};
 type Backup = {format:string;createdAt:string;records:Record<string,unknown>;files:SerializedFile[];integrity?:{algorithm:"SHA-256";digest:string}};
@@ -32,8 +32,9 @@ function validateRecords(records:unknown):Record<string,unknown>{
   const automations=values["fox-automations-v1"] as {version?:number;items?:unknown[];history?:unknown[]};
   if(!automations||automations.version!==1||!Array.isArray(automations.items)||!Array.isArray(automations.history))throw Error("Повреждены настройки автоматизаций");
   if(!("fox-agent-policies-v1" in values))values["fox-agent-policies-v1"]=[];
+  if(!("fox-agent-pending-v1" in values))values["fox-agent-pending-v1"]=[];
   if(!("fox-audit-log-v1" in values))values["fox-audit-log-v1"]=[];
-  if(!Array.isArray(values["fox-agent-policies-v1"])||!Array.isArray(values["fox-audit-log-v1"]))throw Error("Повреждены настройки доступа или журнал действий");
+  if(!Array.isArray(values["fox-agent-policies-v1"])||!Array.isArray(values["fox-audit-log-v1"])||!Array.isArray(values["fox-agent-pending-v1"]))throw Error("Повреждены настройки доступа или журнал действий");
   const trackers=values["fox-trackers-v1"] as {version?:number;trackers?:unknown[]};
   if(!trackers||trackers.version!==1||!Array.isArray(trackers.trackers))throw Error("Повреждены данные личных трекеров");
   const ops=values["fox-operations-v1"] as Record<string,unknown>;
@@ -54,7 +55,7 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
   const records:Record<string,unknown>={};
   for(const key of KEYS){
     const raw=localStorage.getItem(key);
-    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
+    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"||key==="fox-agent-pending-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
   }
   const items=await listItems(true);
   let totalBytes=0;
