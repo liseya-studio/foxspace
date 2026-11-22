@@ -3,8 +3,9 @@ export type Transaction={id:string;title:string;amount:number;kind:"income"|"exp
 export type Publication={id:string;title:string;text:string;projectId:string;date:string;status:"idea"|"draft"|"ready"|"scheduled"|"published";variants:{id:string;platform:string;text:string;url:string;views:number;date:string}[]};
 export type Budget={id:string;title:string;month:string;limit:number;projectId:string;category:string};
 export type LedgerItem={id:string;title:string;kind:"debt"|"saving"|"goal";target:number;actual:number;deadline:string};
-export type Operations={version:1;transactions:Transaction[];publications:Publication[];budgets:Budget[];ledger:LedgerItem[]};
-export const emptyOperations=():Operations=>({version:1,transactions:[],publications:[],budgets:[],ledger:[]});
+export type AudienceSnapshot={id:string;date:string;source:string;projectId:string;followers:number;views:number;engagements:number;botUsers:number;botActions:number};
+export type Operations={version:1;transactions:Transaction[];publications:Publication[];budgets:Budget[];ledger:LedgerItem[];audience:AudienceSnapshot[]};
+export const emptyOperations=():Operations=>({version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]});
 export function readOperations():Operations{const raw=localStorage.getItem(OPS_KEY);if(!raw)return emptyOperations();const value=JSON.parse(raw);return {...emptyOperations(),...value};}
 export function saveOperations(data:Operations){localStorage.setItem(OPS_KEY,JSON.stringify(data));window.dispatchEvent(new Event("fox-operations-updated"));}
 export const uid=()=>crypto.randomUUID();
