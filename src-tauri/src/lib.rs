@@ -129,9 +129,10 @@ fn restore_latest_native_backup(app: AppHandle) -> Result<String, String> {
     let backups = root.join("backups");
     if !backups.exists() { return Err("Нативных резервных копий пока нет".into()); }
     let mut entries: Vec<_> = fs::read_dir(&backups).map_err(|e| e.to_string())?
-        .filter_map(Result::ok).filter(|entry| entry.path().is_dir() && entry.path().join("workspace.json").exists()).collect();
+        .filter_map(Result::ok).filter(|entry| entry.path().is_dir() && entry.path().join("workspace.json").exists() && entry.path().join("manifest.json").exists()).collect();
     entries.sort_by_key(|entry| entry.metadata().and_then(|m| m.modified()).ok());
     let latest = entries.pop().ok_or("Нативных резервных копий пока нет")?.path();
+    verify_native_backup(&latest)?;
     let snapshot = fs::read_to_string(latest.join("workspace.json")).map_err(|e| format!("Cannot read native backup: {e}"))?;
     serde_json::from_str::<serde_json::Value>(&snapshot).map_err(|e| format!("Native backup is invalid JSON: {e}"))?;
 
@@ -167,6 +168,11 @@ fn create_native_backup(app: AppHandle) -> Result<String, String> {
     fs::create_dir_all(&backup_dir).map_err(|e| format!("Cannot create backup version: {e}"))?;
     fs::copy(&source, backup_dir.join("workspace.json")).map_err(|e| format!("Cannot create native backup: {e}"))?;
     copy_directory(&root.join("files"), &backup_dir.join("files"))?;
+    let mut hashes = BTreeMap::new();
+    collect_backup_hashes(&backup_dir, &backup_dir, &mut hashes)?;
+    let manifest = serde_json::json!({"algorithm":"SHA-256","files":hashes});
+    let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
+    fs::write(backup_dir.join("manifest.json"), manifest_bytes).map_err(|e| format!("Cannot write backup integrity manifest: {e}"))?;
     let mut entries: Vec<_> = fs::read_dir(&backups).map_err(|e| e.to_string())?
         .filter_map(Result::ok).filter(|entry| entry.path().is_dir()).collect();
     entries.sort_by_key(|entry| entry.metadata().and_then(|m| m.modified()).ok());
