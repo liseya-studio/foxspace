@@ -36,6 +36,7 @@ const id = () => crypto.randomUUID();
 
 export default function TableWorkspace({openCreate=false,onCreateConsumed}:{openCreate?:boolean;onCreateConsumed?:()=>void}) {
   const [tables, setTables] = useState<DataTable[]>(loadTables);
+  const [projectRevision,setProjectRevision]=useState(0);
   const [activeId, setActiveId] = useState<string | null>(() => loadTables()[0]?.id ?? null);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Все");
@@ -63,6 +64,8 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
 
 
   useEffect(()=>{if(openCreate)onCreateConsumed?.();},[openCreate]);
+  useEffect(()=>{const update=()=>setProjectRevision(value=>value+1);window.addEventListener("fox-projects-updated",update);return ()=>window.removeEventListener("fox-projects-updated",update);},[]);
+  void projectRevision;
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify(tables)); window.dispatchEvent(new Event("fox-tables-updated")); }, [tables]);
   const activeTable = tables.find(t => t.id === activeId) ?? null;
 
