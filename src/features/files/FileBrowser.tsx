@@ -100,7 +100,7 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
     </button>
     <div className="fox-file-actions">
       {item.kind==="file"&&<button onClick={()=>void run(()=>downloadItem(item))} title="Скачать"><Download size={14}/></button>}
-      {item.kind==="file"&&/\.(csv|tsv|xlsx)$/i.test(item.name)&&<button onClick={()=>void run(async()=>{if(/\.xlsx$/i.test(item.name))await importWorkbook(item);else await importDelimitedFile(item);onOpenTables();})} title="Импортировать как таблицу"><FileText size={14}/></button>}
+      {item.kind==="file"&&/\.(csv|tsv|xlsx)$/i.test(item.name)&&<button onClick={()=>void run(async()=>{const full=await getItem(item.id);if(!full)throw new Error("Файл не найден");if(/\.xlsx$/i.test(item.name))await importWorkbook(full);else await importDelimitedFile(full);onOpenTables();})} title="Импортировать как таблицу"><FileText size={14}/></button>}
       <button onClick={()=>rename(item)} title="Переименовать"><Pencil size={14}/></button>
       <button onClick={()=>setMoving(item)} title="Переместить"><MoveRight size={14}/></button>
       <button onClick={()=>remove(item)} title="Удалить"><Trash2 size={14}/></button>
