@@ -53,7 +53,7 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
     const raw=localStorage.getItem(key);
     records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
   }
-  const items=await listItems();
+  const items=await listItems(true);
   let totalBytes=0;
   const files:SerializedFile[]=[];
   for(const item of items){
@@ -105,7 +105,7 @@ export async function inspectBackup(file:File):Promise<{backup:Backup;items:Stor
 }
 export async function restoreBackup(backup:Backup,items:StoredItem[]):Promise<void>{
   const records=validateRecords(backup.records);
-  const existing=await listItems();
+  const existing=await listItems(true);
   const old=new Map<string,string|null>();
   for(const key of KEYS)old.set(key,localStorage.getItem(key));
   try{
