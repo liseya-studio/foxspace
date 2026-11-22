@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Folder, File, FileText, Image, Video, Music2, Archive, FolderPlus, Upload, Download, Trash2, Pencil, Search, ChevronRight, HardDrive, FolderOpen, MoveRight, X, Plus } from "lucide-react";
-import { createFolder, deleteItem, downloadItem, editItem, listItems, sizeLabel, uploadFiles, type StoredItem } from "./storage";
+import { createFolder, deleteItem, downloadItem, editItem, getItem, listItems, sizeLabel, uploadFiles, type StoredItem } from "./storage";
 import { importDelimitedFile } from "./importDelimited";
 import { importWorkbook } from "./importWorkbook";
 
@@ -95,7 +95,7 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
   const validDestinations=moveCandidates.filter(item=>!moving||!isDescendant(item.id,moving.id));
   const tableTile=(t:{id:string;name:string;rows:unknown[]})=><button key={t.id} className="fox-file-tile" onClick={onOpenTables}><div className="fox-file-tile-icon table"><FileText size={23}/></div><strong>{t.name}</strong><small>Таблица · {t.rows.length} записей</small></button>;
   const fileTile=(item:StoredItem)=><div key={item.id} className="fox-file-tile">
-    <button className="fox-file-open" onClick={()=>item.kind==="folder"?setFolderId(item.id):setPreview(item)}>
+    <button className="fox-file-open" onClick={()=>item.kind==="folder"?setFolderId(item.id):void run(async()=>{const full=await getItem(item.id);if(!full)throw new Error("Файл не найден");setPreview(full);})}>
       <div className={"fox-file-tile-icon "+item.kind}>{fileIcon(item)}</div><strong title={item.name}>{item.name}</strong><small>{item.kind==="folder"?"Папка":sizeLabel(item.size)}</small>
     </button>
     <div className="fox-file-actions">
@@ -107,7 +107,7 @@ export default function FileBrowser({mode,onOpenTables,onCreateTable,tables,crea
     </div>
   </div>;
   return <section className="fox-file-browser" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();void upload(e.dataTransfer.files);}}>
-    <div className="fox-file-header"><div><div className="eyebrow">ЛОКАЛЬНОЕ ХРАНИЛИЩЕ</div><h2>{mode==="all"?"Мои файлы и таблицы":mode==="tables"?"Таблицы":"Файлы"}</h2><p>Файлы сохраняются в IndexedDB этого браузера, без загрузки на сервер.</p></div>
+    <div className="fox-file-header"><div><div className="eyebrow">ЛОКАЛЬНОЕ ХРАНИЛИЩЕ</div><h2>{mode==="all"?"Мои файлы и таблицы":mode==="tables"?"Таблицы":"Файлы"}</h2><p>Файлы хранятся локально: в браузере — в IndexedDB, в macOS-приложении — в папке данных Fox Space. На сервер они не отправляются.</p></div>
       <div className="fox-file-header-actions"><input ref={uploadRef} type="file" multiple hidden onChange={e=>void upload(e.target.files)}/><input ref={workbookRef} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onChange={e=>void importLocalWorkbook(e.target.files?.[0])}/><button className="outline-button" type="button" onClick={()=>workbookRef.current?.click()} disabled={busy}><FileText size={16}/> Импорт Excel в таблицы</button><button className="outline-button" onClick={()=>{setFolderDialog(true);setFolderName("");}} disabled={busy}><FolderPlus size={16}/> Папка</button><button className="primary-button" onClick={()=>uploadRef.current?.click()} disabled={busy}><Upload size={16}/> Загрузить файл</button></div></div>
     <div className="fox-file-stats"><span><HardDrive size={16}/> {fileCount} файлов · {sizeLabel(fileBytes)} фактических данных</span><span>{items.filter(item=>item.kind==="folder").length} папок · {tables.length} таблиц</span></div>
     <div className="fox-file-navigation"><div className="fox-file-breadcrumb"><button onClick={()=>setFolderId(null)}><FolderOpen size={16}/> Все файлы</button>{crumbs.map(c=><span key={c.id}><ChevronRight size={14}/><button onClick={()=>setFolderId(c.id)}>{c.name}</button></span>)}</div><label className="fox-file-search"><Search size={16}/><input placeholder="Поиск по файлам" value={query} onChange={e=>setQuery(e.target.value)}/></label></div>
