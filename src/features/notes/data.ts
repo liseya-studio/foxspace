@@ -8,6 +8,7 @@ export type Task = {
   tags: string[]; checklist: { id: string; title: string; done: boolean }[];
   repeat?: TaskRepeat; seriesId?: string;
   projectId?: string; goalId?: string;
+  history?: { at: string; changes: string }[];
   createdAt: string; updatedAt: string;
 };
 export type Note = {
