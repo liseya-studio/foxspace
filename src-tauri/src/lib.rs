@@ -83,7 +83,7 @@ fn collect_backup_hashes(root: &Path, current: &Path, hashes: &mut BTreeMap<Stri
         let path = entry.path();
         if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
             collect_backup_hashes(root, &path, hashes)?;
-        } else if entry.file_name() != "manifest.json" {
+        } else if entry.file_name().to_string_lossy() != "manifest.json" {
             let relative = path.strip_prefix(root).map_err(|e| e.to_string())?.to_string_lossy().to_string();
             hashes.insert(relative, sha256_file(&path)?);
         }
