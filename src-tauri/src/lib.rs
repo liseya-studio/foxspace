@@ -293,6 +293,65 @@ async fn openai_responses_create(model: String, prompt: String, instructions: Op
     }
 }
 
+
+#[tauri::command]
+async fn openai_responses_with_tools(model: String, input: String, instructions: Option<String>, tools: Option<serde_json::Value>) -> Result<String, String> {
+    let model = model.trim();
+    if !["gpt-6.2-sol", "gpt-6.2-astra"].contains(&model) {
+        return Err("Выбрана неподдерживаемая модель.".into());
+    }
+    if input.trim().is_empty() || input.len() > 120_000 {
+        return Err("Контекст запроса должен содержать от 1 до 120 000 символов.".into());
+    }
+    let input_value: serde_json::Value = serde_json::from_str(&input)
+        .unwrap_or_else(|_| serde_json::Value::String(input));
+    if let Some(ref tool_list) = tools {
+        if !tool_list.is_array() || tool_list.as_array().map(|v| v.len() > 12).unwrap_or(true) {
+            return Err("Некорректный набор инструментов.".into());
+        }
+    }
+    let instructions = instructions.unwrap_or_else(|| "Ты — AI-агент Fox Space. Используй инструменты только для действий, прямо запрошенных пользователем. Перед изменением данных сообщай, что операция может потребовать подтверждения. Никогда не утверждай, что изменение выполнено, пока инструмент не вернул успешный результат. Отвечай на русском языке.".into());
+    if instructions.len() > 12_000 {
+        return Err("Инструкции превышают лимит 12 000 символов.".into());
+    }
+    #[cfg(target_os = "macos")] {
+        let entry = keyring::Entry::new(OPENAI_KEY_SERVICE, OPENAI_KEY_ACCOUNT)
+            .map_err(|e| format!("Не удалось открыть macOS Keychain: {e}"))?;
+        let key = entry.get_password().map_err(|_| "Сначала сохраните API-ключ OpenAI в настройках AI-помощника.".to_string())?;
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(90))
+            .build()
+            .map_err(|e| format!("Не удалось создать HTTPS-клиент: {e}"))?;
+        let mut payload = serde_json::json!({
+            "model": model,
+            "instructions": instructions,
+            "input": input_value,
+            "store": false,
+            "max_output_tokens": 2400
+        });
+        if let Some(tool_list) = tools {
+            payload["tools"] = tool_list;
+            payload["tool_choice"] = "auto".into();
+        }
+        let response = client.post("https://api.openai.com/v1/responses")
+            .bearer_auth(key)
+            .json(&payload)
+            .send().await
+            .map_err(|e| format!("Ошибка соединения с OpenAI: {e}"))?;
+        let status = response.status();
+        let body: serde_json::Value = response.json().await
+            .map_err(|e| format!("OpenAI вернул некорректный ответ: {e}"))?;
+        if !status.is_success() {
+            let detail = body.pointer("/error/message").and_then(|v| v.as_str()).unwrap_or("Неизвестная ошибка API");
+            return Err(format!("OpenAI API ({}): {}", status.as_u16(), detail));
+        }
+        return Ok(body.to_string());
+    }
+    #[cfg(not(target_os = "macos"))] {
+        Err("Вызов AI-инструментов доступен в нативной macOS-версии Fox Space.".into())
+    }
+}
+
 fn chrono_stamp() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
@@ -304,7 +363,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
-        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup, openai_key_status, save_openai_api_key, delete_openai_api_key, openai_responses_create])
+        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup, openai_key_status, save_openai_api_key, delete_openai_api_key, openai_responses_create, openai_responses_with_tools])
         .run(tauri::generate_context!())
         .expect("error while running Fox Space");
 }
