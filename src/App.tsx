@@ -174,6 +174,24 @@ export default function App() {
       window.dispatchEvent(new Event("fox-tables-updated"));
     }catch(error){setCreateError(error instanceof Error?error.message:"Не удалось создать шаблон");setCreateOpen(false);}
   }
+  function createProjectScreen(projectId:string,projectName:string):string{
+    const screenId=crypto.randomUUID();
+    const tables=read<{id:string;name:string;columns:{id:string;name:string;type:string}[]}[]>("fox-tables-v1",[]);
+    const linked=tables.flatMap(table=>table.columns.filter(column=>column.type==="project").map(column=>({table,column})));
+    const widgets=[
+      {id:crypto.randomUUID(),type:"heading",title:projectName,body:"Материалы и связанные данные проекта",width:12,height:110,filter:{},limit:8,target:100,aggregate:"sum"},
+      ...linked.slice(0,8).map(({table,column})=>({
+        id:crypto.randomUUID(),type:"table",title:table.name,tableId:table.id,
+        width:12,height:285,filter:{columnId:column.id,operator:"equals",value:projectId},
+        limit:8,target:100,aggregate:"sum"
+      }))
+    ];
+    const current=read<Record<string,unknown[]>>("fox-editor-widgets-v1",{});
+    localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({...current,[screenId]:widgets}));
+    setScreens(prev=>[...prev,{id:screenId,name:projectName,icon:"▣"}]);
+    setActive(screenId);
+    return screenId;
+  }
   function addChildScreen(parentId:string){
     const parent=screens.find(screen=>screen.id===parentId);
     if(!parent)return;
@@ -265,7 +283,7 @@ export default function App() {
         ) : active === "operations" ? (
           <OperationsCenter />
         ) : active === "projects" ? (
-          <ProjectsCenter onOpenTask={navigateToTask} onOpenScreen={setActive}/>
+          <ProjectsCenter onOpenTask={navigateToTask} onOpenScreen={setActive} onCreateScreen={createProjectScreen}/>
         ) : active === "files" ? (
           <FilesHub createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
         ) : active === "notes" ? (
