@@ -275,15 +275,6 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   function moveWidget(id: string, direction: -1 | 1) {
     updateWidgets(prev=>{const index=prev.findIndex(w=>w.id===id);const nextIndex=index+direction;if(index<0||nextIndex<0||nextIndex>=prev.length)return prev;const next=[...prev];[next[index],next[nextIndex]]=[next[nextIndex],next[index]];return next;});
   }
-  function reorder(fromId: string, toId: string) {
-    if (fromId === toId) return;
-    updateWidgets(prev => {
-      const next = [...prev], from = next.findIndex(w => w.id === fromId), to = next.findIndex(w => w.id === toId);
-      if (from < 0 || to < 0) return prev;
-      next.splice(to, 0, next.splice(from, 1)[0]);
-      return next;
-    });
-  }
   const selectedTable = tables.find(t => t.id === selected?.tableId);
   const numericFields = selectedTable?.columns.filter(c => c.type === "number" || c.type === "formula") ?? [];
   const allFields = selectedTable?.columns ?? [];
