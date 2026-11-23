@@ -48,7 +48,7 @@ async function zipXml(file:File,names:string[]):Promise<Record<string,Document>>
  }
  return result;
 }
-function nodes(doc:Document,local:string):Element[]{
+function nodes(doc:Document|Element,local:string):Element[]{
  return Array.from(doc.getElementsByTagNameNS("*",local));
 }
 function formulaText(node:Element):string{
