@@ -1,6 +1,6 @@
 import { listItems, replaceItems, type StoredItem } from "../files/storage";
 
-const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-screen-grid-v1","fox-custom-screen-templates-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1","fox-agent-pending-v1"] as const;
+const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-widget-table-columns-v1","fox-screen-grid-v1","fox-custom-screen-templates-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1","fox-agent-pending-v1"] as const;
 const FORMAT = "fox-space-backup-v1";
 type SerializedFile = Omit<StoredItem,"blob"> & {blobBase64?:string};
 type Backup = {format:string;createdAt:string;records:Record<string,unknown>;files:SerializedFile[];integrity?:{algorithm:"SHA-256";digest:string}};
