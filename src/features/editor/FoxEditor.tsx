@@ -133,15 +133,17 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
   }
   if (widget.type === "bars") {
     if (!numberCol) return <div className="fox-widget-empty">Для графика нужна числовая колонка.</div>;
-    const sample = rows.slice(0, maxItems);
-    if (!sample.length) return <EmptyChartPreview kind="bars"/>;
-    const vals = sample.map(row => Number(value(row, numberCol)) || 0);
+    const valid=rows.map(row=>({row,raw:value(row,numberCol)})).filter(item=>item.raw!==undefined&&item.raw!==null&&String(item.raw).trim()!==""&&Number.isFinite(Number(item.raw))).slice(0,maxItems);
+    if (!valid.length) return <EmptyChartPreview kind="bars"/>;
+    const vals=valid.map(item=>Number(item.raw));
     const max = Math.max(1, ...vals.map(Math.abs));
-    return <div className="fox-widget-bars">{sample.map((row, i) => <div className="fox-widget-bar-row" key={row.id}><span title={String(textCol ? value(row,textCol) ?? "" : "")}>{String(textCol ? value(row,textCol) ?? "Запись "+(i+1) : "Запись "+(i+1))}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(vals[i])/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(vals[i])}</b></div>)}</div>;
+    return <div className="fox-widget-bars">{valid.map(({row}, i) => <div className="fox-widget-bar-row" key={row.id}><span title={String(textCol ? value(row,textCol) ?? "" : "")}>{String(textCol ? value(row,textCol) ?? "Запись "+(i+1) : "Запись "+(i+1))}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(vals[i])/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(vals[i])}</b></div>)}</div>;
   }
   if (widget.type === "line") {
     if (!numberCol) return <div className="fox-widget-empty">Выберите числовую колонку.</div>;
-    const data = rows.slice(0, maxItems).map(row => Number(value(row,numberCol)) || 0);
+    const dateColumn=table.columns.find(col=>col.type==="date");
+    const ordered=dateColumn?[...rows].sort((a,b)=>String(value(a,dateColumn)??"").localeCompare(String(value(b,dateColumn)??""))):rows;
+    const data = ordered.map(row=>value(row,numberCol)).filter(raw=>raw!==undefined&&raw!==null&&String(raw).trim()!==""&&Number.isFinite(Number(raw))).slice(0,maxItems).map(Number);
     if (!data.length) return <EmptyChartPreview kind="line"/>;
     const min = Math.min(...data), max = Math.max(...data), spread = Math.max(1, max-min);
     const points = data.map((value,i) => (10 + (i/Math.max(1,data.length-1))*280).toFixed(1)+","+(110-(value-min)/spread*90).toFixed(1)).join(" ");
@@ -152,11 +154,13 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     const groupCol = table.columns.find(col=>col.id===widget.labelColumnId) ?? table.columns.find(col=>col.type==="select"||col.type==="text");
     if (!groupCol) return <div className="fox-widget-empty">Выберите поле для группировки.</div>;
     const counts = new Map<string, number>();
-    rows.forEach(row=>{const label=String(value(row,groupCol)??"Без значения")||"Без значения";counts.set(label,(counts.get(label)||0)+1);});
+    rows.forEach(row=>{const label=String(value(row,groupCol)??"").trim()||"Без значения";counts.set(label,(counts.get(label)||0)+1);});
+    const ranked=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"ru"));
+    const visible=ranked.length>6?[...ranked.slice(0,5),["Остальные",ranked.slice(5).reduce((sum,item)=>sum+item[1],0)] as [string,number]]:ranked;
     const palette = ["#f06432","#4779d5","#388b69","#8864c8","#d1a34a","#c96b93"];
     let offset=0;
-    const gradient = Array.from(counts.values()).map((count,i)=>{const start=offset;offset+=count/Math.max(1,rows.length)*100;return palette[i%palette.length]+" "+start+"% "+offset+"%";}).join(",");
-    return <div className="fox-widget-donut"><div className="fox-donut-ring" style={{background:gradient?"conic-gradient("+gradient+")":"var(--canvas)"}}><div><strong>{rows.length}</strong><small>записей</small></div></div><div className="fox-donut-legend">{Array.from(counts.entries()).slice(0,6).map(([name,count],i)=><div key={name}><i style={{background:palette[i%palette.length]}}/><span title={name}>{name}</span><b>{count}</b></div>)}</div></div>;
+    const gradient = visible.map(([,count],i)=>{const start=offset;offset+=count/Math.max(1,rows.length)*100;return palette[i%palette.length]+" "+start+"% "+offset+"%";}).join(",");
+    return <div className="fox-widget-donut"><div className="fox-donut-ring" style={{background:gradient?"conic-gradient("+gradient+")":"var(--canvas)"}}><div><strong>{rows.length}</strong><small>записей</small></div></div><div className="fox-donut-legend">{visible.map(([name,count],i)=><div key={name}><i style={{background:palette[i%palette.length]}}/><span title={name}>{name}</span><b>{count}</b></div>)}</div></div>;
   }
   if (widget.type === "timeline") {
     const dateCol = table.columns.find(col=>col.id===widget.columnId&&col.type==="date") ?? table.columns.find(col=>col.type==="date");
