@@ -5,6 +5,7 @@ export type TableColumn = {
   type: string;
   options?: string[];
   formulaSourceId?: string;
+  formulaSecondSourceId?: string;
   formulaOperator?: string;
   formulaFactor?: number;
   relationTableId?: string;
@@ -47,7 +48,7 @@ export function valueForColumn(
     if (!column.formulaSourceId) return undefined;
     const number = Number(row.cells[column.formulaSourceId]);
     if (!Number.isFinite(number)) return undefined;
-    const factor = Number(column.formulaFactor ?? 1);
+    const factor = column.formulaSecondSourceId ? Number(row.cells[column.formulaSecondSourceId]) : Number(column.formulaFactor ?? 1);
     if (!Number.isFinite(factor)) return undefined;
     switch (column.formulaOperator) {
       case "+": return number + factor;
