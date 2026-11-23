@@ -75,10 +75,10 @@ widget("tasklist","Задачи",undefined,{width:6}),widget("list","После�
 widget("table","Привычки","habits",{width:12})]},
 {id:"learning",name:"Обучение и языки",icon:"▤",group:"Личное",description:"Направления, уроки, словарь, тесты и прогресс, включая подробные страницы направлений.",tables:[
 table("subjects","Обучение · Направления",["Название","Категория","Статус|select","Уровень","Всего уроков|number","Пройдено уроков|number"]),
-table("lessons","Обучение · Уроки",["Урок","Направление","Тема","Статус|select","Дата|date","Заметки"]),
-table("words","Обучение · Слова",["Слово","Направление","Перевод","Тема","Изучено|checkbox"]),
-table("tests","Обучение · Тесты",["Название","Направление","Дата|date","Результат|number","Уровень"]),
-table("materials","Обучение · Материалы",["Название","Направление","Тип","Ссылка","Заметки"])],
+table("lessons","Обучение · Уроки",["Урок","Направление|relation","Тема","Статус|select","Дата|date","Заметки"]),
+table("words","Обучение · Слова",["Слово","Направление|relation","Перевод","Тема","Изучено|checkbox"]),
+table("tests","Обучение · Тесты",["Название","Направление|relation","Дата|date","Результат|number","Уровень"]),
+table("materials","Обучение · Материалы",["Название","Направление|relation","Тип","Ссылка","Заметки"])],
 widgets:[head("Мои направления","Уроки, результаты и учебные материалы."),
 widget("counter","Направления","subjects",{width:4}),widget("counter","Уроки","lessons",{width:4}),widget("counter","Тесты","tests",{width:4}),
 widget("gallery","Направления обучения","subjects",{label:"Название",width:12,height:340}),
@@ -110,8 +110,8 @@ widget("list","Полезные ссылки","links",{label:"Название",
 widget("noteslist","Заметки","",{width:6})]},
 {id:"social",name:"Блоги и ресурсы",icon:"▥",group:"Творчество",description:"Аккаунты, публикации, очередь, статистика и идеи по нескольким проектам.",tables:[
 table("resources","Блоги · Ресурсы",["Ресурс","Проект|project","Платформа","Ссылка","Подписчики|number","Статус|select"]),
-table("posts","Блоги · Публикации",["Название","Ресурс","Проект|project","Тип","Дата|date","Статус|select","Просмотры|number","Реакции|number"]),
-table("metrics","Блоги · Метрики",["Дата|date","Ресурс","Подписчики|number","Охват|number","Вовлечённость|number","Переходы|number"]),
+table("posts","Блоги · Публикации",["Название","Ресурс|relation","Проект|project","Тип","Дата|date","Статус|select","Просмотры|number","Реакции|number"]),
+table("metrics","Блоги · Метрики",["Дата|date","Ресурс|relation","Подписчики|number","Охват|number","Вовлечённость|number","Переходы|number"]),
 table("ideas","Блоги · Банк идей",["Идея","Проект|project","Тип","Статус","Приоритет"])],
 widgets:[head("Блоги и ресурсы","Общая аналитика, очередь публикаций и контент."),
 widget("counter","Ресурсы","resources",{width:3}),widget("counter","Публикации","posts",{width:3}),
@@ -125,11 +125,11 @@ widget("list","Банк идей","ideas",{label:"Идея",width:6}),
 widget("table","Все публикации","posts",{width:12})]},
 {id:"client-work",name:"Работа — заказы и клиенты",icon:"▣",group:"Работа",description:"Клиенты, проекты, сметы, услуги, платежи и заявки из разных источников.",tables:[
 table("clients","Работа · Клиенты",["Имя","Компания","Контакт","Источник","Статус","Заметки"]),
-table("orders","Работа · Заказы",["Название","Проект|project","Клиент","Категория","Источник","Дедлайн|date","Статус|select","Бюджет|number","Прогресс|number"]),
+table("orders","Работа · Заказы",["Название","Проект|project","Клиент|relation","Категория","Источник","Дедлайн|date","Статус|select","Бюджет|number","Прогресс|number"]),
 table("services","Работа · Услуги",["Услуга","Категория","Цена|number","Описание"]),
-table("orderitems","Работа · Смета",["Заказ","Услуга","Количество|number","Цена|number","Сумма|formula"]),
-table("payments","Работа · Оплаты",["Заказ","Дата|date","Сумма|number","Статус"]),
-table("leads","Работа · Лиды",["Клиент","Источник","Дата|date","Запрос","Статус"])],
+table("orderitems","Работа · Смета",["Заказ|relation","Услуга","Количество|number","Цена|number","Сумма|formula"]),
+table("payments","Работа · Оплаты",["Заказ|relation","Дата|date","Сумма|number","Статус"]),
+table("leads","Работа · Лиды",["Клиент|relation","Источник","Дата|date","Запрос","Статус"])],
 widgets:[head("Рабочий стол","Заказы, деньги и текущие сроки в одном месте."),
 widget("counter","Заказы","orders",{width:3}),widget("counter","Клиенты","clients",{width:3}),
 widget("metric","Стоимость заказов","orders",{column:"Бюджет",width:3}),
@@ -177,6 +177,31 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
    }
    const table={id:crypto.randomUUID(),name:schema.title,columns:createPresetColumns(schema.columns),rows:[],updatedAt:new Date().toISOString()};
    newTables.push(table);existing.push(table);ids.set(schema.key,table.id);
+ }
+ // Resolve semantic relations after every table has an ID. Existing non-relation
+ // fields are intentionally left unchanged to protect previously entered values.
+ const targets:Record<string,Record<string,string>>={
+   learning:{ "lessons.Направление":"subjects", "words.Направление":"subjects", "tests.Направление":"subjects", "materials.Направление":"subjects" },
+   social:{ "posts.Ресурс":"resources", "metrics.Ресурс":"resources" },
+   "client-work":{ "orders.Клиент":"clients", "orderitems.Заказ":"orders", "payments.Заказ":"orders", "leads.Клиент":"clients" }
+ };
+ for(const [source,targetKey] of Object.entries(targets[preset.id]??{})){
+   const split=source.indexOf(".");
+   const sourceKey=source.slice(0,split),field=source.slice(split+1);
+   const table=existing.find(item=>item.id===ids.get(sourceKey));
+   const targetId=ids.get(targetKey);
+   if(!table||!targetId)continue;
+   const column=table.columns.find(item=>item.name===field&&item.type==="relation");
+   if(!column)continue;
+   const patched={...table,columns:table.columns.map(item=>item.id===column.id?{...item,relationTableId:targetId}:item)};
+   existing[existing.findIndex(item=>item.id===table.id)]=patched;
+   const createdIndex=newTables.findIndex(item=>item.id===table.id);
+   if(createdIndex>=0)newTables[createdIndex]={...newTables[createdIndex],columns:patched.columns};
+   else{
+     const prior=updatedTables.findIndex(item=>item.id===table.id);
+     if(prior>=0)updatedTables[prior]=patched;
+     else updatedTables.push(patched);
+   }
  }
  const widgets:StoredWidget[]=preset.widgets.map(def=>{
    const tab=existing.find(item=>item.id===ids.get(def.source??""));
