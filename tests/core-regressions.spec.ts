@@ -78,3 +78,26 @@ test("Excel safely upgrades empty text columns to choice fields but leaves popul
  expect(populated.columns[0].type).toBe("text");
  expect(populated.rows[0].cells.status).toBe("Пользовательский текст");
 });
+
+test("monthly automation scheduled for the 31st runs on February's last day",async({page})=>{
+ await page.goto("/");
+ await page.evaluate(()=>localStorage.clear());
+ await page.reload();
+ const result=await page.evaluate(async()=>{
+  const {saveAutomations,runDueAutomations,readAutomations}=await import("/src/features/automations/data.ts");
+  const {readNotesTasks}=await import("/src/features/notes/data.ts");
+  const onLastDay=new Date(2027,1,28,10,30);
+  saveAutomations({version:1,notificationsEnabled:false,history:[],items:[{
+   id:"month-end",name:"Закрыть месяц",message:"Проверить отчёт",action:"create_task",
+   trigger:"schedule",cadence:"monthly",monthlyDay:31,date:"2027-01-31",
+   weekday:0,time:"09:00",enabled:true,lastRunKey:null,lastRunAt:null,
+   createdAt:onLastDay.toISOString(),updatedAt:onLastDay.toISOString()
+  }]});
+  await runDueAutomations(onLastDay);
+  await runDueAutomations(onLastDay);
+  return {tasks:readNotesTasks().tasks,history:readAutomations().history};
+ });
+ expect(result.tasks).toHaveLength(1);
+ expect(result.tasks[0].title).toBe("Закрыть месяц");
+ expect(result.history).toHaveLength(1);
+});
