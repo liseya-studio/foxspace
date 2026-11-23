@@ -17,7 +17,7 @@ export function changeChoiceColumn<T extends Table>(
  const changed:Row[]=table.rows.map(row=>{
    const raw=row.cells[columnId];
    let next:string;
-   if(kind==="multiselect")next=encodedMultiple(raw);
+   if(kind==="multiselect")next=normalize(raw)?encodedMultiple(raw):"";
    else if(current.type==="multiselect"){
      const selected=splitMultiple(raw);
      if(kind==="select"&&selected.length>1)throw Error("Нельзя превратить несколько выбранных значений в одно без потери данных. Сначала измените тип на «Текст».");
