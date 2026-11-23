@@ -651,3 +651,25 @@
 .fox-db-photo-placeholder{overflow:hidden}.fox-db-photo-placeholder img{display:block;width:100%;height:148px;object-fit:cover;border-radius:8px}
 
 .project-linked-screen-bar{display:flex;align-items:end;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 16px}.project-linked-screen-bar label{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}.project-linked-screen-bar select{min-width:165px;max-width:260px;padding:9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text)}
+
+/* Multi-record relations, backlinks and in-place record navigation. */
+.fox-relation-picker{position:relative;min-width:160px;max-width:100%;font-size:11px}
+.fox-relation-picker summary{list-style:none;display:flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--surface)}
+.fox-relation-picker summary::-webkit-details-marker{display:none}
+.fox-relation-picker summary span{margin-left:auto;flex:none;border-radius:10px;padding:1px 5px;background:var(--canvas);color:var(--muted)}
+.fox-relation-options{position:absolute;top:100%;left:0;min-width:210px;max-width:340px;max-height:250px;overflow:auto;z-index:12;background:var(--surface);border:1px solid var(--line);border-radius:9px;box-shadow:0 10px 24px #0002;padding:8px}
+.fox-relation-options label{display:flex;align-items:center;gap:8px;padding:6px;border-radius:5px;cursor:pointer;overflow-wrap:anywhere}
+.fox-relation-options label:hover{background:var(--canvas)}
+.fox-relation-options input{accent-color:var(--accent)}
+.fox-relation-switch{display:flex!important;flex-direction:row!important;align-items:center;gap:10px}
+.fox-relation-switch input{width:auto!important;accent-color:var(--accent)}
+.fox-related-records{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.fox-related-records button{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--canvas);font-size:11px;max-width:100%;overflow-wrap:anywhere}
+.fox-related-records button:hover{border-color:var(--accent);color:var(--accent)}
+/* Database view widgets follow the current card's available dimensions. */
+.fox-widget-body .fox-db-gallery{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));padding:8px;gap:9px}
+.fox-widget-body .fox-db-gallery-card{min-height:115px;padding:9px}
+.fox-widget-body .fox-db-kanban{min-height:0;padding:6px;gap:8px}
+.fox-widget-body .fox-db-kanban-lane{flex-basis:185px}
+.fox-widget-body .fox-db-calendar{padding:8px}
+.fox-widget-body .fox-db-calendar-day{min-height:58px}
