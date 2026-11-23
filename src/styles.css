@@ -691,7 +691,7 @@
 .app-shell .main-area.has-page-tree .fox-page-tree.is-hidden{width:48px;min-height:0;align-self:start}
 .app-shell .fox-tree-scroll{overflow-y:auto;overscroll-behavior:contain;max-height:calc(100vh - 240px)}
 .app-shell .fox-tree-header button{width:27px;height:27px}
-.app-shell .fox-tree-page .fox-symbol-icon,.app-shell .fox-tree-page .fox-platform-icon{background:transparent!important;color:currentColor!important;border-radius:0}
+.app-shell .fox-tree-page .fox-symbol-icon{background:transparent!important;color:currentColor!important;border-radius:0}
 .app-shell .fox-tree-page .fox-symbol-icon svg{width:17px;height:17px}
 .app-shell .fox-tree-line.selected{color:var(--accent)}
 .app-shell .fox-tree-add{opacity:.65}
