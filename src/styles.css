@@ -781,3 +781,6 @@
 .fox-multi-pills{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;white-space:nowrap}
 .fox-multi-pills b{display:block;flex:none;padding:3px 7px;border-radius:6px;font-size:10px;font-weight:600;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
 @media(max-width:560px){.dialog.fox-excel-dialog{padding:22px 16px}.fox-excel-field-map{grid-template-columns:1fr}.fox-excel-actions{align-items:stretch}}
+
+/* Multi-line options should remain editable in both add-field and edit-field dialogs. */
+.dialog textarea.form-input{height:auto;min-height:100px;resize:vertical;padding:10px 11px;line-height:1.5}
