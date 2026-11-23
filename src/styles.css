@@ -737,6 +737,10 @@
 .fox-widget-table-view .fox-widget-table-scroll{flex:1;min-height:80px}
 .fox-widget-sort-direction{border:1px solid var(--line);background:var(--surface);padding:6px 9px;border-radius:7px;color:var(--accent)}
 .fox-widget-table-tag{display:inline-block;padding:4px 8px;border-radius:7px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--accent);font-weight:650}
+.fox-widget-image-cell{display:inline-flex;align-items:center;gap:6px;max-width:100%;font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap}
+.fox-widget-image-cell svg{flex:none;color:var(--accent)}
+.fox-widget-table-scroll td .fox-widget-image-cell{vertical-align:middle}
+
 .fox-widget-data-hint{font-size:10px;color:var(--muted);margin:9px 0 0;line-height:1.4}
 .fox-widget-bars{display:flex;flex-direction:column;gap:12px}
 .fox-widget-bar-track{border-radius:99px;overflow:hidden}
