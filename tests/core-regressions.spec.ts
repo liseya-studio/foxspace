@@ -56,3 +56,13 @@ test("scheduled local automation creates a task once without notification permis
  expect(result.history).toHaveLength(1);
  expect(result.history[0].status).toBe("completed");
 });
+
+test("date filter compares calendar dates without timezone coercion",()=>{
+ const table:TableData={id:"date",name:"Даты",columns:[{id:"day",name:"Дата",type:"date"}],rows:[
+  {id:"before",cells:{day:"2026-11-22"}},
+  {id:"equal",cells:{day:"2026-11-23"}},
+  {id:"after",cells:{day:"2026-11-24"}}
+ ]};
+ expect(filterRows(table.rows,table,[table],{columnId:"day",operator:"gt",value:"2026-11-23"}).map(r=>r.id)).toEqual(["after"]);
+ expect(filterRows(table.rows,table,[table],{columnId:"day",operator:"lt",value:"2026-11-23"}).map(r=>r.id)).toEqual(["before"]);
+});
