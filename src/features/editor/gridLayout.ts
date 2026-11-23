@@ -29,6 +29,7 @@ export function preferredRect(widget:GridWidget,settings:GridSettings):Rect{
 }
 export function reconcileGrid(layout:GridLayout|undefined,widgets:GridWidget[]):GridLayout{
  let settings=normalizeSettings(layout?.settings);
+ if(!layout?.settings){const legacyColumns=Math.max(12,...widgets.map(w=>(w.financeColumn??1)+(w.financeColumn?Math.max(1,w.width)-1:0)));settings=normalizeSettings({...settings,columns:legacyColumns});}
  const output:Record<string,Rect>={};
  for(const widget of widgets){
   const candidate=layout?.positions?.[widget.id]??preferredRect(widget,settings);
