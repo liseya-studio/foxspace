@@ -1,4 +1,4 @@
-import {readExcelSheet,type ImportedCell} from "./excelImport";
+import type {ImportedCell} from "./excelImport";
 
 /** Extract Excel's existing list-validation options without uploading the file.
  * Supports inline lists and explicit cell ranges. Named/formula-based lists
@@ -78,18 +78,83 @@ export function columnValidationOptions(xml:string):Record<number,string[]>{
  }
  return data;
 }
-export async function readExcelDropdowns(file:File,sheetName:string):Promise<Record<number,string[]>>{
- // Discover worksheet path from the standard OOXML workbook relationship.
+async function sheetLocation(file:File,sheetName:string):Promise<string>{
  const core=await zipXml(file,["xl/workbook.xml","xl/_rels/workbook.xml.rels"]);
  const workbook=core["xl/workbook.xml"],rels=core["xl/_rels/workbook.xml.rels"];
- if(!workbook||!rels)return {};
+ if(!workbook||!rels)throw Error("Некорректная структура книги Excel.");
  const sheet=nodes(workbook,"sheet").find(item=>item.getAttribute("name")===sheetName);
  const id=sheet?.getAttribute("r:id")??sheet?.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id");
  const rel=nodes(rels,"Relationship").find(item=>item.getAttribute("Id")===id);
- if(!rel)return {};
+ if(!rel)throw Error("Лист Excel не найден: "+sheetName);
  const target=rel.getAttribute("Target")??"";
  const path=target.startsWith("/")?target.slice(1):normalizePath("xl/"+target);
- if(!path.startsWith("xl/worksheets/"))return {};
+ if(!path.startsWith("xl/worksheets/"))throw Error("Некорректный путь листа Excel.");
+ return path;
+}
+export async function listWorkbookSheets(file:File):Promise<string[]>{
+ const workbook=(await zipXml(file,["xl/workbook.xml"]))["xl/workbook.xml"];
+ if(!workbook)throw Error("Книга Excel не содержит описания листов.");
+ return nodes(workbook,"sheet").map(node=>node.getAttribute("name")??"").filter(Boolean);
+}
+function excelDate(value:number):string{
+ const epoch=Date.UTC(1899,11,30);
+ return new Date(epoch+Math.round(value*86400000)).toISOString().slice(0,10);
+}
+export async function readWorkbookSheet(file:File,sheetName:string):Promise<ImportedCell[][]>{
+ const path=await sheetLocation(file,sheetName);
+ const parts=await zipXml(file,[path,"xl/sharedStrings.xml","xl/styles.xml"]);
+ const document=parts[path];
+ if(!document)throw Error("Не удалось прочитать лист "+sheetName);
+ const shared=parts["xl/sharedStrings.xml"]?nodes(parts["xl/sharedStrings.xml"],"si").map(si=>nodesChildText(si)): [];
+ const styles=parts["xl/styles.xml"];
+ const formatNodes=styles?nodes(styles,"numFmt"):[];
+ const customDates=new Set(formatNodes.filter(x=>/[dmy]/i.test((x.getAttribute("formatCode")??"").replace(/"[^"]*"/g,""))).map(x=>Number(x.getAttribute("numFmtId"))));
+ const styleXfs=styles?nodes(styles,"cellXfs")[0]:undefined;
+ const xfs=styleXfs?Array.from(styleXfs.children):[];
+ const datedFormats=new Set([14,15,16,17,22,27,30,36,45,46,47,50,57]);
+ const result:ImportedCell[][]=[];
+ for(const row of nodes(document,"row")){
+   const index=Number(row.getAttribute("r"))||result.length+1;
+   if(index>50001)throw Error("Максимум 50 000 строк для импорта.");
+   while(result.length<index)result.push([]);
+   const target=result[index-1];
+   for(const cell of Array.from(row.children)){
+     if(cell.localName!=="c")continue;
+     const ref=cell.getAttribute("r")??"";
+     const match=ref.match(/^([A-Z]+)\d+$/i);
+     if(!match)continue;
+     const col=columnIndex(match[1]);
+     if(col>=150)throw Error("Максимум 150 колонок для импорта.");
+     const type=cell.getAttribute("t")??"";
+     const valueNode=Array.from(cell.children).find(child=>child.localName==="v");
+     const text=valueNode?.textContent??"";
+     let value:ImportedCell=null;
+     if(type==="inlineStr"){
+       const inline=Array.from(cell.children).find(child=>child.localName==="is");
+       value=inline?nodesChildText(inline):"";
+     }else if(type==="s")value=shared[Number(text)]??"";
+     else if(type==="b")value=text==="1";
+     else if(type==="str"||type==="e")value=text;
+     else if(text!==""){
+       const numeric=Number(text);
+       if(Number.isFinite(numeric)){
+         const style=xfs[Number(cell.getAttribute("s")??0)];
+         const fmt=Number(style?.getAttribute("numFmtId")??0);
+         value=datedFormats.has(fmt)||customDates.has(fmt)?excelDate(numeric):numeric;
+       }else value=text;
+     }
+     target[col]=value;
+   }
+ }
+ // Trailing empty XML rows are omitted, while empty cells inside rows remain aligned.
+ while(result.length&&result[result.length-1].every(v=>v===undefined||v===null))result.pop();
+ return result;
+}
+function nodesChildText(element:Element):string{
+ return nodes(element,"t").map(node=>node.textContent??"").join("");
+}
+export async function readExcelDropdowns(file:File,sheetName:string):Promise<Record<number,string[]>>{
+ const path=await sheetLocation(file,sheetName);
  const sheetDoc=(await zipXml(file,[path]))[path];
  if(!sheetDoc)return {};
  const out:Record<number,string[]>={};
@@ -104,7 +169,7 @@ export async function readExcelDropdowns(file:File,sheetName:string):Promise<Rec
        const col=columnIndex(match[3]),lastCol=columnIndex(match[5]??match[3]);
        const firstRow=Math.max(1,Number(match[4])),lastRow=Number(match[6]??match[4]);
        if(lastRow-firstRow<=1000&&lastCol-col<=20&&refSheet){
-         const cells:ImportedCell[][]=await readExcelSheet(file,refSheet);
+         const cells:ImportedCell[][]=await readWorkbookSheet(file,refSheet);
          options=[...new Set(cells.slice(firstRow-1,lastRow).flatMap(row=>row.slice(col,lastCol+1)).map(value=>String(value??"").trim()).filter(Boolean))];
        }
      }
