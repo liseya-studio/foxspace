@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { relationIds, valueForColumn, aggregateRows, filterRows, type TableData } from "../src/features/tables/values";
+import { SCREEN_PRESETS, instantiatePreset } from "../src/features/templates/screenPresets";
 
 const projects:TableData={
   id:"projects",name:"Проекты",
@@ -54,4 +55,27 @@ test("rollups aggregate linked rows without duplicating values",()=>{
 test("legacy single relations continue to work",()=>{
   const single={...tasks,rows:[{id:"legacy",cells:{title:"Старая задача",taskProjects:"project-a",hours:5}}]};
   expect(valueForColumn(single.rows[0],single.columns[1],[projects,single])).toBe("Fox Space");
+});
+
+test("binary formulas multiply two fields without disturbing legacy constant formulas",()=>{
+  const table:TableData={id:"estimate",name:"Смета",columns:[
+    {id:"qty",name:"Количество",type:"number"},
+    {id:"price",name:"Цена",type:"number"},
+    {id:"amount",name:"Сумма",type:"formula",formulaSourceId:"qty",formulaSecondSourceId:"price",formulaOperator:"*"},
+    {id:"legacy",name:"Старый расчёт",type:"formula",formulaSourceId:"qty",formulaFactor:2,formulaOperator:"*"}
+  ],rows:[{id:"row",cells:{qty:3,price:1200}}]};
+  expect(valueForColumn(table.rows[0],table.columns[2],[table])).toBe(3600);
+  expect(valueForColumn(table.rows[0],table.columns[3],[table])).toBe(6);
+});
+
+test("estimate screen generates configured formula from quantity and price",()=>{
+  const preset=SCREEN_PRESETS.find(item=>item.id==="client-work");
+  expect(preset).toBeDefined();
+  const result=instantiatePreset(preset!,[]);
+  const estimate=result.newTables.find(table=>table.name==="Работа · Смета");
+  expect(estimate).toBeDefined();
+  const formula=estimate!.columns.find(col=>col.name==="Сумма");
+  const qty=estimate!.columns.find(col=>col.name==="Количество");
+  const price=estimate!.columns.find(col=>col.name==="Цена");
+  expect(formula).toMatchObject({formulaSourceId:qty?.id,formulaSecondSourceId:price?.id,formulaOperator:"*"});
 });
