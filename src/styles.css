@@ -773,6 +773,23 @@
 .fox-chart-preview-donut{width:clamp(76px,12vw,136px);height:clamp(76px,12vw,136px);border-radius:100%;background:conic-gradient(color-mix(in srgb,var(--accent) 26%,var(--surface)) 0 42%,color-mix(in srgb,#4779d5 20%,var(--surface)) 42% 70%,color-mix(in srgb,#388b69 20%,var(--surface)) 70% 100%);position:relative}
 .fox-chart-preview-donut:after{content:"";position:absolute;inset:26%;background:var(--surface);border-radius:50%}
 
+
+/* Empty analytics: no fabricated series, ring, or overlaid captions. */
+.fox-chart-empty{
+  width:100%;height:100%;min-height:150px;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-sizing:border-box;gap:10px;padding:20px 24px;text-align:center;
+  color:var(--muted);overflow:hidden;
+}
+.fox-chart-empty-icon{
+  width:46px;height:46px;display:grid;place-items:center;flex:none;
+  border-radius:14px;background:color-mix(in srgb,var(--accent) 8%,var(--surface));
+  color:var(--accent);
+}
+.fox-chart-empty strong{font-size:13px;font-weight:700;line-height:1.35;color:var(--text)}
+.fox-chart-empty>span:last-child{max-width:280px;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:600px){.fox-chart-empty{padding:16px;min-height:130px}}
+
 /* Excel import wizard: column types and imported choices are reviewed before save. */
 .fox-excel-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .dialog.fox-excel-dialog{width:min(880px,calc(100vw - 32px));max-width:880px;max-height:min(90vh,900px);overflow:auto;text-align:left;padding:26px 30px}
