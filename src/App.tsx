@@ -18,6 +18,7 @@ import NotificationCenter from "./features/notifications/NotificationCenter";
 import MessagesCenter from "./features/messages/MessagesCenter";
 import FeedCenter from "./features/feed/FeedCenter";
 import { SCREEN_PRESETS, instantiatePreset } from "./features/templates/screenPresets";
+import PageTree from "./features/templates/PageTree";
 import PlatformIcon,{ PLATFORM_ICONS, DECORATIVE_ICONS } from "./features/icons/PlatformIcon";
 import { unreadNotificationCount, dispatchDesktopReminders } from "./features/notifications/data";
 import {
@@ -27,7 +28,7 @@ import {
   CircleHelp, CalendarDays, Folder, Sparkles, SlidersHorizontal, Upload, FolderPlus, Database, ArrowDownToLine, Rss
 } from "lucide-react";
 
-type Screen = { id: string; name: string; tableId?: string; icon?: string };
+type Screen = { id: string; name: string; tableId?: string; icon?: string; parentId?: string };
 type Section = "home" | "files" | "notes" | "notifications" | "messages" | "feed" | string;
 
 const starterScreens: Screen[] = [];
@@ -136,9 +137,9 @@ export default function App() {
     catch(error){setCreateError(error instanceof Error?error.message:"Ошибка загрузки");}
     finally{if(uploadInput.current)uploadInput.current.value="";}
   }
-    function addScreen() {
+    function addScreen(parentId?:string) {
     const name = "Новый экран";
-    const item = { id: crypto.randomUUID(), name };
+    const item:Screen = { id: crypto.randomUUID(), name, parentId };
     setScreens(current => [...current, item]);
     setActive(item.id);
     setCreateOpen(false);
@@ -173,13 +174,30 @@ export default function App() {
       window.dispatchEvent(new Event("fox-tables-updated"));
     }catch(error){setCreateError(error instanceof Error?error.message:"Не удалось создать шаблон");setCreateOpen(false);}
   }
+  function addChildScreen(parentId:string){
+    const parent=screens.find(screen=>screen.id===parentId);
+    if(!parent)return;
+    const item:Screen={id:crypto.randomUUID(),name:"Новая страница",parentId};
+    setScreens(current=>[...current,item]);setActive(item.id);setEditingScreenId(item.id);
+  }
+  function moveScreen(id:string,parentId?:string){
+    if(parentId===id)return;
+    let cursor=parentId;
+    const visited=new Set<string>([id]);
+    while(cursor){
+      if(visited.has(cursor))return;
+      visited.add(cursor);
+      cursor=screens.find(screen=>screen.id===cursor)?.parentId;
+    }
+    setScreens(current=>current.map(screen=>screen.id===id?{...screen,parentId}:screen));
+  }
   function saveRename(id: string) {
     const name = renameValue.trim();
     if (name) setScreens(current => current.map(s => s.id === id ? { ...s, name } : s));
     setRenameId(null);
   }
   function removeScreen(id: string) {
-    setScreens(current => current.filter(s => s.id !== id));
+    setScreens(current => current.filter(s => s.id !== id).map(screen=>screen.parentId===id?{...screen,parentId:screens.find(parent=>parent.id===id)?.parentId}:screen));
     if (active === id) setActive("home");
     if (editingScreenId === id) setEditingScreenId(null);
   }
@@ -202,7 +220,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="main-area">
+      <main className={"main-area"+(activeScreen?" has-page-tree":"")}>
+        {activeScreen&&<PageTree pages={screens} activeId={activeScreen.id} onNavigate={setActive} onAddChild={addChildScreen} onMove={moveScreen}/>}
         {active === "home" ? (
           <section className="fox-home">
             <div className="fox-home-hero">
@@ -253,7 +272,7 @@ export default function App() {
           <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)} openTaskId={taskToOpen} onTaskOpened={()=>setTaskToOpen(null)}/>
         ) : (
           <section className="content-page">
-            <div className="page-heading"><div className="fox-screen-title-area"><div className="eyebrow">МОЙ ЭКРАН</div>
+            <div className="page-heading"><div className="fox-screen-title-area"><div className="eyebrow">{activeScreen?.parentId?<button type="button" className="fox-parent-crumb" onClick={()=>setActive(activeScreen.parentId!)}>← {screens.find(page=>page.id===activeScreen.parentId)?.name??"Назад"}</button>:"МОЙ ЭКРАН"}</div>
               {activeScreen && renameId===activeScreen.id
                 ? <input className="fox-screen-rename-input" autoFocus aria-label="Название экрана" value={renameValue} onChange={event=>setRenameValue(event.target.value)} onBlur={()=>saveRename(activeScreen.id)} onKeyDown={event=>{if(event.key==="Enter")saveRename(activeScreen.id);if(event.key==="Escape")setRenameId(null);}}/>
                 : <h1>{activeScreen?.name ?? "Экран"}</h1>}
@@ -262,6 +281,13 @@ export default function App() {
                 <button className="fox-screen-actions-trigger" type="button" title="Действия с экраном" aria-label="Действия с экраном" aria-expanded={screenMenuId===activeScreen.id} onClick={()=>setScreenMenuId(current=>current===activeScreen.id?null:activeScreen.id)}><MoreHorizontal size={20}/></button>
                 {screenMenuId===activeScreen.id&&<div className="screen-context-menu fox-screen-page-menu">
                   <button onClick={()=>{setEditingScreenId(activeScreen.id);setScreenMenuId(null);}}>Редактировать экран</button>
+                  <button onClick={()=>{addChildScreen(activeScreen.id);setScreenMenuId(null);}}>Добавить вложенный экран</button>
+                  <label className="fox-screen-parent-label">Родительская страница
+                    <select aria-label="Родительская страница" value={activeScreen.parentId??""} onChange={e=>{moveScreen(activeScreen.id,e.target.value||undefined);setScreenMenuId(null);}}>
+                      <option value="">Корневой экран</option>
+                      {screens.filter(page=>page.id!==activeScreen.id&&!(() => {let cursor=page.parentId;const seen=new Set([page.id]);while(cursor&&!seen.has(cursor)){if(cursor===activeScreen.id)return true;seen.add(cursor);cursor=screens.find(p=>p.id===cursor)?.parentId;}return false;})()).map(page=><option key={page.id} value={page.id}>{page.name}</option>)}
+                    </select>
+                  </label>
                   <button onClick={()=>{setRenameId(activeScreen.id);setRenameValue(activeScreen.name);setScreenMenuId(null);}}>Переименовать</button>
                   <button onClick={()=>{setIconPickerId(activeScreen.id);setScreenMenuId(null);}}>Изменить значок</button>
                   <button className="danger" onClick={()=>{if(window.confirm("Удалить экран «"+activeScreen.name+"»?"))removeScreen(activeScreen.id);setScreenMenuId(null);}}>Удалить экран</button>
@@ -294,7 +320,7 @@ export default function App() {
         </div>
         {screens.length > 0 && <div className="dock-divider"/>}
         <div className="dock-screens">
-          {screens.map(screen => (
+          {screens.filter(screen=>!screen.parentId).map(screen => (
             <div className={active === screen.id ? "dock-screen active" : "dock-screen"} key={screen.id}>
               <button className="dock-screen-name" onClick={() => {setActive(screen.id);setScreenMenuId(null);}}>{screen.icon?<PlatformIcon value={screen.icon} size={22}/>:<LayoutDashboard size={19}/>}<span className="dock-custom-label">{screen.name}</span></button>
             </div>
