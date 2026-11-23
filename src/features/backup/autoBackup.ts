@@ -1,7 +1,7 @@
 import { createNativeBackup } from "../storage/persistence";
 import { listItems, replaceItems, type StoredItem } from "../files/storage";
 const DB="fox-space-auto-backups-v1", STORE="snapshots";
-const KEYS=["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-screen-grid-v1","fox-custom-screen-templates-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1","fox-agent-pending-v1"] as const;
+const KEYS=["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-widget-table-columns-v1","fox-screen-grid-v1","fox-custom-screen-templates-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1","fox-agent-pending-v1"] as const;
 const INTERVAL=6*60*60*1000, KEEP=5;
 type Snapshot={id:string;createdAt:string;records:Record<string,unknown>;items:StoredItem[];checksum?:string};
 async function digestBytes(bytes:Uint8Array):Promise<string>{const copy=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength) as ArrayBuffer;const digest=await crypto.subtle.digest("SHA-256",copy);return Array.from(new Uint8Array(digest)).map(value=>value.toString(16).padStart(2,"0")).join("");}
