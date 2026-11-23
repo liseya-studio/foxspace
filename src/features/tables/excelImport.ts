@@ -1,4 +1,4 @@
-import readXlsxFile from "read-excel-file";
+import {listWorkbookSheets,readWorkbookSheet} from "./excelValidation";
 
 export type ImportedCell=string|number|boolean|Date|null|undefined;
 export type ImportType="text"|"number"|"date"|"checkbox"|"select"|"multiselect";
@@ -97,10 +97,8 @@ export function mergeExcelIntoTable(draft:ImportDraft,existing:ImportTable|undef
  return table;
 }
 export async function readExcelSheet(file:File,sheet:string):Promise<ImportedCell[][]>{
- const rows=await readXlsxFile(file,{sheet});
- return rows as ImportedCell[][];
+ return readWorkbookSheet(file,sheet);
 }
 export async function listExcelSheets(file:File):Promise<string[]>{
- const sheets=await readXlsxFile(file,{getSheets:true});
- return sheets.map(sheet=>sheet.name);
+ return listWorkbookSheets(file);
 }
