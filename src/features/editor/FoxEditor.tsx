@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {GRID_KEY,readGridStore,reconcileGrid,reposition,updateGridSettings,nextSlot,type GridLayout,type Rect} from "./gridLayout";
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
 import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type TaskStatus } from "../notes/data";
 import WorldTravelMap from "./WorldTravelMap";
@@ -158,6 +159,10 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, editMode
 
 export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, tableId, onTableChange, onOpenTables, onCreateTable }: Props) {
   const [store, setStore] = useState<WidgetStore>(emptyStore);
+  const [grids,setGrids]=useState(readGridStore);
+  const [gridError,setGridError]=useState("");
+  const drag=useRef<{id:string;kind:"move"|"resize";edge:string;x:number;y:number;origin:Rect;preview:Rect;valid:boolean}|null>(null);
+  const [preview,setPreview]=useState<{id:string;rect:Rect}|null>(null);
   const [organizer,setOrganizer] = useState<NotesTasksData>(readNotesTasks);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRight, setShowRight] = useState(true);
@@ -171,16 +176,17 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const widgets = useMemo(() => store[screenId] ?? [], [store, screenId]);
   const selected = widgets.find(w => w.id === selectedId);
   const defaultTable = tables.find(t => t.id === tableId);
-  const financeLayout = widgets.some(w=>w.type==="finance"&&Boolean(w.financeKind));
-  // A resized card expands its whole finance row, keeping adjacent cards aligned.
-  const financeHeight=(row:number,baseline:number)=>Math.max(baseline,...widgets.filter(w=>w.type==="finance"&&w.financeRow===row).map(w=>w.height||baseline));
-  const financeTopHeight=Math.max(220,...widgets.filter(w=>w.type==="finance"&&w.financeRowSpan===2).map(w=>w.height||220));
-  const financeGridStyle:CSSProperties|undefined=financeLayout?({
-    "--finance-half-height":(financeTopHeight/2)+"px",
-    "--finance-row3-height":financeHeight(3,310)+"px",
-    "--finance-row4-height":financeHeight(4,295)+"px",
-  } as CSSProperties):undefined;
+  const grid=useMemo(()=>reconcileGrid(grids[screenId],widgets),[grids,screenId,widgets]);
+  const saveGrid=(layout:GridLayout)=>setGrids(prev=>({...prev,[screenId]:layout}));
+  const patchGrid=(patch:Partial<GridLayout["settings"]>)=>{saveGrid(updateGridSettings(grid,widgets,patch));setGridError("");};
+  function addPositions(items:EditorWidget[]){const next=reconcileGrid(grid,widgets);for(const item of items){const w=Math.min(next.settings.columns,Math.max(1,item.width));const h=Math.max(1,Math.ceil(item.height/(next.settings.rowHeight+next.settings.gap)));let p=nextSlot(w,h,next.positions,next.settings);while(!p&&next.settings.rows<60){next.settings={...next.settings,rows:Math.min(60,next.settings.rows+4)};p=nextSlot(w,h,next.positions,next.settings);}if(!p){setGridError("Нет места на сетке");return false;}next.positions[item.id]=p;}saveGrid(next);return true;}
+  function setPosition(id:string,patch:Partial<Rect>){const current=grid.positions[id];if(!current)return;const changed=reposition(grid,id,{...current,...patch});if(changed){saveGrid(changed);setGridError("");}else setGridError("Место занято или размер выходит за границу сетки");}
+  function pointerDown(e:React.PointerEvent<HTMLElement>,id:string,kind:"move"|"resize",edge=""){if(e.button!==0)return;const origin=grid.positions[id];if(!origin)return;e.stopPropagation();e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);drag.current={id,kind,edge,x:e.clientX,y:e.clientY,origin,preview:origin,valid:true};setSelectedId(id);}
+  function pointerMove(e:React.PointerEvent<HTMLElement>){const d=drag.current;if(!d||!canvasRef.current)return;const cell=(canvasRef.current.clientWidth-grid.settings.gap*(grid.settings.columns-1))/grid.settings.columns;const dx=Math.round((e.clientX-d.x)/(cell+grid.settings.gap)),dy=Math.round((e.clientY-d.y)/(grid.settings.rowHeight+grid.settings.gap));const r={...d.origin};if(d.kind==="move"){r.x+=dx;r.y+=dy;}else{if(d.edge==="right")r.w+=dx;if(d.edge==="left"){r.x+=dx;r.w-=dx;}if(d.edge==="bottom")r.h+=dy;if(d.edge==="top"){r.y+=dy;r.h-=dy;}}const valid=r.w>0&&r.h>0&&r.x>=0&&r.y>=0&&r.x+r.w<=grid.settings.columns&&r.y+r.h<=grid.settings.rows&&Boolean(reposition(grid,d.id,r));drag.current={...d,preview:r,valid};setPreview(valid?{id:d.id,rect:r}:null);}
+  function pointerUp(){const d=drag.current;if(!d)return;if(d.valid){const next=reposition(grid,d.id,d.preview);if(next)saveGrid(next);}else setGridError("Положение недоступно: пересечение или выход за границу");drag.current=null;setPreview(null);}
+  function pointerCancel(){drag.current=null;setPreview(null);}
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
+  useEffect(() => { localStorage.setItem(GRID_KEY,JSON.stringify(grids)); }, [grids]);
   useEffect(()=>{const update=()=>setOrganizer(readNotesTasks());window.addEventListener("fox-notes-tasks-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(() => { setSelectedId(null); setRightMode("library"); }, [screenId]);
 
