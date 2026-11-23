@@ -177,6 +177,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const selected = widgets.find(w => w.id === selectedId);
   const defaultTable = tables.find(t => t.id === tableId);
   const grid=useMemo(()=>reconcileGrid(grids[screenId],widgets),[grids,screenId,widgets]);
+  const financeLayout=widgets.some(w=>w.type==="finance"&&Boolean(w.financeKind));
   const saveGrid=(layout:GridLayout)=>setGrids(prev=>({...prev,[screenId]:layout}));
   const patchGrid=(patch:Partial<GridLayout["settings"]>)=>{saveGrid(updateGridSettings(grid,widgets,patch));setGridError("");};
   function addPositions(items:EditorWidget[]){const next=reconcileGrid(grid,widgets);for(const item of items){const w=Math.min(next.settings.columns,Math.max(1,item.width));const h=Math.max(1,Math.ceil(item.height/(next.settings.rowHeight+next.settings.gap)));let p=nextSlot(w,h,next.positions,next.settings);while(!p&&next.settings.rows<60){next.settings={...next.settings,rows:Math.min(60,next.settings.rows+4)};p=nextSlot(w,h,next.positions,next.settings);}if(!p){setGridError("Нет места на сетке");return false;}next.positions[item.id]=p;}saveGrid(next);return true;}
@@ -284,14 +285,14 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
       <div className="fox-editor-workspace">
         {editMode&&<div className="fox-grid-config"><label>Столбцы<input type="number" min={4} max={24} value={grid.settings.columns} onChange={e=>patchGrid({columns:Number(e.target.value)})}/></label><label>Строки<input type="number" min={4} max={60} value={grid.settings.rows} onChange={e=>patchGrid({rows:Number(e.target.value)})}/></label><label>Зазор, px<input type="number" min={0} max={32} value={grid.settings.gap} onChange={e=>patchGrid({gap:Number(e.target.value)})}/></label><label>Высота ячейки, px<input type="number" min={40} max={140} value={grid.settings.rowHeight} onChange={e=>patchGrid({rowHeight:Number(e.target.value)})}/></label></div>}
         {editMode&&<div className="fox-editor-source"><Database size={16}/><span>Основная таблица</span><select value={tableId??""} onChange={e=>onTableChange(e.target.value)}><option value="">Не выбрана</option>{tables.map(t=><option value={t.id} key={t.id}>{t.name}</option>)}</select><button onClick={onOpenTables}>Управление таблицами <ChevronsRight size={14}/></button></div>}
-        <div className="fox-editor-grid fox-editor-true-grid" style={{gridTemplateColumns:`repeat(${grid.settings.columns},minmax(0,1fr))`,gridTemplateRows:`repeat(${grid.settings.rows},${grid.settings.rowHeight}px)`,gap:grid.settings.gap}} ref={canvasRef}>
+        <div className={"fox-editor-grid fox-editor-true-grid"+(financeLayout?" finance-dashboard-grid":"")} style={{gridTemplateColumns:`repeat(${grid.settings.columns},minmax(0,1fr))`,gridTemplateRows:`repeat(${grid.settings.rows},${grid.settings.rowHeight}px)`,gap:grid.settings.gap}} ref={canvasRef}>
           {editMode&&<div className="fox-grid-guides" aria-hidden="true">{Array.from({length:grid.settings.columns*grid.settings.rows},(_,i)=><i key={i}/>)}</div>}
           {widgets.map(widget => {
             const table = tables.find(t => t.id === widget.tableId);
             const isSelected = !previewMode && selectedId === widget.id;
             const rect=preview?.id===widget.id?preview.rect:grid.positions[widget.id];
              if(!rect)return null;
-             return <div className={"fox-widget fox-grid-widget"+(isSelected?" selected":"")+(widget.type==="finance"?" fox-finance-card fox-finance-"+(widget.financeKind??"balance"):"")} style={{gridColumn:`${rect.x+1} / span ${rect.w}`,gridRow:`${rect.y+1} / span ${rect.h}`,minHeight:0}} key={widget.id}
+             return <div className={"fox-widget fox-grid-widget"+(isSelected?" selected":"")+(widget.type==="finance"?" fox-finance-card fox-finance-"+(widget.financeKind??"balance"):"")} style={{gridColumn:`${rect.x+1} / span ${rect.w}`,gridRow:`${rect.y+1} / span ${rect.h}`,"--fox-col":`${rect.x+1} / span ${rect.w}`,"--fox-row":`${rect.y+1} / span ${rect.h}`,minHeight:0} as React.CSSProperties} key={widget.id}
                onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
               {!previewMode&&<div className="fox-grid-drag-handle" title="Перетащить карточку" onPointerDown={e=>pointerDown(e,widget.id,"move")} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerCancel}><GripVertical size={16}/></div>}
                {widget.type!=="finance" && <div className="fox-widget-header"><h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>}
