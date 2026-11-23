@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getItem } from "../files/storage";
 import { CalendarDays, ChevronLeft, ChevronRight, FolderOpen, Image as ImageIcon } from "lucide-react";
 import type { TableData, TableRow } from "./values";
 
@@ -11,13 +12,28 @@ type Props = {
 const titleFor=(table:TableData,row:TableRow)=>String(row.cells[table.columns[0]?.id??""]??"Запись")||"Без названия";
 const statusFor=(value:unknown)=>String(value??"")||"Без статуса";
 
+function GalleryThumbnail({fileId}:{fileId:string}){
+  const [url,setUrl]=useState("");
+  useEffect(()=>{
+    let active=true;let objectUrl="";
+    setUrl("");
+    if(fileId)void getItem(fileId).then(item=>{
+      if(!item?.blob||item.kind!=="file"||!item.mime.startsWith("image/"))return;
+      objectUrl=URL.createObjectURL(item.blob);
+      if(active)setUrl(objectUrl);else URL.revokeObjectURL(objectUrl);
+    }).catch(()=>{});
+    return()=>{active=false;if(objectUrl)URL.revokeObjectURL(objectUrl);};
+  },[fileId]);
+  return <div className="fox-db-photo-placeholder">{url?<img src={url} alt="Изображение записи" loading="lazy"/>:<><ImageIcon size={20}/><span>{fileId?"Загрузка изображения":"Без изображения"}</span></>}</div>;
+}
+
 export function GalleryView({table,rows,onOpen}:Omit<Props,"onUpdate">){
   const description=table.columns.find(column=>column.type==="text"&&column.id!==table.columns[0]?.id);
   const photo=table.columns.find(column=>column.type==="image");
   const statuses=table.columns.filter(column=>column.type==="select").slice(0,2);
   return <div className="fox-db-gallery" aria-label="Галерея записей">
     {rows.map(row=><button type="button" className="fox-db-gallery-card" key={row.id} onClick={()=>onOpen(row.id)}>
-      {photo&&<div className="fox-db-photo-placeholder"><ImageIcon size={20}/><span>{row.cells[photo.id]?"Изображение прикреплено":"Без изображения"}</span></div>}
+      {photo&&<GalleryThumbnail fileId={String(row.cells[photo.id]??"")}/> }
       <strong>{titleFor(table,row)}</strong>
       {description&&<p>{String(row.cells[description.id]??"").slice(0,180)}</p>}
       <div className="fox-db-card-tags">{statuses.map(column=><span key={column.id}>{statusFor(row.cells[column.id])}</span>)}</div>
