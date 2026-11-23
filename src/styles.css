@@ -558,3 +558,8 @@
 .fox-editor-true-grid .fox-editor-empty{z-index:1}
 .fox-editor-true-grid .fox-grid-widget:has(.fox-grid-drag-handle){overflow:visible}
 .fox-editor-true-grid .fox-grid-widget:has(.fox-grid-drag-handle) .fox-widget-body{overflow:auto}
+
+/* Keep finance visual design, not its former hard-coded positions. */
+.finance-dashboard-grid.fox-editor-true-grid{grid-template-columns:repeat(var(--fox-grid-columns,13),minmax(0,1fr))!important;grid-template-rows:repeat(var(--fox-grid-rows,12),var(--fox-grid-row-height,64px))!important;grid-auto-rows:var(--fox-grid-row-height,64px)!important;gap:var(--fox-grid-gap,12px)!important}
+.finance-dashboard-grid.fox-editor-true-grid .fox-finance-card{grid-column:var(--fox-col)!important;grid-row:var(--fox-row)!important;min-height:0!important;height:100%!important}
+.finance-dashboard-grid.fox-editor-true-grid .fox-grid-guides{grid-column:auto!important;grid-row:auto!important}
