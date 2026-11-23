@@ -4,6 +4,7 @@ import {formatCell, valueForColumn, type TableData,type TableRow} from "../table
 
 type Props={
   table:TableData;
+  widgetId?:string;
   tables:TableData[];
   rows:TableRow[];
   limit:number;
@@ -12,17 +13,21 @@ type Props={
 
 /** A real, interactive table view. The empty sample row is visual guidance,
  * never saved as a user record or included in metrics. */
-export default function WidgetTablePreview({table,tables,rows,limit,onOpenRecord}:Props){
+const VISIBLE_FIELDS_KEY="fox-widget-table-columns-v1";
+export default function WidgetTablePreview({table,tables,rows,limit,onOpenRecord,widgetId}:Props){
   const [query,setQuery]=useState("");
   const [sortColumn,setSortColumn]=useState("");
   const [direction,setDirection]=useState<"asc"|"desc">("asc");
-  const [columnSelections,setColumnSelections]=useState<Record<string,string[]>>({});
-  const columnIds=columnSelections[table.id]??table.columns.slice(0,6).map(column=>column.id);
+  const [columnSelections,setColumnSelections]=useState<Record<string,string[]>>(()=>{try{const saved=JSON.parse(localStorage.getItem(VISIBLE_FIELDS_KEY)||"{}");return saved&&typeof saved==="object"&&!Array.isArray(saved)?saved:{};}catch{return {};}});
+  const selectionKey=widgetId??table.id;
+  const columnIds=columnSelections[selectionKey]??table.columns.slice(0,6).map(column=>column.id);
   const columns=table.columns.filter(column=>columnIds.includes(column.id));
   const changeColumn=(id:string,checked:boolean)=>setColumnSelections(previous=>{
-    const current=previous[table.id]??table.columns.slice(0,6).map(column=>column.id);
+    const current=previous[selectionKey]??table.columns.slice(0,6).map(column=>column.id);
     const next=checked?[...new Set([...current,id])]:current.filter(value=>value!==id);
-    return {...previous,[table.id]:next.length?next:current};
+    const updated={...previous,[selectionKey]:next.length?next:current};
+    try{localStorage.setItem(VISIBLE_FIELDS_KEY,JSON.stringify(updated));}catch{/* Keep interactive state when storage is full. */}
+    return updated;
   });
   const matching=useMemo(()=>{
     const normalized=query.trim().toLocaleLowerCase("ru");
