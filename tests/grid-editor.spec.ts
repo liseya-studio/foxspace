@@ -11,8 +11,6 @@ test("move, resize and preserve free widget positions on a configurable grid",as
  await page.locator(".fox-grid-config label").filter({hasText:"Столбцы"}).locator("input").fill("16");
  await page.locator(".fox-grid-config label").filter({hasText:"Зазор"}).locator("input").fill("8");
  await page.locator(".fox-editor-library button").filter({hasText:"Текст"}).click();
- await page.locator(".fox-editor-toolbar .outline-button").filter({hasText:"Виджет"}).click();
- await page.locator(".fox-editor-library button").filter({hasText:"Заголовок"}).click();
  const first=page.locator(".fox-widget").first();
  await expect(first).toBeVisible();
  const start=await first.locator(".fox-grid-drag-handle").boundingBox();
