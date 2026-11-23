@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {GRID_KEY,readGridStore,reconcileGrid,reposition,updateGridSettings,nextSlot,type GridLayout,type Rect} from "./gridLayout";
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
 import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type TaskStatus } from "../notes/data";
 import WorldTravelMap from "./WorldTravelMap";
@@ -158,6 +159,10 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, editMode
 
 export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, tableId, onTableChange, onOpenTables, onCreateTable }: Props) {
   const [store, setStore] = useState<WidgetStore>(emptyStore);
+  const [grids,setGrids]=useState(readGridStore);
+  const [gridError,setGridError]=useState("");
+  const drag=useRef<{id:string;kind:"move"|"resize";edge:string;x:number;y:number;origin:Rect;preview:Rect;valid:boolean}|null>(null);
+  const [preview,setPreview]=useState<{id:string;rect:Rect}|null>(null);
   const [organizer,setOrganizer] = useState<NotesTasksData>(readNotesTasks);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRight, setShowRight] = useState(true);
@@ -171,21 +176,23 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const widgets = useMemo(() => store[screenId] ?? [], [store, screenId]);
   const selected = widgets.find(w => w.id === selectedId);
   const defaultTable = tables.find(t => t.id === tableId);
-  const financeLayout = widgets.some(w=>w.type==="finance"&&Boolean(w.financeKind));
-  // A resized card expands its whole finance row, keeping adjacent cards aligned.
-  const financeHeight=(row:number,baseline:number)=>Math.max(baseline,...widgets.filter(w=>w.type==="finance"&&w.financeRow===row).map(w=>w.height||baseline));
-  const financeTopHeight=Math.max(220,...widgets.filter(w=>w.type==="finance"&&w.financeRowSpan===2).map(w=>w.height||220));
-  const financeGridStyle:CSSProperties|undefined=financeLayout?({
-    "--finance-half-height":(financeTopHeight/2)+"px",
-    "--finance-row3-height":financeHeight(3,310)+"px",
-    "--finance-row4-height":financeHeight(4,295)+"px",
-  } as CSSProperties):undefined;
+  const grid=useMemo(()=>reconcileGrid(grids[screenId],widgets),[grids,screenId,widgets]);
+  const financeLayout=widgets.some(w=>w.type==="finance"&&Boolean(w.financeKind));
+  const saveGrid=(layout:GridLayout)=>setGrids(prev=>({...prev,[screenId]:layout}));
+  const patchGrid=(patch:Partial<GridLayout["settings"]>)=>{saveGrid(updateGridSettings(grid,widgets,patch));setGridError("");};
+  function addPositions(items:EditorWidget[]){const next=reconcileGrid(grid,widgets);for(const item of items){const w=Math.min(next.settings.columns,Math.max(1,item.width));const h=Math.max(1,Math.ceil(item.height/(next.settings.rowHeight+next.settings.gap)));let p=nextSlot(w,h,next.positions,next.settings);while(!p&&next.settings.rows<60){next.settings={...next.settings,rows:Math.min(60,next.settings.rows+4)};p=nextSlot(w,h,next.positions,next.settings);}if(!p){setGridError("Нет места на сетке");return false;}next.positions[item.id]=p;}saveGrid(next);return true;}
+  function setPosition(id:string,patch:Partial<Rect>){const current=grid.positions[id];if(!current)return;const changed=reposition(grid,id,{...current,...patch});if(changed){saveGrid(changed);setGridError("");}else setGridError("Место занято или размер выходит за границу сетки");}
+  function pointerDown(e:React.PointerEvent<HTMLElement>,id:string,kind:"move"|"resize",edge=""){if(e.button!==0)return;const origin=grid.positions[id];if(!origin)return;e.stopPropagation();e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);drag.current={id,kind,edge,x:e.clientX,y:e.clientY,origin,preview:origin,valid:true};setSelectedId(id);}
+  function pointerMove(e:React.PointerEvent<HTMLElement>){const d=drag.current;if(!d||!canvasRef.current)return;const cell=(canvasRef.current.clientWidth-grid.settings.gap*(grid.settings.columns-1))/grid.settings.columns;const dx=Math.round((e.clientX-d.x)/(cell+grid.settings.gap)),dy=Math.round((e.clientY-d.y)/(grid.settings.rowHeight+grid.settings.gap));const r={...d.origin};if(d.kind==="move"){r.x+=dx;r.y+=dy;}else{if(d.edge==="right")r.w+=dx;if(d.edge==="left"){r.x+=dx;r.w-=dx;}if(d.edge==="bottom")r.h+=dy;if(d.edge==="top"){r.y+=dy;r.h-=dy;}}const valid=r.w>0&&r.h>0&&r.x>=0&&r.y>=0&&r.x+r.w<=grid.settings.columns&&r.y+r.h<=grid.settings.rows&&Boolean(reposition(grid,d.id,r));drag.current={...d,preview:r,valid};setPreview(valid?{id:d.id,rect:r}:null);}
+  function pointerUp(){const d=drag.current;if(!d)return;if(d.valid){const next=reposition(grid,d.id,d.preview);if(next)saveGrid(next);}else setGridError("Положение недоступно: пересечение или выход за границу");drag.current=null;setPreview(null);}
+  function pointerCancel(){drag.current=null;setPreview(null);}
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
+  useEffect(() => { localStorage.setItem(GRID_KEY,JSON.stringify(grids)); }, [grids]);
   useEffect(()=>{const update=()=>setOrganizer(readNotesTasks());window.addEventListener("fox-notes-tasks-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(() => { setSelectedId(null); setRightMode("library"); }, [screenId]);
 
   function exportLayout() {
-    const blob = new Blob([JSON.stringify({format:"fox-space-screen-v1",widgets},null,2)],{type:"application/json"});
+    const blob = new Blob([JSON.stringify({format:"fox-space-screen-v2",widgets,grid},null,2)],{type:"application/json"});
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href=url;link.download="fox-space-screen.json";link.click();
@@ -194,8 +201,8 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   async function importLayout(file: File | undefined) {
     if (!file) return;
     try {
-      const content = JSON.parse(await file.text()) as {format?:string;widgets?:unknown};
-      if (content.format!=="fox-space-screen-v1" || !Array.isArray(content.widgets) || content.widgets.length>80) throw Error("Некорректный формат макета");
+      const content = JSON.parse(await file.text()) as {format?:string;widgets?:unknown;grid?:GridLayout};
+      if (!["fox-space-screen-v1","fox-space-screen-v2"].includes(content.format??"") || !Array.isArray(content.widgets) || content.widgets.length>80) throw Error("Некорректный формат макета");
       const safe = content.widgets.map((entry:unknown)=>{
         if (!entry || typeof entry!=="object") throw Error("Повреждённый виджет");
         const w=entry as Partial<EditorWidget>;
@@ -221,6 +228,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
         } satisfies EditorWidget;
       });
       updateWidgets(()=>safe);
+      saveGrid(reconcileGrid(content.grid,safe));
       setSelectedId(null);setRightMode("library");setImportError("");
     } catch(error) {
       setImportError(error instanceof Error?error.message:"Не удалось импортировать макет");
@@ -241,6 +249,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
       columnId: numeric?.id, labelColumnId: type==="donut" ? defaultTable?.columns.find(c=>c.type==="select")?.id : text?.id,
       target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : type === "heading" ? 100 : type === "divider" ? 65 : 205
     };
+    if(!addPositions([widget]))return;
     updateWidgets(prev => [...prev, widget]);
     setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
   }
@@ -252,6 +261,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
       tableId: defaultTable?.id, columnId: numeric?.id, labelColumnId: text?.id,
       target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : 205
     }));
+    if(!addPositions(additions))return;
     updateWidgets(prev => [...prev, ...additions]);
     setSelectedId(additions[0].id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
   }
@@ -259,69 +269,35 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
     const widget = widgets.find(w=>w.id===id);
     if (!widget) return;
     const copy = {...widget,id:newId(),title:widget.title+" — копия"};
+    if(!addPositions([copy]))return;
     updateWidgets(prev=>[...prev,copy]);
     setSelectedId(copy.id); setRightMode("settings"); setSettingsTab("data");
   }
-  function moveWidget(id: string, direction: -1 | 1) {
-    updateWidgets(prev=>{const index=prev.findIndex(w=>w.id===id);const nextIndex=index+direction;if(index<0||nextIndex<0||nextIndex>=prev.length)return prev;const next=[...prev];[next[index],next[nextIndex]]=[next[nextIndex],next[index]];return next;});
-  }
-  function reorder(fromId: string, toId: string) {
-    if (fromId === toId) return;
-    updateWidgets(prev => {
-      const next = [...prev], from = next.findIndex(w => w.id === fromId), to = next.findIndex(w => w.id === toId);
-      if (from < 0 || to < 0) return prev;
-      next.splice(to, 0, next.splice(from, 1)[0]);
-      return next;
-    });
-  }
-  function resize(widget: EditorWidget, deltaX: number, deltaY: number) {
-    const canvasWidth = canvasRef.current?.clientWidth ?? 1000;
-    const styles = canvasRef.current ? window.getComputedStyle(canvasRef.current) : null;
-    const gap = Number.parseFloat(styles?.columnGap ?? "12") || 12;
-    const colPx = Math.max(30, (canvasWidth - 11 * gap) / 12 + gap);
-    setWidget(widget.id, {
-      width: Math.max(3, Math.min(12, Math.round(widget.width + deltaX / colPx))),
-      height: Math.max(65, Math.min(900, Math.round((widget.height + deltaY) / 10) * 10))
-    });
-  }
-
   const selectedTable = tables.find(t => t.id === selected?.tableId);
   const numericFields = selectedTable?.columns.filter(c => c.type === "number" || c.type === "formula") ?? [];
   const allFields = selectedTable?.columns ?? [];
 
   return <div className="fox-editor">
     {editMode&&<div className="fox-editor-toolbar"><div><span className="fox-editor-overline">FOX EDITOR</span><h2>Редактор экрана</h2><p>Перемещайте виджеты и изменяйте их размеры перетаскиванием границ.</p></div><div className="fox-editor-toolbar-actions"><button className="primary-button" onClick={()=>{setSelectedId(null);onDoneEditing();}}>Готово</button><button className="outline-button" onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Виджет</button><button className="soft-icon" title="Экспортировать макет" onClick={exportLayout}><Download size={17}/></button><button className="soft-icon" title="Импортировать макет" onClick={()=>importRef.current?.click()}><Upload size={17}/></button><input ref={importRef} className="fox-editor-hidden-file" type="file" accept=".json,application/json" onChange={event=>{void importLayout(event.target.files?.[0]);}}/><button className="soft-icon" title="Показать или скрыть панель" onClick={()=>setShowRight(v=>!v)}><PanelRightOpen size={18}/></button></div></div>}
+    {editMode&&gridError&&<div className="fox-editor-import-error" role="alert">{gridError}<button onClick={()=>setGridError("")}><X size={14}/></button></div>}
     {editMode&&importError&&<div className="fox-editor-import-error" role="alert">{importError}<button onClick={()=>setImportError("")}><X size={14}/></button></div>}
     <div className={"fox-editor-layout"+(previewMode?" preview":"")}>
       <div className="fox-editor-workspace">
+        {editMode&&<div className="fox-grid-config"><label>Столбцы<input type="number" min={4} max={24} value={grid.settings.columns} onChange={e=>patchGrid({columns:Number(e.target.value)})}/></label><label>Строки<input type="number" min={4} max={60} value={grid.settings.rows} onChange={e=>patchGrid({rows:Number(e.target.value)})}/></label><label>Зазор, px<input type="number" min={0} max={32} value={grid.settings.gap} onChange={e=>patchGrid({gap:Number(e.target.value)})}/></label><label>Высота ячейки, px<input type="number" min={40} max={140} value={grid.settings.rowHeight} onChange={e=>patchGrid({rowHeight:Number(e.target.value)})}/></label></div>}
         {editMode&&<div className="fox-editor-source"><Database size={16}/><span>Основная таблица</span><select value={tableId??""} onChange={e=>onTableChange(e.target.value)}><option value="">Не выбрана</option>{tables.map(t=><option value={t.id} key={t.id}>{t.name}</option>)}</select><button onClick={onOpenTables}>Управление таблицами <ChevronsRight size={14}/></button></div>}
-        <div className={"fox-editor-grid"+(financeLayout?" finance-dashboard-grid":"")} style={financeGridStyle} ref={canvasRef}>
+        <div className={"fox-editor-grid fox-editor-true-grid"+(financeLayout?" finance-dashboard-grid":"")} style={{gridTemplateColumns:`repeat(${grid.settings.columns},minmax(0,1fr))`,gridTemplateRows:`repeat(${grid.settings.rows},${grid.settings.rowHeight}px)`,gap:grid.settings.gap,"--fox-grid-columns":grid.settings.columns,"--fox-grid-rows":grid.settings.rows,"--fox-grid-row-height":`${grid.settings.rowHeight}px`,"--fox-grid-gap":`${grid.settings.gap}px`} as React.CSSProperties} ref={canvasRef}>
+          {editMode&&<div className="fox-grid-guides" aria-hidden="true">{Array.from({length:grid.settings.columns*grid.settings.rows},(_,i)=><i key={i}/>)}</div>}
           {widgets.map(widget => {
             const table = tables.find(t => t.id === widget.tableId);
             const isSelected = !previewMode && selectedId === widget.id;
-            return <div className={"fox-widget"+(isSelected?" selected":"")+(widget.type==="finance"?" fox-finance-card fox-finance-"+(widget.financeKind??"balance"):"")} style={{gridColumn:financeLayout&&widget.financeColumn?widget.financeColumn+" / span "+widget.width:"span "+widget.width,gridRow:financeLayout&&widget.financeRow?widget.financeRow+" / span "+(widget.financeRowSpan??1):undefined,minHeight:widget.height}} key={widget.id}
-              draggable={!previewMode} onDragStart={e=>{if((e.target as HTMLElement).closest(".fox-widget-edge")){e.preventDefault();return;}e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",widget.id);}}
-              onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();reorder(e.dataTransfer.getData("text/plain"),widget.id);}}
-              onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
-              {widget.type!=="finance" && <div className="fox-widget-header">{!previewMode&&<GripVertical size={14} className="fox-widget-grip"/>}<h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>}
+            const rect=preview?.id===widget.id?preview.rect:grid.positions[widget.id];
+             if(!rect)return null;
+             return <div className={"fox-widget fox-grid-widget"+(isSelected?" selected":"")+(widget.type==="finance"?" fox-finance-card fox-finance-"+(widget.financeKind??"balance"):"")} style={{gridColumn:`${rect.x+1} / span ${rect.w}`,gridRow:`${rect.y+1} / span ${rect.h}`,"--fox-col":`${rect.x+1} / span ${rect.w}`,"--fox-row":`${rect.y+1} / span ${rect.h}`,minHeight:0} as React.CSSProperties} key={widget.id}
+               onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
+              {!previewMode&&<div className="fox-grid-drag-handle" title="Перетащить карточку" onPointerDown={e=>pointerDown(e,widget.id,"move")} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerCancel}><GripVertical size={16}/></div>}
+               {widget.type!=="finance" && <div className="fox-widget-header"><h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>}
               <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer} editMode={editMode} onConfigure={()=>{setSelectedId(widget.id);setSettingsTab("data");setRightMode("settings");setShowRight(true);}}/></div>
-              {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} data-edge={edge}
-                aria-hidden="true" onPointerDown={event=>{
-                  if(event.button!==0)return;
-                  event.stopPropagation();event.preventDefault();
-                  const node=event.currentTarget;
-                  node.setPointerCapture(event.pointerId);
-                  node.dataset.x=String(event.clientX);
-                  node.dataset.y=String(event.clientY);
-                }} onPointerUp={event=>{
-                  const node=event.currentTarget;
-                  if(!node.hasPointerCapture(event.pointerId))return;
-                  const dx=event.clientX-Number(node.dataset.x??event.clientX);
-                  const dy=event.clientY-Number(node.dataset.y??event.clientY);
-                  resize(widget,edge==="right"?dx:edge==="left"?-dx:0,edge==="bottom"?dy:edge==="top"?-dy:0);
-                  node.releasePointerCapture(event.pointerId);
-                }}/>)}
-
+              {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} onPointerDown={e=>pointerDown(e,widget.id,"resize",edge)} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerCancel}/>)}
             </div>;
           })}
           {!widgets.length && <div className="fox-editor-empty"><LayoutGrid size={30}/><h3>Пустой экран</h3><p>Добавьте первый виджет. Показатели, таблицы и графики будут брать данные из выбранного источника.</p>{editMode&&<button className="primary-button" onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Выбрать виджет</button>}</div>}
@@ -353,8 +329,8 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
                 {["metric","progress"].includes(selected.type)&&<label>Расчёт<select value={selected.aggregate??"sum"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="sum">Сумма</option><option value="average">Среднее</option><option value="min">Минимум</option><option value="max">Максимум</option><option value="count">Количество записей</option></select></label>}{selected.type==="progress"&&<label>Целевое значение<input type="number" value={selected.target??100} onChange={e=>setWidget(selected.id,{target:Number(e.target.value)})}/></label>}
               </>}
             </>}
-            {settingsTab==="appearance" && <><label>Ширина на сетке<select value={selected.width} onChange={e=>setWidget(selected.id,{width:Number(e.target.value)})}>{[3,4,6,8,9,12].map(n=><option key={n} value={n}>{n} / 12</option>)}</select></label><label>Высота карточки<input type="number" min={65} max={900} step={10} value={selected.height} onChange={e=>setWidget(selected.id,{height:Math.max(65,Math.min(900,Number(e.target.value)||65))})}/></label><label>Акцент карточки<select value={selected.accent??""} onChange={e=>setWidget(selected.id,{accent:e.target.value||undefined})}><option value="">Акцент приложения</option><option value="#f06432">Оранжевый</option><option value="#4779d5">Синий</option><option value="#388b69">Зелёный</option><option value="#8864c8">Фиолетовый</option></select></label>{selected.type==="finance"&&selected.financeKind==="balance"&&<label>Фон карточки баланса<select value={selected.financeBackground??"mountains"} onChange={e=>setWidget(selected.id,{financeBackground:e.target.value as EditorWidget["financeBackground"]})}><option value="mountains">Горный пейзаж</option><option value="sunset">Тёплый закат</option><option value="plain">Однотонный</option></select></label>}</>}
-            {settingsTab==="behavior" && <><p>Перетаскивайте карточку за заголовок, чтобы менять порядок. Размер можно установить во вкладке «Вид» или зажать границу карточки и потянуть: боковые границы меняют ширину, верхняя и нижняя — высоту. В предпросмотре размер менять нельзя.</p><div className="fox-editor-widget-actions"><button onClick={()=>moveWidget(selected.id,-1)}>Назад</button><button onClick={()=>moveWidget(selected.id,1)}>Вперёд</button><button onClick={()=>duplicateWidget(selected.id)}>Дублировать</button></div><button className="fox-editor-danger" onClick={()=>{updateWidgets(prev=>prev.filter(w=>w.id!==selected.id));setSelectedId(null);setRightMode("library");}}><Trash2 size={15}/> Удалить виджет</button></>}
+            {settingsTab==="appearance" && <><label>Ширина, ячеек<input type="number" min={1} max={grid.settings.columns} value={grid.positions[selected.id]?.w??1} onChange={e=>setPosition(selected.id,{w:Number(e.target.value)})}/></label><label>Высота, ячеек<input type="number" min={1} max={grid.settings.rows} value={grid.positions[selected.id]?.h??1} onChange={e=>setPosition(selected.id,{h:Number(e.target.value)})}/></label><label>Колонка<input type="number" min={1} max={grid.settings.columns} value={(grid.positions[selected.id]?.x??0)+1} onChange={e=>setPosition(selected.id,{x:Number(e.target.value)-1})}/></label><label>Строка<input type="number" min={1} max={grid.settings.rows} value={(grid.positions[selected.id]?.y??0)+1} onChange={e=>setPosition(selected.id,{y:Number(e.target.value)-1})}/></label><label>Акцент карточки<select value={selected.accent??""} onChange={e=>setWidget(selected.id,{accent:e.target.value||undefined})}><option value="">Акцент приложения</option><option value="#f06432">Оранжевый</option><option value="#4779d5">Синий</option><option value="#388b69">Зелёный</option><option value="#8864c8">Фиолетовый</option></select></label>{selected.type==="finance"&&selected.financeKind==="balance"&&<label>Фон карточки баланса<select value={selected.financeBackground??"mountains"} onChange={e=>setWidget(selected.id,{financeBackground:e.target.value as EditorWidget["financeBackground"]})}><option value="mountains">Горный пейзаж</option><option value="sunset">Тёплый закат</option><option value="plain">Однотонный</option></select></label>}</>}
+            {settingsTab==="behavior" && <><p>Перетаскивайте карточку за ручку в левом верхнем углу, чтобы перемещать по сетке. Размер можно установить во вкладке «Вид» или зажать границу карточки и потянуть: боковые границы меняют ширину, верхняя и нижняя — высоту. В предпросмотре размер менять нельзя.</p><div className="fox-editor-widget-actions"><button onClick={()=>duplicateWidget(selected.id)}>Дублировать</button></div><button className="fox-editor-danger" onClick={()=>{updateWidgets(prev=>prev.filter(w=>w.id!==selected.id));setSelectedId(null);setRightMode("library");}}><Trash2 size={15}/> Удалить виджет</button></>}
           </div>
           <button className="fox-editor-back" onClick={()=>{setSelectedId(null);setRightMode("library");}}>Вернуться в библиотеку</button>
         </> : <>

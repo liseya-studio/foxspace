@@ -208,7 +208,7 @@ test("widgets resize from borders only in page editor",async({page})=>{
   await page.locator(".dock-add").click();
   await page.locator(".fox-preset-list button").filter({hasText:"Мои финансы"}).click();
   await openScreenEditor(page);
-  const widget=page.locator(".fox-widget").first();
+  const widget=page.locator(".fox-widget").last();
   await expect(widget).toBeVisible();
   await expect(widget.locator(".fox-widget-resize")).toHaveCount(0);
   await expect(widget.locator(".fox-widget-edge")).toHaveCount(4);
