@@ -66,3 +66,15 @@ test("date filter compares calendar dates without timezone coercion",()=>{
  expect(filterRows(table.rows,table,[table],{columnId:"day",operator:"gt",value:"2026-11-23"}).map(r=>r.id)).toEqual(["after"]);
  expect(filterRows(table.rows,table,[table],{columnId:"day",operator:"lt",value:"2026-11-23"}).map(r=>r.id)).toEqual(["before"]);
 });
+
+test("Excel safely upgrades empty text columns to choice fields but leaves populated columns unchanged",()=>{
+ let number=0;const id=()=>String(++number);
+ const draft=createImportDraft("Сделки",[["Статус"],["В работе"]],{0:["Новый","В работе"]},id);
+ const base={id:"table",name:"Сделки",columns:[{id:"status",name:"Статус",type:"text"}],rows:[{id:"old",cells:{status:""}}]};
+ const upgraded=mergeExcelIntoTable(draft,base,id);
+ expect(upgraded.columns[0].type).toBe("select");
+ expect(upgraded.columns[0].options).toEqual(["Новый","В работе"]);
+ const populated=mergeExcelIntoTable(draft,{...base,rows:[{id:"old",cells:{status:"Пользовательский текст"}}]},id);
+ expect(populated.columns[0].type).toBe("text");
+ expect(populated.rows[0].cells.status).toBe("Пользовательский текст");
+});
