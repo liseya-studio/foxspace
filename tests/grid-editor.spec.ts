@@ -13,7 +13,7 @@ test("move, resize and preserve free widget positions on a configurable grid",as
  await page.locator(".fox-editor-library button").filter({hasText:"Текст"}).click();
  const first=page.locator(".fox-widget").first();
  await expect(first).toBeVisible();
- await first.scrollIntoViewIfNeeded();
+ await first.evaluate(node=>node.scrollIntoView({block:"center",behavior:"auto"}));
  const start=await first.locator(".fox-grid-drag-handle").boundingBox();
  if(!start)throw Error("Drag handle is missing");
  const rowStep=64+8;
@@ -27,6 +27,7 @@ test("move, resize and preserve free widget positions on a configurable grid",as
  expect(state.settings.gap).toBe(8);
  expect(state.positions[id].y).toBeGreaterThanOrEqual(3);
  const before=state.positions[id].h;
+ await first.evaluate(node=>node.scrollIntoView({block:"center",behavior:"auto"}));
  const edge=await first.locator(".fox-widget-edge-bottom").boundingBox();
  if(!edge)throw Error("Resize edge is missing");
  await page.mouse.move(edge.x+edge.width/2,edge.y+edge.height/2);
