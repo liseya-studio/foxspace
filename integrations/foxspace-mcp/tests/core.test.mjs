@@ -43,3 +43,24 @@ test("table image fields resolve full metadata and return image bytes",async()=>
   await assert.rejects(()=>getTableImage({tableId:"posts",rowId:"record1",columnId:"name"},file),/Image column not found/);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test("choice fields expose structured options and selected values without changing raw cells",async()=>{
+ const dir=await mkdtemp(join(tmpdir(),"foxspace-choice-")),file=join(dir,"workspace.json");
+ try{
+  const table={id:"tasks",name:"Задачи",columns:[
+   {id:"name",name:"Название",type:"text"},
+   {id:"status",name:"Статус",type:"select",options:["Новый","Готово"]},
+   {id:"tags",name:"Теги",type:"multiselect",options:["Видео","Срочно","Дизайн"]}
+  ],rows:[{id:"one",cells:{name:"Монтаж",status:"Готово",tags:'["Видео","Срочно"]'}}]};
+  await writeFile(file,JSON.stringify({"fox-tables-v1":JSON.stringify([table])}));
+  const schema=await listTables(file);
+  assert.deepEqual(schema[0].columns[1].options,["Новый","Готово"]);
+  assert.deepEqual(schema[0].columns[2].options,["Видео","Срочно","Дизайн"]);
+  const record=await getTableRecord({tableId:"tasks",rowId:"one"},file);
+  const tags=record.fields.find(field=>field.name==="Теги");
+  assert.equal(tags.value,'["Видео","Срочно"]');
+  assert.deepEqual(tags.selectedOptions,["Видео","Срочно"]);
+  const list=await listTableRecords({tableId:"tasks"},file);
+  assert.deepEqual(list.rows[0].fields["Теги"].selectedOptions,["Видео","Срочно"]);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
