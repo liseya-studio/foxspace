@@ -153,14 +153,25 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     if(!rows.length)return <EmptyChartPreview kind="donut"/>;
     const groupCol = table.columns.find(col=>col.id===widget.labelColumnId) ?? table.columns.find(col=>col.type==="select"||col.type==="text");
     if (!groupCol) return <div className="fox-widget-empty">Выберите поле для группировки.</div>;
-    const counts = new Map<string, number>();
-    rows.forEach(row=>{const label=String(value(row,groupCol)??"").trim()||"Без значения";counts.set(label,(counts.get(label)||0)+1);});
-    const ranked=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"ru"));
+    const totals = new Map<string, number>();
+    const sumMode=widget.aggregate==="sum";
+    if(sumMode&&!numberCol)return <div className="fox-widget-empty">Для суммы по категориям нужно числовое поле.</div>;
+    rows.forEach(row=>{
+      const label=String(value(row,groupCol)??"").trim()||"Без значения";
+      const raw=sumMode?value(row,numberCol!):1;
+      if(raw===undefined||raw===null||String(raw).trim()===""||!Number.isFinite(Number(raw)))return;
+      const amount=Number(raw);
+      if(sumMode&&amount<0)return; // Pie slices must be nonnegative.
+      totals.set(label,(totals.get(label)||0)+amount);
+    });
+    const total=[...totals.values()].reduce((sum,n)=>sum+n,0);
+    if(!total)return <EmptyChartPreview kind="donut"/>;
+    const ranked=[...totals.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"ru"));
     const visible=ranked.length>6?[...ranked.slice(0,5),["Остальные",ranked.slice(5).reduce((sum,item)=>sum+item[1],0)] as [string,number]]:ranked;
     const palette = ["#f06432","#4779d5","#388b69","#8864c8","#d1a34a","#c96b93"];
     let offset=0;
-    const gradient = visible.map(([,count],i)=>{const start=offset;offset+=count/Math.max(1,rows.length)*100;return palette[i%palette.length]+" "+start+"% "+offset+"%";}).join(",");
-    return <div className="fox-widget-donut"><div className="fox-donut-ring" style={{background:gradient?"conic-gradient("+gradient+")":"var(--canvas)"}}><div><strong>{rows.length}</strong><small>записей</small></div></div><div className="fox-donut-legend">{visible.map(([name,count],i)=><div key={name}><i style={{background:palette[i%palette.length]}}/><span title={name}>{name}</span><b>{count}</b></div>)}</div></div>;
+    const gradient = visible.map(([,count],i)=>{const start=offset;offset+=count/total*100;return palette[i%palette.length]+" "+start+"% "+offset+"%";}).join(",");
+    return <div className="fox-widget-donut"><div className="fox-donut-ring" style={{background:gradient?"conic-gradient("+gradient+")":"var(--canvas)"}}><div><strong>{fmt(total)}</strong><small>{sumMode?"суммарно":"записей"}</small></div></div><div className="fox-donut-legend">{visible.map(([name,count],i)=><div key={name}><i style={{background:palette[i%palette.length]}}/><span title={name}>{name}</span><b>{fmt(count)}</b></div>)}</div></div>;
   }
   if (widget.type === "timeline") {
     const dateCol = table.columns.find(col=>col.id===widget.columnId&&col.type==="date") ?? table.columns.find(col=>col.type==="date");
@@ -369,6 +380,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
                   <button type="button" className="fox-editor-create-source" onClick={onCreateTable}><Plus size={15}/> Создать таблицу</button>
                 </div>
                 {["metric","progress","bars","line"].includes(selected.type)&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                {selected.type==="donut"&&<><label>Показатель<select value={selected.aggregate==="sum"?"sum":"count"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="count">Количество записей</option><option value="sum">Сумма значений</option></select></label>{selected.aggregate==="sum"&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}</>}
                 {["bars","list","donut","timeline"].includes(selected.type)&&<label>Подписи<select value={selected.labelColumnId??""} onChange={e=>setWidget(selected.id,{labelColumnId:e.target.value})}><option value="">Автоматически</option>{allFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                 {["metric","progress"].includes(selected.type)&&<label>Расчёт<select value={selected.aggregate??"sum"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="sum">Сумма</option><option value="average">Среднее</option><option value="min">Минимум</option><option value="max">Максимум</option><option value="count">Количество записей</option></select></label>}{selected.type==="progress"&&<label>Целевое значение<input type="number" value={selected.target??100} onChange={e=>setWidget(selected.id,{target:Number(e.target.value)})}/></label>}
               </>}
