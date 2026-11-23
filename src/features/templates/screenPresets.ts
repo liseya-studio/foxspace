@@ -74,43 +74,44 @@ widget("timeline","Ближайшие события","events",{column:"Дата
 widget("tasklist","Задачи",undefined,{width:6}),widget("list","Последние записи","journal",{label:"Запись",width:6}),
 widget("table","Привычки","habits",{width:12})]},
 {id:"learning",name:"Обучение и языки",icon:"▤",group:"Личное",description:"Направления, уроки, словарь, тесты и прогресс, включая подробные страницы направлений.",tables:[
-table("subjects","Обучение · Направления",["Название","Категория","Статус","Уровень","Всего уроков|number","Пройдено уроков|number"]),
-table("lessons","Обучение · Уроки",["Урок","Направление","Тема","Статус","Дата|date","Заметки"]),
-table("words","Обучение · Слова",["Слово","Направление","Перевод","Тема","Изучено|checkbox"]),
-table("tests","Обучение · Тесты",["Название","Направление","Дата|date","Результат|number","Уровень"]),
-table("materials","Обучение · Материалы",["Название","Направление","Тип","Ссылка","Заметки"])],
+table("subjects","Обучение · Направления",["Название","Категория","Статус|select","Уровень","Всего уроков|number","Пройдено уроков|number","Уроки|backlink","Слова|backlink","Тесты|backlink"]),
+table("lessons","Обучение · Уроки",["Урок","Направление|relation","Тема","Статус|select","Дата|date","Заметки"]),
+table("words","Обучение · Слова",["Слово","Направление|relation","Перевод","Тема","Изучено|checkbox"]),
+table("tests","Обучение · Тесты",["Название","Направление|relation","Дата|date","Результат|number","Уровень"]),
+table("materials","Обучение · Материалы",["Название","Направление|relation","Тип","Ссылка","Заметки"])],
 widgets:[head("Мои направления","Уроки, результаты и учебные материалы."),
 widget("counter","Направления","subjects",{width:4}),widget("counter","Уроки","lessons",{width:4}),widget("counter","Тесты","tests",{width:4}),
-widget("recordcards","Направления обучения","subjects",{label:"Название",width:12,height:340}),
+widget("gallery","Направления обучения","subjects",{label:"Название",width:12,height:340}),
 widget("bars","Результаты тестов","tests",{column:"Результат",label:"Название",width:6}),
 widget("list","Последние уроки","lessons",{label:"Урок",width:6}),
 widget("table","Словарь","words",{width:12}),
 widget("table","Учебные материалы","materials",{width:12})]},
 {id:"planner",name:"Планировщик задач",icon:"☑",group:"Работа",description:"Задачи, календарные события, категории и ближайшие дедлайны.",tables:[
-table("events","Планировщик · События",["Название","Дата|date","Время","Категория","Проект|project","Статус"]),
-table("milestones","Планировщик · Этапы",["Этап","Проект|project","Дедлайн|date","Прогресс|number","Статус"])],
+table("events","Планировщик · События",["Название","Дата|date","Время","Категория","Проект|project","Статус|select"]),
+table("milestones","Планировщик · Этапы",["Этап","Проект|project","Дедлайн|date","Прогресс|number","Статус|select"])],
 widgets:[head("Задачи и календарь","Единый обзор задач, событий и сроков."),
 widget("taskcount","Всего задач",undefined,{width:4}),
 widget("counter","События","events",{width:4}),
 widget("counter","Этапы","milestones",{width:4}),
 widget("tasklist","Ближайшие задачи",undefined,{width:6,height:340}),
-widget("timeline","Календарь событий","events",{column:"Дата",label:"Название",width:6,height:340}),
+widget("calendar","Календарь событий","events",{column:"Дата",label:"Название",width:12,height:440}),
 widget("table","Расписание","events",{width:12}),
 widget("table","Этапы проектов","milestones",{width:12})]},
 {id:"documents",name:"Заметки и документы",icon:"▤",group:"Работа",description:"Единый каталог документов, ссылок, изображений, тегов и заметок.",tables:[
-table("library","Документы · Каталог",["Название","Проект|project","Тип","Теги","Ссылка","Описание","Дата изменения|date"]),
+table("library","Документы · Каталог",["Название","Проект|project","Тип","Теги","Ссылка","Описание","Фото|image","Дата изменения|date"]),
 table("links","Документы · Ссылки",["Название","URL","Категория","Проект|project","Теги"])],
 widgets:[head("Заметки и документы","Каталог материалов и быстрый доступ к последним заметкам."),
 widget("counter","Документы","library",{width:4}),
 widget("counter","Ссылки","links",{width:4}),
 widget("noteslist","Последние заметки",undefined,{width:4}),
+widget("gallery","Документы — галерея","library",{width:12,height:390}),
 widget("table","Каталог документов","library",{width:12,height:390}),
 widget("list","Полезные ссылки","links",{label:"Название",width:6}),
 widget("noteslist","Заметки","",{width:6})]},
 {id:"social",name:"Блоги и ресурсы",icon:"▥",group:"Творчество",description:"Аккаунты, публикации, очередь, статистика и идеи по нескольким проектам.",tables:[
-table("resources","Блоги · Ресурсы",["Ресурс","Проект|project","Платформа","Ссылка","Подписчики|number","Статус"]),
-table("posts","Блоги · Публикации",["Название","Ресурс","Проект|project","Тип","Дата|date","Статус","Просмотры|number","Реакции|number"]),
-table("metrics","Блоги · Метрики",["Дата|date","Ресурс","Подписчики|number","Охват|number","Вовлечённость|number","Переходы|number"]),
+table("resources","Блоги · Ресурсы",["Ресурс","Проект|project","Платформа","Ссылка","Подписчики|number","Статус|select","Публикации|backlink"]),
+table("posts","Блоги · Публикации",["Название","Ресурс|relation","Проект|project","Тип","Дата|date","Статус|select","Просмотры|number","Реакции|number"]),
+table("metrics","Блоги · Метрики",["Дата|date","Ресурс|relation","Подписчики|number","Охват|number","Вовлечённость|number","Переходы|number"]),
 table("ideas","Блоги · Банк идей",["Идея","Проект|project","Тип","Статус","Приоритет"])],
 widgets:[head("Блоги и ресурсы","Общая аналитика, очередь публикаций и контент."),
 widget("counter","Ресурсы","resources",{width:3}),widget("counter","Публикации","posts",{width:3}),
@@ -118,22 +119,22 @@ widget("metric","Охват","metrics",{column:"Охват",width:3}),
 widget("metric","Переходы","metrics",{column:"Переходы",width:3}),
 widget("line","Рост аудитории","metrics",{column:"Подписчики",label:"Дата",width:8,height:320}),
 widget("donut","Публикации по площадкам","resources",{label:"Платформа",width:4,height:320}),
-widget("recordcards","Ресурсы","resources",{label:"Ресурс",width:12}),
-widget("timeline","Очередь публикаций","posts",{column:"Дата",label:"Название",width:6}),
+widget("gallery","Ресурсы","resources",{label:"Ресурс",width:12}),
+widget("calendar","Очередь публикаций","posts",{column:"Дата",label:"Название",width:12,height:410}),
 widget("list","Банк идей","ideas",{label:"Идея",width:6}),
 widget("table","Все публикации","posts",{width:12})]},
 {id:"client-work",name:"Работа — заказы и клиенты",icon:"▣",group:"Работа",description:"Клиенты, проекты, сметы, услуги, платежи и заявки из разных источников.",tables:[
-table("clients","Работа · Клиенты",["Имя","Компания","Контакт","Источник","Статус","Заметки"]),
-table("orders","Работа · Заказы",["Название","Проект|project","Клиент","Категория","Источник","Дедлайн|date","Статус","Бюджет|number","Прогресс|number"]),
+table("clients","Работа · Клиенты",["Имя","Компания","Контакт","Источник","Статус","Заметки","Заказы|backlink"]),
+table("orders","Работа · Заказы",["Название","Проект|project","Клиент|relation","Категория","Источник","Дедлайн|date","Статус|select","Бюджет|number","Прогресс|number","Смета|backlink","Оплаты|backlink","Оплачено|rollup","Осталось|formula"]),
 table("services","Работа · Услуги",["Услуга","Категория","Цена|number","Описание"]),
-table("orderitems","Работа · Смета",["Заказ","Услуга","Количество|number","Цена|number","Сумма|formula"]),
-table("payments","Работа · Оплаты",["Заказ","Дата|date","Сумма|number","Статус"]),
-table("leads","Работа · Лиды",["Клиент","Источник","Дата|date","Запрос","Статус"])],
+table("orderitems","Работа · Смета",["Позиция","Заказ|relation","Услуга","Количество|number","Цена|number","Сумма|formula"]),
+table("payments","Работа · Оплаты",["Платёж","Заказ|relation","Дата|date","Сумма|number","Статус"]),
+table("leads","Работа · Лиды",["Клиент|relation","Источник","Дата|date","Запрос","Статус"])],
 widgets:[head("Рабочий стол","Заказы, деньги и текущие сроки в одном месте."),
 widget("counter","Заказы","orders",{width:3}),widget("counter","Клиенты","clients",{width:3}),
 widget("metric","Стоимость заказов","orders",{column:"Бюджет",width:3}),
 widget("metric","Оплаты","payments",{column:"Сумма",width:3}),
-widget("table","Заказы в работе","orders",{width:8,height:370}),
+widget("kanban","Заказы по статусам","orders",{width:8,height:370}),
 widget("timeline","Ближайшие дедлайны","orders",{column:"Дедлайн",label:"Название",width:4,height:370}),
 widget("table","Сметы","orderitems",{width:6}),
 widget("list","Услуги и прайс","services",{label:"Услуга",width:6}),
@@ -141,7 +142,20 @@ widget("table","Контакты клиентов","clients",{width:12})]}
 
 ];
 export type StoredWidget = {id:string;type:string;title:string;tableId?:string;columnId?:string;labelColumnId?:string;body?:string;width:number;height:number;aggregate?:string;filter:Record<string,string>;limit:number;target:number;startDate?:string;financeKind?:string;financeRow?:number;financeColumn?:number;financeRowSpan?:number};
-export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:string;columns:{id:string;name:string;type:string}[]}[]){
+type PresetColumn = {id:string;name:string;type:string;options?:string[];relationTableId?:string;backlinkSourceTableId?:string;backlinkSourceColumnId?:string;rollupRelationId?:string;rollupTargetId?:string;rollupAggregate?:string;formulaSourceId?:string;formulaSecondSourceId?:string;formulaOperator?:string};
+function createPresetColumns(fields:[string,string][],existing:PresetColumn[]=[]):PresetColumn[]{
+  const added:PresetColumn[]=fields.map(([name,type])=>({id:crypto.randomUUID(),name,type,...(type==="select"?{options:["Новый","В работе","Готово"]}:{})}));
+  const all=[...existing,...added];
+  // A line-item amount is calculated directly from quantity and unit price.
+  for(const column of added){
+    if(column.type!=="formula"||column.name.toLocaleLowerCase("ru")!=="сумма")continue;
+    const quantity=all.find(item=>item.type==="number"&&item.name.toLocaleLowerCase("ru")==="количество");
+    const price=all.find(item=>item.type==="number"&&item.name.toLocaleLowerCase("ru")==="цена");
+    if(quantity&&price){column.formulaSourceId=quantity.id;column.formulaSecondSourceId=price.id;column.formulaOperator="*";}
+  }
+  return added;
+}
+export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:string;columns:PresetColumn[]}[]){
  const existing=[...available];
  const newTables:{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:unknown[];updatedAt:string}[]=[];
  const ids=new Map<string,string>();
@@ -155,14 +169,94 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
      // non-destructively if the selected screen needs additional fields.
      const missing=schema.columns.filter(([name])=>!found.columns.some(col=>norm(col.name)===norm(name)));
      if(missing.length){
-       const updated={...found,columns:[...found.columns,...missing.map(([name,type])=>({id:crypto.randomUUID(),name,type}))]};
+       const updated={...found,columns:[...found.columns,...createPresetColumns(missing,found.columns)]};
        existing[existing.findIndex(tab=>tab.id===found.id)]=updated;
        updatedTables.push(updated);
      }
      ids.set(schema.key,found.id);continue;
    }
-   const table={id:crypto.randomUUID(),name:schema.title,columns:schema.columns.map(([name,type])=>({id:crypto.randomUUID(),name,type})),rows:[],updatedAt:new Date().toISOString()};
+   const table={id:crypto.randomUUID(),name:schema.title,columns:createPresetColumns(schema.columns),rows:[],updatedAt:new Date().toISOString()};
    newTables.push(table);existing.push(table);ids.set(schema.key,table.id);
+ }
+ // Resolve semantic relations after every table has an ID. Existing non-relation
+ // fields are intentionally left unchanged to protect previously entered values.
+ const targets:Record<string,Record<string,string>>={
+   learning:{ "lessons.Направление":"subjects", "words.Направление":"subjects", "tests.Направление":"subjects", "materials.Направление":"subjects" },
+   social:{ "posts.Ресурс":"resources", "metrics.Ресурс":"resources" },
+   "client-work":{ "orders.Клиент":"clients", "orderitems.Заказ":"orders", "payments.Заказ":"orders", "leads.Клиент":"clients" }
+ };
+ for(const [source,targetKey] of Object.entries(targets[preset.id]??{})){
+   const split=source.indexOf(".");
+   const sourceKey=source.slice(0,split),field=source.slice(split+1);
+   const table=existing.find(item=>item.id===ids.get(sourceKey));
+   const targetId=ids.get(targetKey);
+   if(!table||!targetId)continue;
+   const column=table.columns.find(item=>item.name===field&&item.type==="relation");
+   if(!column||column.relationTableId)continue; // Preserve existing user-defined links.
+   const patched={...table,columns:table.columns.map(item=>item.id===column.id?{...item,relationTableId:targetId}:item)};
+   existing[existing.findIndex(item=>item.id===table.id)]=patched;
+   const createdIndex=newTables.findIndex(item=>item.id===table.id);
+   if(createdIndex>=0)newTables[createdIndex]={...newTables[createdIndex],columns:patched.columns};
+   else{
+     const prior=updatedTables.findIndex(item=>item.id===table.id);
+     if(prior>=0)updatedTables[prior]=patched;
+     else updatedTables.push(patched);
+   }
+ }
+
+ // Create readable reverse links without copying any records into the target.
+ // Schema links are attached only where these fields were explicitly declared.
+ const backlinks:Record<string,[string,string,string,string][]> = {
+   learning:[
+     ["subjects","Уроки","lessons","Направление"],
+     ["subjects","Слова","words","Направление"],
+     ["subjects","Тесты","tests","Направление"]
+   ],
+   social:[["resources","Публикации","posts","Ресурс"]],
+   "client-work":[
+     ["clients","Заказы","orders","Клиент"],
+     ["orders","Смета","orderitems","Заказ"],
+     ["orders","Оплаты","payments","Заказ"]
+   ]
+ };
+ const reverseByKey=new Map<string,string>();
+ for(const [destinationKey,display,sourceKey,forwardName] of backlinks[preset.id]??[]){
+   const dest=existing.find(item=>item.id===ids.get(destinationKey));
+   const source=existing.find(item=>item.id===ids.get(sourceKey));
+   const link=source?.columns.find(item=>item.name===forwardName&&item.type==="relation");
+   const backward=dest?.columns.find(item=>item.name===display&&item.type==="backlink");
+   if(!dest||!source||!link||!backward||backward.backlinkSourceTableId)continue;
+   const columns=dest.columns.map(col=>col.id===backward.id?{...col,backlinkSourceTableId:source.id,backlinkSourceColumnId:link.id}:col);
+   const patched={...dest,columns};
+   existing[existing.findIndex(table=>table.id===dest.id)]=patched;
+   const newIndex=newTables.findIndex(table=>table.id===dest.id);
+   if(newIndex>=0)newTables[newIndex]={...newTables[newIndex],columns};
+   else{
+     const idx=updatedTables.findIndex(table=>table.id===dest.id);
+     if(idx>=0)updatedTables[idx]=patched;else updatedTables.push(patched);
+   }
+   reverseByKey.set(destinationKey+"."+display,backward.id);
+ }
+ if(preset.id==="client-work"){
+   const order=existing.find(table=>table.id===ids.get("orders"));
+   const payments=existing.find(table=>table.id===ids.get("payments"));
+   const paid=order?.columns.find(col=>col.name==="Оплачено"&&col.type==="rollup");
+   const amount=payments?.columns.find(col=>col.name==="Сумма"&&col.type==="number");
+   const link=reverseByKey.get("orders.Оплаты");
+   if(order&&paid&&amount&&link&&!paid.rollupRelationId){
+     const remaining=order.columns.find(col=>col.name==="Осталось"&&col.type==="formula");
+     const budget=order.columns.find(col=>col.name==="Бюджет"&&col.type==="number");
+     const columns=order.columns.map(col=>col.id===paid.id?{...col,rollupRelationId:link,rollupTargetId:amount.id,rollupAggregate:"sum"}:
+       col.id===remaining?.id&&budget&&!remaining.formulaSourceId?{...col,formulaSourceId:budget.id,formulaSecondSourceId:paid.id,formulaOperator:"-"}:col);
+     const patched={...order,columns};
+     existing[existing.findIndex(table=>table.id===order.id)]=patched;
+     const idx=newTables.findIndex(table=>table.id===order.id);
+     if(idx>=0)newTables[idx]={...newTables[idx],columns};
+     else{
+       const updatedIndex=updatedTables.findIndex(table=>table.id===order.id);
+       if(updatedIndex>=0)updatedTables[updatedIndex]=patched;else updatedTables.push(patched);
+     }
+   }
  }
  const widgets:StoredWidget[]=preset.widgets.map(def=>{
    const tab=existing.find(item=>item.id===ids.get(def.source??""));

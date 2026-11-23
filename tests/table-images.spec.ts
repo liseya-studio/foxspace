@@ -21,6 +21,7 @@ test("image column stays compact and record drawer previews the actual uploaded 
  await expect(page.locator(".table-image-preview small")).toHaveText("cover.png");
  await page.reload();
  await page.getByRole("button",{name:"Файлы и таблицы"}).click();
+ await page.locator(".fox-files-tabs button").filter({hasText:"Таблицы"}).click();
  await page.getByTitle("Открыть запись").first().click();
  await expect(page.locator(".table-image-preview img")).toBeVisible();
 });

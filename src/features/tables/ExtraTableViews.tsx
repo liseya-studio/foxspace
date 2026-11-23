@@ -46,7 +46,7 @@ export function GalleryView({table,rows,onOpen}:Omit<Props,"onUpdate">){
 export function KanbanView({table,rows,onOpen,onUpdate}:Props){
   const statusColumn=table.columns.find(column=>column.type==="select");
   if(!statusColumn)return <div className="fox-db-view-empty"><FolderOpen size={25}/><strong>Добавьте поле «Выбор»</strong><p>Статусы карточек берутся из выбранного поля таблицы.</p></div>;
-  const buckets=[...new Set([...(statusColumn.options??[]),...rows.map(row=>statusFor(row.cells[statusColumn.id]))])];
+  const buckets=[...new Set([...(statusColumn.options?.length?statusColumn.options:["Новый","В работе","Готово"]),...rows.map(row=>statusFor(row.cells[statusColumn.id]))])];
   return <div className="fox-db-kanban" aria-label="Канбан-доска">
     {buckets.map(bucket=><section key={bucket} className="fox-db-kanban-lane">
       <header><strong>{bucket}</strong><span>{rows.filter(row=>statusFor(row.cells[statusColumn.id])===bucket).length}</span></header>

@@ -210,6 +210,7 @@ test("widgets resize from borders only in page editor",async({page})=>{
   await openScreenEditor(page);
   const widget=page.locator(".fox-widget").last();
   await expect(widget).toBeVisible();
+  await widget.evaluate(node=>node.scrollIntoView({block:"center",behavior:"auto"}));
   await expect(widget.locator(".fox-widget-resize")).toHaveCount(0);
   await expect(widget.locator(".fox-widget-edge")).toHaveCount(4);
   const before=await widget.evaluate(node=>({width:getComputedStyle(node).gridColumnEnd,height:node.getBoundingClientRect().height}));

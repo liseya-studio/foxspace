@@ -19,6 +19,7 @@ import MessagesCenter from "./features/messages/MessagesCenter";
 import FeedCenter from "./features/feed/FeedCenter";
 import { SCREEN_PRESETS, instantiatePreset } from "./features/templates/screenPresets";
 import PageTree from "./features/templates/PageTree";
+import {GRID_KEY,type GridLayout} from "./features/editor/gridLayout";
 import PlatformIcon,{ PLATFORM_ICONS, DECORATIVE_ICONS } from "./features/icons/PlatformIcon";
 import { unreadNotificationCount, dispatchDesktopReminders } from "./features/notifications/data";
 import {
@@ -30,6 +31,9 @@ import {
 
 type Screen = { id: string; name: string; tableId?: string; icon?: string; parentId?: string };
 type Section = "home" | "files" | "notes" | "notifications" | "messages" | "feed" | string;
+type ScreenWidget = {id:string;tableId?:string;[key:string]:unknown};
+type CustomScreenTemplate={id:string;name:string;icon?:string;sourceTableId?:string;widgets:ScreenWidget[];layout?:GridLayout};
+const CUSTOM_TEMPLATE_KEY="fox-custom-screen-templates-v1";
 
 const starterScreens: Screen[] = [];
 const accents = [
@@ -47,6 +51,7 @@ function read<T>(key: string, fallback: T): T {
 
 export default function App() {
   const [screens, setScreens] = useState<Screen[]>(() => read("fox-screens", starterScreens));
+  const [customTemplates,setCustomTemplates]=useState<CustomScreenTemplate[]>(()=>read(CUSTOM_TEMPLATE_KEY,[]));
   const [active, setActive] = useState<Section>("home");
   const [theme, setTheme] = useState(() => read("fox-theme", "light"));
   const [accent, setAccent] = useState(() => read("fox-accent", "#f06432"));
@@ -64,6 +69,7 @@ export default function App() {
   const [notificationRevision,setNotificationRevision] = useState(0);
   const [tableRevision,setTableRevision] = useState(0);
   const [taskToOpen,setTaskToOpen] = useState<string|null>(null);
+  const [recordToOpen,setRecordToOpen] = useState<{tableId:string;rowId:string;id:number}|null>(null);
   const [previousSection,setPreviousSection] = useState<Section>("home");
   const [createAction,setCreateAction] = useState<{type:"task"|"note"|"table"|"folder";id:number}|null>(null);
   const [createError,setCreateError] = useState("");
@@ -82,6 +88,7 @@ export default function App() {
     return ()=>{window.clearInterval(timer);window.clearInterval(backupTimer);window.clearInterval(automationTimer);window.removeEventListener("fox-notes-tasks-updated",update);};
   },[]);
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
+  useEffect(() => { localStorage.setItem(CUSTOM_TEMPLATE_KEY,JSON.stringify(customTemplates)); }, [customTemplates]);
   useEffect(()=>{const update=()=>setTableRevision(v=>v+1);window.addEventListener("fox-tables-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-tables-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(()=>{
     const update=()=>setNotificationRevision(current=>current+1);
@@ -124,6 +131,7 @@ export default function App() {
     setActive(section);
   }
   function navigateToTask(taskId:string){setTaskToOpen(taskId);setActive("notes");}
+  function navigateToRecord(tableId:string,rowId:string){setRecordToOpen({tableId,rowId,id:Date.now()});setActive("files");}
   function startCreate(type:"task"|"note"|"table"|"folder"|"screen"|"upload"){
     setCreateOpen(false);setCreateError("");
     if(type==="screen"){addScreen();return;}
@@ -173,6 +181,51 @@ export default function App() {
       setCreateError("");
       window.dispatchEvent(new Event("fox-tables-updated"));
     }catch(error){setCreateError(error instanceof Error?error.message:"Не удалось создать шаблон");setCreateOpen(false);}
+  }
+  function saveScreenAsTemplate(screen:Screen){
+    const name=window.prompt("Название шаблона",screen.name)?.trim();
+    if(!name)return;
+    const store=read<Record<string,ScreenWidget[]>>("fox-editor-widgets-v1",{});
+    const gridStore=read<Record<string,GridLayout>>(GRID_KEY,{});
+    const template:CustomScreenTemplate={id:crypto.randomUUID(),name,icon:screen.icon,sourceTableId:screen.tableId,widgets:structuredClone(store[screen.id]??[]),layout:gridStore[screen.id]?structuredClone(gridStore[screen.id]):undefined};
+    setCustomTemplates(current=>[...current,template]);
+    setScreenMenuId(null);
+  }
+  function createCustomScreen(template:CustomScreenTemplate){
+    try{
+      const screenId=crypto.randomUUID();
+      const widgetMap=new Map<string,string>();
+      const copied=template.widgets.map(widget=>{
+        const id=crypto.randomUUID();
+        widgetMap.set(widget.id,id);
+        return {...widget,id};
+      });
+      const storage="fox-editor-widgets-v1";
+      const existing=read<Record<string,ScreenWidget[]>>(storage,{});
+      const grids=read<Record<string,GridLayout>>(GRID_KEY,{});
+      const positions:Record<string,{x:number;y:number;w:number;h:number}>={};
+      for(const [oldId,rect] of Object.entries(template.layout?.positions??{})){
+        const newId=widgetMap.get(oldId);
+        if(newId)positions[newId]={...rect};
+      }
+      const grid=template.layout?{settings:{...template.layout.settings},positions}:undefined;
+      // Commit all local changes, restoring the original values if storage fails.
+      const oldWidgets=localStorage.getItem(storage),oldGrid=localStorage.getItem(GRID_KEY);
+      try{
+        localStorage.setItem(storage,JSON.stringify({...existing,[screenId]:copied}));
+        if(grid)localStorage.setItem(GRID_KEY,JSON.stringify({...grids,[screenId]:grid}));
+      }catch(error){
+        if(oldWidgets===null)localStorage.removeItem(storage);else localStorage.setItem(storage,oldWidgets);
+        if(oldGrid===null)localStorage.removeItem(GRID_KEY);else localStorage.setItem(GRID_KEY,oldGrid);
+        throw error;
+      }
+      const screen:Screen={id:screenId,name:template.name,icon:template.icon,tableId:template.sourceTableId};
+      setScreens(current=>[...current,screen]);
+      setActive(screenId);setCreateOpen(false);setCreateError("");
+    }catch(error){
+      setCreateError(error instanceof Error?error.message:"Не удалось установить пользовательский шаблон");
+      setCreateOpen(false);
+    }
   }
   function createProjectScreen(projectId:string,projectName:string):string{
     const screenId=crypto.randomUUID();
@@ -285,7 +338,7 @@ export default function App() {
         ) : active === "projects" ? (
           <ProjectsCenter onOpenTask={navigateToTask} onOpenScreen={setActive} onCreateScreen={createProjectScreen}/>
         ) : active === "files" ? (
-          <FilesHub createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
+          <FilesHub openRecord={recordToOpen} onRecordOpened={()=>setRecordToOpen(null)} createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
         ) : active === "notes" ? (
           <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)} openTaskId={taskToOpen} onTaskOpened={()=>setTaskToOpen(null)}/>
         ) : (
@@ -299,6 +352,7 @@ export default function App() {
                 <button className="fox-screen-actions-trigger" type="button" title="Действия с экраном" aria-label="Действия с экраном" aria-expanded={screenMenuId===activeScreen.id} onClick={()=>setScreenMenuId(current=>current===activeScreen.id?null:activeScreen.id)}><MoreHorizontal size={20}/></button>
                 {screenMenuId===activeScreen.id&&<div className="screen-context-menu fox-screen-page-menu">
                   <button onClick={()=>{setEditingScreenId(activeScreen.id);setScreenMenuId(null);}}>Редактировать экран</button>
+                  <button onClick={()=>saveScreenAsTemplate(activeScreen)}>Сохранить как шаблон</button>
                   <button onClick={()=>{addChildScreen(activeScreen.id);setScreenMenuId(null);}}>Добавить вложенный экран</button>
                   <label className="fox-screen-parent-label">Родительская страница
                     <select aria-label="Родительская страница" value={activeScreen.parentId??""} onChange={e=>{moveScreen(activeScreen.id,e.target.value||undefined);setScreenMenuId(null);}}>
@@ -320,6 +374,7 @@ export default function App() {
               tableId={activeScreen.tableId}
               onTableChange={id => setScreens(prev => prev.map(s => s.id===activeScreen.id ? {...s,tableId:id||undefined} : s))}
               onOpenTables={() => setActive("files")}
+              onOpenRecord={navigateToRecord}
               onCreateTable={() => {setCreateAction({type:"table",id:Date.now()});setActive("files");}}
             />}
           </section>
@@ -356,7 +411,8 @@ export default function App() {
         <button onClick={()=>startCreate("note")}><StickyNote size={19}/><span><strong>Заметка</strong><small>Текст, файлы и идеи</small></span></button>
         <button onClick={()=>startCreate("folder")}><FolderPlus size={19}/><span><strong>Папка</strong><small>Организация файлов</small></span></button>
         <button onClick={()=>startCreate("upload")}><Upload size={19}/><span><strong>Загрузить файлы</strong><small>В локальное хранилище</small></span></button>
-      </div><div className="fox-screen-presets"><div className="fox-screen-presets-heading"><strong>Готовые экраны</strong><small>Создадим виджеты и пустые таблицы, а ваши данные подключим автоматически по совпадению названий.</small></div><div className="fox-preset-filters">{(["Все","Личное","Творчество","Работа"] as const).map(category=><button key={category} className={templateCategory===category?"selected":""} onClick={()=>setTemplateCategory(category)}>{category}</button>)}</div><div className="fox-preset-list">{SCREEN_PRESETS.filter(preset=>templateCategory==="Все"||preset.group===templateCategory).map(preset=><button key={preset.id} className="fox-preset-card" onClick={()=>addTemplateScreen(preset.id)}><span className="fox-preset-symbol"><PlatformIcon value={preset.icon} size={34}/></span><span><strong>{preset.name}</strong><small>{preset.description}</small></span><Plus size={16}/></button>)}</div></div></div></div>}
+      </div><div className="fox-screen-presets"><div className="fox-screen-presets-heading"><strong>Готовые экраны</strong><small>Создадим виджеты и пустые таблицы, а ваши данные подключим автоматически по совпадению названий.</small></div><div className="fox-preset-filters">{(["Все","Личное","Творчество","Работа"] as const).map(category=><button key={category} className={templateCategory===category?"selected":""} onClick={()=>setTemplateCategory(category)}>{category}</button>)}</div><div className="fox-preset-list">{SCREEN_PRESETS.filter(preset=>templateCategory==="Все"||preset.group===templateCategory).map(preset=><button key={preset.id} className="fox-preset-card" onClick={()=>addTemplateScreen(preset.id)}><span className="fox-preset-symbol"><PlatformIcon value={preset.icon} size={34}/></span><span><strong>{preset.name}</strong><small>{preset.description}</small></span><Plus size={16}/></button>)}</div>
+      {customTemplates.length>0&&<div className="fox-custom-template-section"><h3>Мои шаблоны</h3><p>Сохраняют расположение, виджеты и ссылки на исходные таблицы без копирования записей.</p><div className="fox-preset-list">{customTemplates.map(template=><div key={template.id} className="fox-custom-template-row"><button className="fox-preset-card" onClick={()=>createCustomScreen(template)}><span className="fox-preset-symbol"><LayoutDashboard size={27}/></span><span><strong>{template.name}</strong><small>{template.widgets.length} виджетов</small></span><Plus size={16}/></button><button type="button" className="fox-custom-template-delete" title="Удалить шаблон" aria-label={"Удалить шаблон "+template.name} onClick={()=>setCustomTemplates(items=>items.filter(item=>item.id!==template.id))}><X size={16}/></button></div>)}</div></div>}</div></div></div>}
  
       {iconPickerId && <div className="overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setIconPickerId(null);}}><div className="dialog fox-icon-picker"><button className="close-button" title="Закрыть" onClick={()=>setIconPickerId(null)}><X size={18}/></button><div className="eyebrow">НАСТРОЙКА ЭКРАНА</div><h2>Выберите значок</h2><p>Готовые значки площадок и универсальные символы для Dock.</p><div className="fox-icon-palette">{PLATFORM_ICONS.map(platform=><button type="button" key={platform.id} title={platform.title} onClick={()=>{setScreens(prev=>prev.map(s=>s.id===iconPickerId?{...s,icon:platform.id}:s));setIconPickerId(null);}}><PlatformIcon value={platform.id} size={32}/><small>{platform.title}</small></button>)}</div><div className="fox-icon-palette fox-symbol-palette">{DECORATIVE_ICONS.map(symbol=><button type="button" key={symbol} title={symbol} onClick={()=>{setScreens(prev=>prev.map(s=>s.id===iconPickerId?{...s,icon:symbol}:s));setIconPickerId(null);}}><PlatformIcon value={symbol} size={28}/></button>)}</div></div></div>}
       {searchOpen && <div className="overlay search-overlay" onMouseDown={e => e.target === e.currentTarget && setSearchOpen(false)}><div className="search-dialog"><div className="search-line"><Search size={19}/><input autoFocus placeholder="Экраны, таблицы, задачи, заметки..." value={search} onChange={e => setSearch(e.target.value)}/><kbd>ESC</kbd><button className="close-button" onClick={() => setSearchOpen(false)}><X size={17}/></button></div><div className="search-results"><button onClick={() => {setActive("home");setSearchOpen(false);}}><LayoutDashboard size={17}/>Главная</button><button onClick={() => {setActive("projects");setSearchOpen(false);}}><BriefcaseBusiness size={17}/>Проекты</button><button onClick={() => {setActive("trackers");setSearchOpen(false);}}><Activity size={17}/>Трекеры</button><button onClick={() => {setActive("agents");setSearchOpen(false);}}><ShieldCheck size={17}/>AI и доступ</button><button onClick={() => {setActive("automations");setSearchOpen(false);}}><AlarmClock size={17}/>Автоматизации</button><button onClick={() => {setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/>Файлы и таблицы</button><button onClick={() => {setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/>Заметки и задачи</button><button onClick={()=>{setActive("feed");setSearchOpen(false);}}><Rss size={17}/>Лента</button><button onClick={()=>{setActive("notifications");setSearchOpen(false);}}><Bell size={17}/>Уведомления</button><button onClick={()=>{setActive("messages");setSearchOpen(false);}}><Mail size={17}/>Сообщения</button>{filteredScreens.map(s => <button key={s.id} onClick={() => {setActive(s.id);setSearchOpen(false);}}><LayoutDashboard size={17}/>{s.name}</button>)}{matchingFiles.length>0&&<div className="fox-search-category">Файлы и папки</div>}{matchingFiles.map(item=><button key={item.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><Folder size={17}/><span>{item.name}</span></button>)}{matchingTables.length>0&&<div className="fox-search-category">Таблицы и данные</div>}{matchingTables.map(t=><button key={t.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/><span>{t.name}</span></button>)}{matchingTasks.length>0&&<div className="fox-search-category">Задачи</div>}{matchingTasks.map(t=><button key={t.id} onClick={()=>{navigateToTask(t.id);setSearchOpen(false);}}><CheckSquare size={17}/><span>{t.title}</span></button>)}{matchingNotes.length>0&&<div className="fox-search-category">Заметки</div>}{matchingNotes.map(n=><button key={n.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/><span>{n.title}</span></button>)}</div></div></div>}

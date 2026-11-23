@@ -3,6 +3,7 @@ import {GRID_KEY,readGridStore,reconcileGrid,reposition,updateGridSettings,nextS
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
 import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type TaskStatus } from "../notes/data";
 import WorldTravelMap from "./WorldTravelMap";
+import {GalleryView,KanbanView,CalendarView} from "../tables/ExtraTableViews";
 import FinanceWidget,{type FinanceKind} from "./FinanceWidget";
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
@@ -11,7 +12,7 @@ import {
 } from "lucide-react";
 
 export type EditorTable = TableData;
-type WidgetType = "finance" | "recordcards" | "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "table" | "list" | "text" | "heading" | "divider";
+type WidgetType = "finance" | "recordcards" | "worldmap" | "datecount" | "taskcount" | "tasklist" | "noteslist" | "metric" | "counter" | "progress" | "bars" | "line" | "donut" | "timeline" | "gallery" | "kanban" | "calendar" | "table" | "list" | "text" | "heading" | "divider";
 type EditorWidget = {
   id: string; type: WidgetType; title: string; tableId?: string; startDate?: string; financeKind?:FinanceKind; financeRow?:number; financeColumn?:number; financeRowSpan?:number; financeBackground?: "mountains"|"sunset"|"plain";
   columnId?: string; labelColumnId?: string; target?: number;
@@ -30,6 +31,7 @@ type Props = {
   onTableChange: (id: string) => void;
   onOpenTables: () => void;
   onCreateTable: () => void;
+  onOpenRecord?: (tableId:string,rowId:string)=>void;
 };
 const STORAGE = "fox-editor-widgets-v1";
 const catalog: { type: WidgetType; title: string; description: string; icon: typeof LayoutGrid; needsTable: boolean }[] = [
@@ -48,6 +50,9 @@ const catalog: { type: WidgetType; title: string; description: string; icon: typ
   { type: "donut", title: "Круговая диаграмма", description: "Распределение записей по категории", icon: Target, needsTable: true },
   { type: "timeline", title: "Хронология", description: "Единая временная линия событий", icon: LayoutGrid, needsTable: true },
   { type: "table", title: "Таблица", description: "Все записи в компактном виде", icon: Table2, needsTable: true },
+  { type: "gallery", title: "Галерея записей", description: "Карточки с фото из выбранной базы", icon: LayoutGrid, needsTable: true },
+  { type: "kanban", title: "Канбан", description: "Колонки по статусу с возможностью менять статус", icon: LayoutGrid, needsTable: true },
+  { type: "calendar", title: "Календарь", description: "Месяц с событиями по полю даты", icon: LayoutGrid, needsTable: true },
   { type: "list", title: "Список", description: "Последние записи из таблицы", icon: List, needsTable: true },
   { type: "text", title: "Текст", description: "Произвольная заметка", icon: AlignLeft, needsTable: false },
   { type: "heading", title: "Заголовок", description: "Крупный заголовок раздела", icon: AlignLeft, needsTable: false },
@@ -59,6 +64,7 @@ const templates = [
   { title: "Финансовая сводка", description: "Показатель + график", types: ["metric", "bars", "donut"] as WidgetType[] },
   { title: "Контроль цели", description: "Показатель + прогресс", types: ["metric", "progress"] as WidgetType[] },
   { title: "Реестр проекта", description: "Список + таблица", types: ["list", "table"] as WidgetType[] },
+  { title: "База с видами", description: "Галерея, канбан, календарь", types: ["gallery", "kanban", "calendar"] as WidgetType[] },
 ];
 const emptyStore = (): WidgetStore => {
   try { return JSON.parse(localStorage.getItem(STORAGE) ?? "{}") as WidgetStore; }
@@ -67,7 +73,7 @@ const emptyStore = (): WidgetStore => {
 const newId = () => crypto.randomUUID();
 const fmt = (n: number) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(n);
 
-function WidgetPreview({ widget, table, tables, organizer, onConfigure, editMode }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData; onConfigure: () => void; editMode: boolean }) {
+function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRecord, onUpdateCell, editMode }: { widget: EditorWidget; table?: EditorTable; tables: EditorTable[]; organizer: NotesTasksData; onConfigure: () => void; onOpenRecord?:(tableId:string,rowId:string)=>void; onUpdateCell?:(tableId:string,rowId:string,columnId:string,value:string)=>void; editMode: boolean }) {
   const maxItems = Math.max(1, Math.min(30, widget.limit ?? 8));
   if(widget.type==="finance")return <FinanceWidget kind={widget.financeKind??"balance"} tables={tables} background={widget.financeBackground??"mountains"}/>;
   if(widget.type==="worldmap")return <WorldTravelMap table={table}/>;
@@ -91,11 +97,14 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, editMode
   if (widget.type === "heading") return <div className="fox-widget-section-title">{widget.body?.trim() || widget.title}</div>;
   if (widget.type === "divider") return <div className="fox-widget-divider"/>;
   if (!table) return <div className="fox-widget-empty fox-widget-connect"><Database size={22}/><strong>Подключите данные</strong><span>Выберите таблицу для «{widget.title}».</span>{editMode&&<button type="button" onClick={event=>{event.stopPropagation();onConfigure();}}>Выбрать источник</button>}</div>;
-  const numbers = table.columns.filter(c => c.type === "number" || c.type === "formula");
+  const numbers = table.columns.filter(c => c.type === "number" || c.type === "formula" || c.type === "rollup");
   const numberCol = numbers.find(c => c.id === widget.columnId) ?? numbers[0];
   const textCol = table.columns.find(c => c.id === widget.labelColumnId) ?? table.columns.find(c => c.type === "text") ?? table.columns[0];
   const rows = filterRows(table.rows, table, tables, widget.filter ?? {});
   const value = (row: EditorTable["rows"][number], col: EditorTable["columns"][number]) => valueForColumn(row, col, tables);
+  if(widget.type==="gallery")return <GalleryView table={table} rows={rows.slice(0,maxItems)} onOpen={rowId=>onOpenRecord?.(table.id,rowId)}/>;
+  if(widget.type==="calendar")return <CalendarView table={table} rows={rows} onOpen={rowId=>onOpenRecord?.(table.id,rowId)}/>;
+  if(widget.type==="kanban")return <KanbanView table={table} rows={rows.slice(0,maxItems)} onOpen={rowId=>onOpenRecord?.(table.id,rowId)} onUpdate={(rowId,columnId,v)=>onUpdateCell?.(table.id,rowId,columnId,v)}/>;
   if(widget.type==="recordcards"){
     const field=(row:EditorTable["rows"][number],...names:string[])=>{
       const column=table.columns.find(c=>names.some(n=>c.name.toLocaleLowerCase("ru")===n.toLocaleLowerCase("ru")));
@@ -157,8 +166,16 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, editMode
   return <div className="fox-widget-table-scroll"><table><thead><tr>{table.columns.slice(0,5).map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>{rows.slice(0,maxItems).map(r=><tr key={r.id}>{table.columns.slice(0,5).map(c=><td key={c.id}>{c.type==="checkbox"?(value(r,c)?"Да":"Нет"):formatCell(value(r,c))}</td>)}</tr>)}</tbody></table>{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
 }
 
-export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, tableId, onTableChange, onOpenTables, onCreateTable }: Props) {
+export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, tableId, onTableChange, onOpenTables, onCreateTable,onOpenRecord }: Props) {
   const [store, setStore] = useState<WidgetStore>(emptyStore);
+  function updateDatabaseCell(tableId:string,rowId:string,columnId:string,value:string){
+    try{
+      const current=JSON.parse(localStorage.getItem("fox-tables-v1")||"[]") as (TableData&{updatedAt?:string})[];
+      const changed=current.map(table=>table.id!==tableId?table:{...table,updatedAt:new Date().toISOString(),rows:table.rows.map(row=>row.id!==rowId?row:{...row,cells:{...row.cells,[columnId]:value}})});
+      localStorage.setItem("fox-tables-v1",JSON.stringify(changed));
+      window.dispatchEvent(new Event("fox-tables-updated"));
+    }catch(error){console.error("Не удалось изменить запись таблицы",error);}
+  }
   const [grids,setGrids]=useState(readGridStore);
   const [gridError,setGridError]=useState("");
   const drag=useRef<{id:string;kind:"move"|"resize";edge:string;x:number;y:number;origin:Rect;preview:Rect;valid:boolean}|null>(null);
@@ -182,10 +199,27 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const patchGrid=(patch:Partial<GridLayout["settings"]>)=>{saveGrid(updateGridSettings(grid,widgets,patch));setGridError("");};
   function addPositions(items:EditorWidget[]){const next=reconcileGrid(grid,widgets);for(const item of items){const w=Math.min(next.settings.columns,Math.max(1,item.width));const h=Math.max(1,Math.ceil(item.height/(next.settings.rowHeight+next.settings.gap)));let p=nextSlot(w,h,next.positions,next.settings);while(!p&&next.settings.rows<60){next.settings={...next.settings,rows:Math.min(60,next.settings.rows+4)};p=nextSlot(w,h,next.positions,next.settings);}if(!p){setGridError("Нет места на сетке");return false;}next.positions[item.id]=p;}saveGrid(next);return true;}
   function setPosition(id:string,patch:Partial<Rect>){const current=grid.positions[id];if(!current)return;const changed=reposition(grid,id,{...current,...patch});if(changed){saveGrid(changed);setGridError("");}else setGridError("Место занято или размер выходит за границу сетки");}
-  function pointerDown(e:React.PointerEvent<HTMLElement>,id:string,kind:"move"|"resize",edge=""){if(e.button!==0)return;const origin=grid.positions[id];if(!origin)return;e.stopPropagation();e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);drag.current={id,kind,edge,x:e.clientX,y:e.clientY,origin,preview:origin,valid:true};setSelectedId(id);}
-  function pointerMove(e:React.PointerEvent<HTMLElement>){const d=drag.current;if(!d||!canvasRef.current)return;const cell=(canvasRef.current.clientWidth-grid.settings.gap*(grid.settings.columns-1))/grid.settings.columns;const dx=Math.round((e.clientX-d.x)/(cell+grid.settings.gap)),dy=Math.round((e.clientY-d.y)/(grid.settings.rowHeight+grid.settings.gap));const r={...d.origin};if(d.kind==="move"){r.x+=dx;r.y+=dy;}else{if(d.edge==="right")r.w+=dx;if(d.edge==="left"){r.x+=dx;r.w-=dx;}if(d.edge==="bottom")r.h+=dy;if(d.edge==="top"){r.y+=dy;r.h-=dy;}}const valid=r.w>0&&r.h>0&&r.x>=0&&r.y>=0&&r.x+r.w<=grid.settings.columns&&r.y+r.h<=grid.settings.rows&&Boolean(reposition(grid,d.id,r));drag.current={...d,preview:r,valid};setPreview(valid?{id:d.id,rect:r}:null);}
+  function pointerDown(e:React.PointerEvent<HTMLElement>,id:string,kind:"move"|"resize",edge=""){if(e.button!==0)return;const origin=grid.positions[id];if(!origin)return;e.stopPropagation();e.preventDefault();drag.current={id,kind,edge,x:e.clientX,y:e.clientY,origin,preview:origin,valid:true};setSelectedId(id);}
+  function pointerMove(e:{clientX:number;clientY:number}){const d=drag.current;if(!d||!canvasRef.current)return;const cell=(canvasRef.current.clientWidth-grid.settings.gap*(grid.settings.columns-1))/grid.settings.columns;const dx=Math.round((e.clientX-d.x)/(cell+grid.settings.gap)),dy=Math.round((e.clientY-d.y)/(grid.settings.rowHeight+grid.settings.gap));const r={...d.origin};if(d.kind==="move"){r.x+=dx;r.y+=dy;}else{if(d.edge==="right")r.w+=dx;if(d.edge==="left"){r.x+=dx;r.w-=dx;}if(d.edge==="bottom")r.h+=dy;if(d.edge==="top"){r.y+=dy;r.h-=dy;}}const valid=r.w>0&&r.h>0&&r.x>=0&&r.y>=0&&r.x+r.w<=grid.settings.columns&&r.y+r.h<=grid.settings.rows&&Boolean(reposition(grid,d.id,r));drag.current={...d,preview:r,valid};setPreview(valid?{id:d.id,rect:r}:null);}
   function pointerUp(){const d=drag.current;if(!d)return;if(d.valid){const next=reposition(grid,d.id,d.preview);if(next)saveGrid(next);}else setGridError("Положение недоступно: пересечение или выход за границу");drag.current=null;setPreview(null);}
   function pointerCancel(){drag.current=null;setPreview(null);}
+  // Attach dragging to the window rather than a moving widget node. A widget
+  // repositions under the pointer during a gesture and cannot safely own the
+  // pointer capture or the final mouse-up event.
+  useEffect(()=>{
+    if(!editMode)return;
+    const onMove=(event:PointerEvent)=>pointerMove(event);
+    const onUp=()=>pointerUp();
+    const onCancel=()=>pointerCancel();
+    window.addEventListener("pointermove",onMove);
+    window.addEventListener("pointerup",onUp);
+    window.addEventListener("pointercancel",onCancel);
+    return()=>{
+      window.removeEventListener("pointermove",onMove);
+      window.removeEventListener("pointerup",onUp);
+      window.removeEventListener("pointercancel",onCancel);
+    };
+  },[editMode,grid]);
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
   useEffect(() => { localStorage.setItem(GRID_KEY,JSON.stringify(grids)); }, [grids]);
   useEffect(()=>{const update=()=>setOrganizer(readNotesTasks());window.addEventListener("fox-notes-tasks-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};},[]);
@@ -245,24 +279,24 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   }
   function addWidget(type: WidgetType) {
     const meta = catalog.find(c => c.type === type)!;
-    const numeric = defaultTable?.columns.find(c => c.type === "number" || c.type === "formula");
+    const numeric = defaultTable?.columns.find(c => c.type === "number" || c.type === "formula" || c.type==="rollup");
     const text = defaultTable?.columns.find(c => c.type === "text");
     const widget: EditorWidget = {
       id: newId(), type, title: meta.title, tableId: meta.needsTable ? tableId : undefined,
       columnId: numeric?.id, labelColumnId: type==="donut" ? defaultTable?.columns.find(c=>c.type==="select")?.id : text?.id,
-      target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : type === "heading" ? 100 : type === "divider" ? 65 : 205
+      target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["worldmap","table","gallery","kanban","calendar","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : ["table","gallery","kanban","calendar"].includes(type) ? 340 : type === "heading" ? 100 : type === "divider" ? 65 : 205
     };
     if(!addPositions([widget]))return;
     updateWidgets(prev => [...prev, widget]);
     setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
   }
   function addTemplate(types: WidgetType[]) {
-    const numeric = defaultTable?.columns.find(c => c.type === "number" || c.type === "formula");
+    const numeric = defaultTable?.columns.find(c => c.type === "number" || c.type === "formula" || c.type==="rollup");
     const text = defaultTable?.columns.find(c => c.type === "text");
     const additions = types.map(type => ({
       id: newId(), type, title: catalog.find(c => c.type === type)!.title,
       tableId: defaultTable?.id, columnId: numeric?.id, labelColumnId: text?.id,
-      target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : 205
+      target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["worldmap","table","gallery","kanban","calendar","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : ["table","gallery","kanban","calendar"].includes(type) ? 340 : 205
     }));
     if(!addPositions(additions))return;
     updateWidgets(prev => [...prev, ...additions]);
@@ -277,7 +311,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
     setSelectedId(copy.id); setRightMode("settings"); setSettingsTab("data");
   }
   const selectedTable = tables.find(t => t.id === selected?.tableId);
-  const numericFields = selectedTable?.columns.filter(c => c.type === "number" || c.type === "formula") ?? [];
+  const numericFields = selectedTable?.columns.filter(c => c.type === "number" || c.type === "formula" || c.type === "rollup") ?? [];
   const allFields = selectedTable?.columns ?? [];
 
   return <div className="fox-editor">
@@ -297,10 +331,10 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
              if(!rect)return null;
              return <div className={"fox-widget fox-grid-widget"+(isSelected?" selected":"")+(widget.type==="finance"?" fox-finance-card fox-finance-"+(widget.financeKind??"balance"):"")} style={{gridColumn:`${rect.x+1} / span ${rect.w}`,gridRow:`${rect.y+1} / span ${rect.h}`,"--fox-col":`${rect.x+1} / span ${rect.w}`,"--fox-row":`${rect.y+1} / span ${rect.h}`,minHeight:0} as React.CSSProperties} key={widget.id}
                onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
-              {!previewMode&&<div className="fox-grid-drag-handle" title="Перетащить карточку" onPointerDown={e=>pointerDown(e,widget.id,"move")} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerCancel}><GripVertical size={16}/></div>}
+              {!previewMode&&<div className="fox-grid-drag-handle" title="Перетащить карточку" onPointerDown={e=>pointerDown(e,widget.id,"move")}><GripVertical size={16}/></div>}
                {widget.type!=="finance" && <div className="fox-widget-header"><h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>}
-              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer} editMode={editMode} onConfigure={()=>{setSelectedId(widget.id);setSettingsTab("data");setRightMode("settings");setShowRight(true);}}/></div>
-              {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} onPointerDown={e=>pointerDown(e,widget.id,"resize",edge)} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerCancel}/>)}
+              <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer} editMode={editMode} onOpenRecord={onOpenRecord} onUpdateCell={updateDatabaseCell} onConfigure={()=>{setSelectedId(widget.id);setSettingsTab("data");setRightMode("settings");setShowRight(true);}}/></div>
+              {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} onPointerDown={e=>pointerDown(e,widget.id,"resize",edge)}/>)}
             </div>;
           })}
           {!widgets.length && <div className="fox-editor-empty"><LayoutGrid size={30}/><h3>Пустой экран</h3><p>Добавьте первый виджет. Показатели, таблицы и графики будут брать данные из выбранного источника.</p>{editMode&&<button className="primary-button" onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Выбрать виджет</button>}</div>}
