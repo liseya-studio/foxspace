@@ -72,12 +72,18 @@ export function mergeExcelIntoTable(draft:ImportDraft,existing:ImportTable|undef
  const table:ImportTable=existing?{...existing,columns:[...existing.columns],rows:[...existing.rows],history:[...(existing.history??[])]}:{id:createId(),name:draft.sheet||"Импорт Excel",columns:[],rows:[],history:[]};
  const mapping=new Map<number,string>();
  for(const field of draft.fields){
+   // A workbook can contain historical entries outside its current validation list.
+   // Keep both declared choices and actual imported values available for editing.
+   const observed=field.type==="multiselect"
+     ?draft.rows.flatMap(row=>splitMultiple(row[field.index]))
+     :field.type==="select"?draft.rows.map(row=>clean(row[field.index])).filter(Boolean):[];
+   const fieldOptions=[...new Set([...field.options,...observed])];
    let col=table.columns.find(c=>c.name.toLocaleLowerCase("ru")===field.name.toLocaleLowerCase("ru"));
    if(!col){
-     col={id:createId(),name:field.name,type:field.type,options:field.type==="select"||field.type==="multiselect"?[...field.options]:undefined};
+     col={id:createId(),name:field.name,type:field.type,options:field.type==="select"||field.type==="multiselect"?fieldOptions:undefined};
      table.columns.push(col);
    }else if(col.type==="select"||col.type==="multiselect"){
-     col={...col,options:[...new Set([...(col.options??[]),...field.options])]};
+     col={...col,options:[...new Set([...(col.options??[]),...fieldOptions])]};
      table.columns=table.columns.map(item=>item.id===col!.id?col!:item);
    }
    mapping.set(field.index,col.id);
