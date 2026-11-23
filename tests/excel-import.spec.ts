@@ -73,3 +73,17 @@ test("import existing table keeps old entries, merges options by column name",()
  expect(next.columns.find(c=>c.name==="Теги")?.options).toContain("Срочно");
  expect(splitMultiple(next.rows[0].cells[next.columns[2].id])).toEqual(["Срочно","Видео"]);
 });
+
+test("Files hub quick Excel import retains dropdown options across all sheets",async({page})=>{
+ await page.goto("/");
+ await page.evaluate(()=>localStorage.clear());
+ await page.reload();
+ await page.getByRole("button",{name:"Файлы и таблицы"}).click();
+ await page.locator(".fox-file-header-actions input[type=file][accept*='.xlsx']").setInputFiles({name:"quick.xlsx",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",buffer:xlsx});
+ await expect(page.locator(".table-title-row h2")).toContainText("quick");
+ const tables=await page.evaluate(()=>JSON.parse(localStorage.getItem("fox-tables-v1")??"[]"));
+ expect(tables).toHaveLength(1);
+ expect(tables[0].columns.find((c:{name:string})=>c.name==="Статус").options).toEqual(["Новый","В работе","Готово"]);
+ expect(tables[0].columns.find((c:{name:string})=>c.name==="Теги").type).toBe("multiselect");
+ expect(tables[0].rows).toHaveLength(2);
+});
