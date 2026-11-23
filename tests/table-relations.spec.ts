@@ -79,3 +79,20 @@ test("estimate screen generates configured formula from quantity and price",()=>
   const price=estimate!.columns.find(col=>col.name==="Цена");
   expect(formula).toMatchObject({formulaSourceId:qty?.id,formulaSecondSourceId:price?.id,formulaOperator:"*"});
 });
+
+test("screen templates wire real relations between lessons, projects and resources",()=>{
+  for(const [template,source,field,target] of [
+    ["learning","Обучение · Уроки","Направление","Обучение · Направления"],
+    ["social","Блоги · Публикации","Ресурс","Блоги · Ресурсы"],
+    ["client-work","Работа · Заказы","Клиент","Работа · Клиенты"],
+    ["client-work","Работа · Оплаты","Заказ","Работа · Заказы"]
+  ]){
+    const preset=SCREEN_PRESETS.find(item=>item.id===template)!;
+    const created=instantiatePreset(preset,[]);
+    const table=created.newTables.find(item=>item.name===source)!;
+    const targetTable=created.newTables.find(item=>item.name===target)!;
+    const relation=table.columns.find(item=>item.name===field);
+    expect(relation?.type).toBe("relation");
+    expect((relation as typeof relation & {relationTableId?:string})?.relationTableId).toBe(targetTable.id);
+  }
+});
