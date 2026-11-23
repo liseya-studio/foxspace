@@ -96,3 +96,23 @@ test("screen templates wire real relations between lessons, projects and resourc
     expect((relation as typeof relation & {relationTableId?:string})?.relationTableId).toBe(targetTable.id);
   }
 });
+
+test("project templates provide reverse links and paid amounts without duplicate rows",()=>{
+  const preset=SCREEN_PRESETS.find(item=>item.id==="client-work")!;
+  const created=instantiatePreset(preset,[]);
+  const orders=created.newTables.find(table=>table.name==="Работа · Заказы")!;
+  const payments=created.newTables.find(table=>table.name==="Работа · Оплаты")!;
+  const relatedPayments=orders.columns.find(col=>col.name==="Оплаты") as typeof orders.columns[number]&{backlinkSourceTableId?:string;backlinkSourceColumnId?:string};
+  const link=payments.columns.find(col=>col.name==="Заказ") as typeof payments.columns[number]&{relationTableId?:string};
+  const paid=orders.columns.find(col=>col.name==="Оплачено") as typeof orders.columns[number]&{rollupRelationId?:string;rollupTargetId?:string;rollupAggregate?:string};
+  const amount=payments.columns.find(col=>col.name==="Сумма")!;
+  expect(relatedPayments).toMatchObject({type:"backlink",backlinkSourceTableId:payments.id,backlinkSourceColumnId:link.id});
+  expect(paid).toMatchObject({type:"rollup",rollupRelationId:relatedPayments.id,rollupTargetId:amount.id,rollupAggregate:"sum"});
+  const orderRow={id:"order-1",cells:{[orders.columns[0].id]:"Сайт"}};
+  const paymentRow={id:"payment-1",cells:{[link.id]:"order-1",[amount.id]:4000,[payments.columns[0].id]:"Первая оплата"}};
+  const all=[
+    {...orders,rows:[orderRow]},
+    {...payments,rows:[paymentRow]}
+  ] as TableData[];
+  expect(valueForColumn(orderRow,paid,all)).toBe(4000);
+});
