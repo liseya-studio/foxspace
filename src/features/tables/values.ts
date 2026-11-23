@@ -63,6 +63,12 @@ export function valueForColumn(
       default: return number * factor;
     }
   }
+  if(column.type==="multiselect"){
+    const raw=String(row.cells[column.id]??"").trim();
+    if(!raw)return "";
+    try{const parsed=JSON.parse(raw);if(Array.isArray(parsed))return parsed.map(value=>String(value)).join(", ");}catch{/* legacy string */}
+    return raw.replace(/[;|]/g,", ");
+  }
   if (column.type === "relation" || column.type==="backlink") {
     const match=linkedRows(row,column,tables);
     return match?.rows.map(item=>String(item.cells[match.table.columns[0]?.id??""]??item.id)).join(", ");
