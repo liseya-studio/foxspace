@@ -1,4 +1,5 @@
 import { readProjects, type Project } from "../projects/data";
+import { valueForColumn, type TableData } from "./values";
 import {downloadXlsx} from "./xlsx";
 import {getItem,uploadFiles} from "../files/storage";
 import {Image as ImageIcon, ExternalLink} from "lucide-react";
@@ -9,8 +10,8 @@ import {
   Columns3, Rows3, X, LayoutGrid, List, SlidersHorizontal
 } from "lucide-react";
 
-type ColumnType = "image" | "text" | "number" | "date" | "select" | "checkbox" | "person" | "relation" | "formula" | "project";
-type Column = { id: string; name: string; type: ColumnType; options?: string[]; relationTableId?: string; formulaSourceId?: string; formulaOperator?: string; formulaFactor?: number; width?: number };
+type ColumnType = "image" | "text" | "number" | "date" | "select" | "checkbox" | "person" | "relation" | "rollup" | "formula" | "project";
+type Column = { id: string; name: string; type: ColumnType; options?: string[]; relationTableId?: string; rollupRelationId?:string; rollupTargetId?:string; rollupAggregate?:"sum"|"average"|"count"|"min"|"max"; formulaSourceId?: string; formulaOperator?: string; formulaFactor?: number; width?: number };
 type Cell = string | number | boolean;
 type RowData = { id: string; cells: Record<string, Cell> };
 type SavedView = { id: string; name: string; filterColumn: string; filterOperator: string; filterValue: string; secondColumn?: string; secondOperator?: string; secondValue?: string; logic?: "and" | "or"; categoryFilter?: string; groupColumn: string; sortColumn: string; sortDirection: "asc" | "desc"; layout?: "table" | "list" };
@@ -27,6 +28,7 @@ const types: { value: ColumnType; label: string; icon: typeof Type }[] = [
   { value: "checkbox", label: "Флажок", icon: CheckSquare },
   { value: "person", label: "Пользователь", icon: UserRound },
   { value: "relation", label: "Связанная запись", icon: LayoutGrid },
+  { value: "rollup", label: "Агрегация связи", icon: Hash },
   { value: "project", label: "Проект", icon: FolderKanban },
   { value: "formula", label: "Формула", icon: Hash },
 ];
@@ -52,6 +54,9 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
   const [newColumnName, setNewColumnName] = useState("");
   const [newColumnType, setNewColumnType] = useState<ColumnType>("text");
   const [relationTableId, setRelationTableId] = useState("");
+  const [rollupRelationId,setRollupRelationId]=useState("");
+  const [rollupTargetId,setRollupTargetId]=useState("");
+  const [rollupAggregate,setRollupAggregate]=useState<"sum"|"average"|"count"|"min"|"max">("sum");
   const [formulaSourceId, setFormulaSourceId] = useState("");
   const [formulaOperator, setFormulaOperator] = useState("*");
   const [formulaFactor, setFormulaFactor] = useState("1");
@@ -113,9 +118,9 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
   function addColumn() {
     const name = newColumnName.trim();
     if (!name || !activeTable) return;
-    const column: Column = { id: id(), name, type: newColumnType, ...(newColumnType === "select" ? { options: ["Новый", "В работе", "Готово"] } : {}), ...(newColumnType === "relation" ? { relationTableId: relationTableId || tables.find(t => t.id !== activeId)?.id } : {}), ...(newColumnType === "formula" ? { formulaSourceId, formulaOperator, formulaFactor: Number(formulaFactor) } : {}) };
+    const column: Column = { id: id(), name, type: newColumnType, ...(newColumnType === "select" ? { options: ["Новый", "В работе", "Готово"] } : {}), ...(newColumnType === "relation" ? { relationTableId: relationTableId || tables.find(t => t.id !== activeId)?.id } : {}), ...(newColumnType === "rollup" ? {rollupRelationId,rollupTargetId,rollupAggregate}:{}), ...(newColumnType === "formula" ? { formulaSourceId, formulaOperator, formulaFactor: Number(formulaFactor) } : {}) };
     updateTable(t => ({ ...t, columns: [...t.columns, column], rows: t.rows.map(r => ({ ...r, cells: { ...r.cells, [column.id]: column.type === "checkbox" ? false : column.type === "number" ? 0 : "" } })) }));
-    setNewColumnName(""); setNewColumnType("text"); setRelationTableId(""); setFormulaSourceId(""); setFormulaOperator("*"); setFormulaFactor("1"); setColumnDialog(false);
+    setNewColumnName(""); setNewColumnType("text"); setRelationTableId(""); setRollupRelationId(""); setRollupTargetId(""); setRollupAggregate("sum"); setFormulaSourceId(""); setFormulaOperator("*"); setFormulaFactor("1"); setColumnDialog(false);
   }
   function updateCell(rowId: string, columnId: string, value: Cell) {
     updateTable(t => ({ ...t, rows: t.rows.map(r => r.id === rowId ? { ...r, cells: { ...r.cells, [columnId]: value } } : r) }));
@@ -147,7 +152,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
     const evaluate = (row: RowData, columnId: string, operator: string, expected: string) => {
       const column = activeTable.columns.find(item => item.id === columnId);
       if (!column) return true;
-      const raw = computedCell(column, row);
+      const raw = computedCell(column, row,tables);
       const value = String(raw ?? "").toLocaleLowerCase("ru");
       const target = expected.trim().toLocaleLowerCase("ru");
       if (operator === "empty") return value === "";
@@ -166,7 +171,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
     const categoryColumn = activeTable.columns.find(col => col.type === "select");
     let rows = activeTable.rows.filter(row => {
       if (categoryColumn && categoryFilter !== "Все" && String(row.cells[categoryColumn.id] ?? "") !== categoryFilter) return false;
-      if (query && !activeTable.columns.some(col => String(computedCell(col, row) ?? "").toLocaleLowerCase("ru").includes(query.toLocaleLowerCase("ru")))) return false;
+      if (query && !activeTable.columns.some(col => String(computedCell(col, row,tables) ?? "").toLocaleLowerCase("ru").includes(query.toLocaleLowerCase("ru")))) return false;
       const one = !firstActive || evaluate(row, filterColumn, filterOperator, filterValue);
       const two = !secondActive || evaluate(row, secondColumn, secondOperator, secondValue);
       return firstActive && secondActive ? logic === "and" ? one && two : one || two : one && two;
@@ -174,8 +179,8 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
     if (sort) {
       const column = activeTable.columns.find(col => col.id === sort.key);
       if (column) rows = [...rows].sort((a, b) => {
-        const av = computedCell(column, a) ?? "";
-        const bv = computedCell(column, b) ?? "";
+        const av = computedCell(column, a,tables) ?? "";
+        const bv = computedCell(column, b,tables) ?? "";
         const result = typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv), "ru", { numeric: true });
         return sort.direction === "asc" ? result : -result;
       });
@@ -187,7 +192,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
     if (!activeTable || !groupColumn) return [{ label: "", rows: visibleRows }];
     const groups = new Map<string, RowData[]>();
     visibleRows.forEach(row => {
-      const column = activeTable.columns.find(col => col.id === groupColumn); const label = column ? String(computedCell(column,row) || "Без значения") : "Без значения";
+      const column = activeTable.columns.find(col => col.id === groupColumn); const label = column ? String(computedCell(column,row,tables) || "Без значения") : "Без значения";
       groups.set(label, [...(groups.get(label) ?? []), row]);
     });
     return Array.from(groups.entries()).map(([label, rows]) => ({ label, rows }));
@@ -195,12 +200,12 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
 
   function exportXlsx(){
     if(!activeTable)return;
-    downloadXlsx(activeTable.name,activeTable.columns.map(column=>column.name),activeTable.rows.map(row=>activeTable.columns.map(column=>computedCell(column,row))));
+    downloadXlsx(activeTable.name,activeTable.columns.map(column=>column.name),activeTable.rows.map(row=>activeTable.columns.map(column=>computedCell(column,row,tables))));
   }
   function exportCsv() {
     if (!activeTable) return;
     const quote = (v: Cell | undefined) => '"' + String(v ?? "").replaceAll('"', '""') + '"';
-    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(computedCell(c,r) ?? "")).join(";"))].join("\n");
+    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(computedCell(c,r,tables) ?? "")).join(";"))].join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = activeTable.name + ".csv"; a.click(); URL.revokeObjectURL(url);
   }
@@ -232,11 +237,12 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
     {openedRow&&activeTable&&<div className="table-record-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setOpenedRowId(null);}}><aside className="table-record-panel" role="dialog" aria-modal="true" aria-label="Карточка записи"><header><div><small>{activeTable.name}</small><h2>{String(openedRow.cells[activeTable.columns[0]?.id]||"Запись")}</h2></div><button aria-label="Закрыть карточку" onClick={()=>setOpenedRowId(null)}><X size={20}/></button></header><div className="table-record-content">{activeTable.columns.map(col=><div className="table-record-field" key={col.id}><label>{col.name}</label>{col.type==="image"?<div className="table-record-image-field">{openedRow.cells[col.id]?<>{<RecordImage fileId={String(openedRow.cells[col.id])}/>}<button onClick={()=>updateCell(openedRow.id,col.id,"")}>Убрать из записи</button></>:<p>Изображение не добавлено</p>}<label className="table-record-upload"><ImageIcon size={16}/> {openedRow.cells[col.id]?"Заменить изображение":"Загрузить изображение"}<input type="file" accept="image/*" disabled={imageLoading} onChange={e=>{void uploadImage(openedRow.id,col.id,e.target.files?.[0]);e.target.value="";}}/></label></div>:col.type==="text"?<textarea value={String(openedRow.cells[col.id]??"")} onChange={e=>updateCell(openedRow.id,col.id,e.target.value)} rows={Math.max(3,Math.min(12,Math.ceil(String(openedRow.cells[col.id]??"").length/70)))}/>:renderCell(col,computedCell(col,openedRow),v=>updateCell(openedRow.id,col.id,v),tables,projectOptions)}</div>)}{imageError&&<p className="table-record-error" role="alert">{imageError}</p>}</div></aside></div>}
     {tableDialog && <div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setTableDialog(false)}><div className="dialog"><button className="close-button" onClick={()=>setTableDialog(false)}><X size={18}/></button><div className="dialog-icon"><Table2 size={21}/></div><h2>Новая таблица</h2><p>Создайте таблицу. Позже к ней можно будет подключать представления и виджеты на пользовательских экранах.</p><label className="form-label">Название<input className="form-input" autoFocus placeholder="Например, Проекты" value={newTableName} onChange={e=>setNewTableName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&createTable()}/></label><button className="primary-button full" disabled={!newTableName.trim()} onClick={createTable}><Plus size={16}/> Создать таблицу</button><button className="text-button" onClick={()=>setTableDialog(false)}>Отмена</button></div></div>}
     {historyOpen&&<div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setHistoryOpen(false)}><div className="dialog table-history-dialog"><button className="close-button" onClick={()=>setHistoryOpen(false)}><X size={18}/></button><div className="dialog-icon"><History size={20}/></div><h2>История таблицы</h2><p>Последние 300 изменений структуры и записей.</p><div className="table-history-list">{[...(activeTable?.history??[])].reverse().map(item=><article key={item.id}><strong>{item.summary}</strong><small>{new Date(item.at).toLocaleString("ru-RU")}</small></article>)}{!activeTable?.history?.length&&<p>История пока пуста.</p>}</div><button className="primary-button full" onClick={()=>setHistoryOpen(false)}>Закрыть</button></div></div>}
-    {columnDialog && <div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setColumnDialog(false)}><div className="dialog"><button className="close-button" onClick={()=>setColumnDialog(false)}><X size={18}/></button><div className="dialog-icon"><Columns3 size={21}/></div><h2>Новое поле</h2><p>Выберите тип данных для новой колонки.</p><label className="form-label">Название<input className="form-input" autoFocus placeholder="Например, Приоритет" value={newColumnName} onChange={e=>setNewColumnName(e.target.value)}/></label><label className="form-label">Тип поля<select className="form-input" value={newColumnType} onChange={e=>setNewColumnType(e.target.value as ColumnType)}>{types.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}</select></label>{newColumnType==="relation" && <label className="form-label">Связать с таблицей<select className="form-input" value={relationTableId} onChange={e=>setRelationTableId(e.target.value)}><option value="">Выберите таблицу</option>{tables.filter(t=>t.id!==activeId).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>}{newColumnType==="formula" && <><label className="form-label">Числовое поле-источник<select className="form-input" value={formulaSourceId} onChange={e=>setFormulaSourceId(e.target.value)}><option value="">Выберите поле</option>{activeTable?.columns.filter(col=>col.type==="number").map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label><label className="form-label">Операция<select className="form-input" value={formulaOperator} onChange={e=>setFormulaOperator(e.target.value)}><option value="*">Умножить</option><option value="/">Разделить</option><option value="+">Прибавить</option><option value="-">Вычесть</option></select></label><label className="form-label">Число<input className="form-input" type="number" value={formulaFactor} onChange={e=>setFormulaFactor(e.target.value)}/></label></>}<button className="primary-button full" disabled={!newColumnName.trim() || (newColumnType==="relation" && !relationTableId) || (newColumnType==="formula" && !formulaSourceId)} onClick={addColumn}><Plus size={16}/> Добавить поле</button><button className="text-button" onClick={()=>setColumnDialog(false)}>Отмена</button></div></div>}
+    {columnDialog && <div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setColumnDialog(false)}><div className="dialog"><button className="close-button" onClick={()=>setColumnDialog(false)}><X size={18}/></button><div className="dialog-icon"><Columns3 size={21}/></div><h2>Новое поле</h2><p>Выберите тип данных для новой колонки.</p><label className="form-label">Название<input className="form-input" autoFocus placeholder="Например, Приоритет" value={newColumnName} onChange={e=>setNewColumnName(e.target.value)}/></label><label className="form-label">Тип поля<select className="form-input" value={newColumnType} onChange={e=>setNewColumnType(e.target.value as ColumnType)}>{types.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}</select></label>{newColumnType==="relation" && <label className="form-label">Связать с таблицей<select className="form-input" value={relationTableId} onChange={e=>setRelationTableId(e.target.value)}><option value="">Выберите таблицу</option>{tables.filter(t=>t.id!==activeId).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>}{newColumnType==="rollup" && <><label className="form-label">Поле связи<select className="form-input" value={rollupRelationId} onChange={e=>{setRollupRelationId(e.target.value);setRollupTargetId("");}}><option value="">Выберите связь</option>{activeTable?.columns.filter(col=>col.type==="relation").map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label><label className="form-label">Поле в связанной таблице<select className="form-input" value={rollupTargetId} onChange={e=>setRollupTargetId(e.target.value)}><option value="">Выберите числовое поле</option>{tables.find(t=>t.id===activeTable?.columns.find(col=>col.id===rollupRelationId)?.relationTableId)?.columns.filter(col=>col.type==="number"||col.type==="formula").map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label><label className="form-label">Вычисление<select className="form-input" value={rollupAggregate} onChange={e=>setRollupAggregate(e.target.value as typeof rollupAggregate)}>{[["sum","Сумма"],["average","Среднее"],["count","Количество"],["min","Минимум"],["max","Максимум"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label></>}{newColumnType==="formula" && <><label className="form-label">Числовое поле-источник<select className="form-input" value={formulaSourceId} onChange={e=>setFormulaSourceId(e.target.value)}><option value="">Выберите поле</option>{activeTable?.columns.filter(col=>col.type==="number").map(col=><option key={col.id} value={col.id}>{col.name}</option>)}</select></label><label className="form-label">Операция<select className="form-input" value={formulaOperator} onChange={e=>setFormulaOperator(e.target.value)}><option value="*">Умножить</option><option value="/">Разделить</option><option value="+">Прибавить</option><option value="-">Вычесть</option></select></label><label className="form-label">Число<input className="form-input" type="number" value={formulaFactor} onChange={e=>setFormulaFactor(e.target.value)}/></label></>}<button className="primary-button full" disabled={!newColumnName.trim() || (newColumnType==="relation" && !relationTableId) || (newColumnType==="formula" && !formulaSourceId) || (newColumnType==="rollup" && (!rollupRelationId || (rollupAggregate!=="count" && !rollupTargetId)))} onClick={addColumn}><Plus size={16}/> Добавить поле</button><button className="text-button" onClick={()=>setColumnDialog(false)}>Отмена</button></div></div>}
   </section>;
 }
 
-function computedCell(column: Column, row: RowData): Cell | undefined {
+function computedCell(column: Column, row: RowData, tables: DataTable[] = []): Cell | undefined {
+  if(column.type==="rollup")return valueForColumn(row,column,tables as TableData[]);
   if (column.type !== "formula" || !column.formulaSourceId) return row.cells[column.id];
   const source = Number(row.cells[column.formulaSourceId] ?? 0);
   const factor = Number(column.formulaFactor ?? 1);
@@ -256,7 +262,7 @@ function FolderIcon() { return <span className="folder-mark"><LayoutGrid size={1
 
 function renderCell(column: Column, value: Cell | undefined, onChange: (v: Cell) => void, tables: DataTable[] = [], projects: Project[] = []) {
   if (column.type === "project") { return <select className="cell-select" value={String(value??"")} onChange={e=>onChange(e.target.value)}><option value="">Без проекта</option>{projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}</select>; }
-  if (column.type === "formula") return <span className="formula-value">{value ?? "—"}</span>;
+  if (column.type === "formula" || column.type==="rollup") return <span className="formula-value">{value ?? "—"}</span>;
   if (column.type === "relation") { const target = tables.find(t=>t.id===column.relationTableId); return <select className="cell-select" value={String(value ?? "")} onChange={e=>onChange(e.target.value)}><option value="">—</option>{target?.rows.map(row=><option key={row.id} value={row.id}>{String(row.cells[target.columns[0]?.id] ?? "Запись")}</option>)}</select>; }
   if (column.type === "checkbox") return <label className="checkbox-cell"><input type="checkbox" checked={Boolean(value)} onChange={e=>onChange(e.target.checked)}/><span>{value?"Да":"Нет"}</span></label>;
   if (column.type === "select") return <select className="cell-select" value={String(value ?? "")} onChange={e=>onChange(e.target.value)}><option value="">—</option>{(column.options ?? ["Новый","В работе","Готово"]).map(o=><option key={o}>{o}</option>)}</select>;
