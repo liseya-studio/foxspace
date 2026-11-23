@@ -87,7 +87,7 @@ async function sheetLocation(file:File,sheetName:string):Promise<string>{
  const rel=nodes(rels,"Relationship").find(item=>item.getAttribute("Id")===id);
  if(!rel)throw Error("Лист Excel не найден: "+sheetName);
  const target=rel.getAttribute("Target")??"";
- const path=target.startsWith("/")?target.slice(1):normalizePath("xl/"+target);
+ const path=target.startsWith("/")?target.slice(1):target.startsWith("xl/")?target:normalizePath("xl/"+target);
  if(!path.startsWith("xl/worksheets/"))throw Error("Некорректный путь листа Excel.");
  return path;
 }
@@ -153,6 +153,13 @@ export async function readWorkbookSheet(file:File,sheetName:string):Promise<Impo
 function nodesChildText(element:Element):string{
  return nodes(element,"t").map(node=>node.textContent??"").join("");
 }
+async function expandNamedValidation(file:File,formula:string):Promise<string>{
+ const name=formula.replace(/^=/,"").trim();
+ if(!/^[a-z_][a-z\d_.]*$/i.test(name))return formula;
+ const workbook=(await zipXml(file,["xl/workbook.xml"]))["xl/workbook.xml"];
+ const definition=workbook&&nodes(workbook,"definedName").find(item=>item.getAttribute("name")?.toLowerCase()===name.toLowerCase());
+ return definition?.textContent?.trim()??formula;
+}
 export async function readExcelDropdowns(file:File,sheetName:string):Promise<Record<number,string[]>>{
  const path=await sheetLocation(file,sheetName);
  const sheetDoc=(await zipXml(file,[path]))[path];
@@ -163,7 +170,8 @@ export async function readExcelDropdowns(file:File,sheetName:string):Promise<Rec
    const formula=formulaText(validation);
    let options=directOptions(formula);
    if(!options.length){
-     const match=formula.match(/^(?:'((?:[^']|'')+)'!|([^!]+)!)?\$?([A-Z]{1,3})\$?(\d+)(?::\$?([A-Z]{1,3})\$?(\d+))?$/i);
+     const resolved=await expandNamedValidation(file,formula);
+     const match=resolved.replace(/^=/,"").match(/^(?:'((?:[^']|'')+)'!|([^!]+)!)?\$?([A-Z]{1,3})\$?(\d+)(?::\$?([A-Z]{1,3})\$?(\d+))?$/i);
      if(match){
        const refSheet=(match[1]?.replaceAll("''","'")??match[2]??sheetName).trim();
        const col=columnIndex(match[3]),lastCol=columnIndex(match[5]??match[3]);
