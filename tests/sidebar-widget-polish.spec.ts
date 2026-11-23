@@ -86,3 +86,27 @@ test("bar widget groups numeric values by labels when grouping is enabled",async
  await expect(chart.getByText("Сайты")).toBeVisible();
  await expect(chart.getByText("2 000")).toBeVisible();
 });
+
+test("empty chart widgets show a compact message without fake bars or donut overlays",async({page})=>{
+ await page.evaluate(()=>{
+  localStorage.setItem("fox-screens",JSON.stringify([{id:"empty-charts",name:"Пустая аналитика"}]));
+  localStorage.setItem("fox-tables-v1",JSON.stringify([{id:"empty-source",name:"Пустые показатели",columns:[{id:"metric",name:"Показатель",type:"number"},{id:"platform",name:"Площадка",type:"select",options:["VK","TG"]}],rows:[]}]));
+  localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({"empty-charts":[
+    {id:"chart-bars",type:"bars",title:"Просмотры",tableId:"empty-source",columnId:"metric",width:6,height:280,limit:8},
+    {id:"chart-donut",type:"donut",title:"Площадки",tableId:"empty-source",labelColumnId:"platform",aggregate:"count",width:6,height:280,limit:8}
+  ]}));
+ });
+ await page.reload();
+ await page.locator(".dock-screen").first().click();
+ await expect(page.locator(".fox-chart-empty")).toHaveCount(2);
+ await expect(page.locator(".fox-chart-preview-bars, .fox-chart-preview-donut")).toHaveCount(0);
+ for(const empty of await page.locator(".fox-chart-empty").all()){
+  await expect(empty.getByText("Пока нет данных")).toBeVisible();
+  const limits=await empty.evaluate(el=>{
+    const a=el.getBoundingClientRect();
+    const b=el.querySelector("span:last-child")!.getBoundingClientRect();
+    return {inside:b.bottom<=a.bottom+1&&b.top>=a.top-1&&b.right<=a.right+1&&b.left>=a.left-1};
+  });
+  expect(limits.inside).toBeTruthy();
+ }
+});
