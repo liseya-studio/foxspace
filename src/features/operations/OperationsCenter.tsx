@@ -28,7 +28,7 @@ export default function OperationsCenter(){
  const inPeriod=(date:string,start=period.start,end=period.end)=>!!date&&date.slice(0,10)>=start&&date.slice(0,10)<=end;
  const rows=data.transactions.filter(t=>inPeriod(t.date)&&(!project||t.projectId===project));
  const summary=totals(rows),planned=rows.filter(t=>t.state==="planned"&&t.kind==="expense").reduce((s,t)=>s+t.amount,0);
- const previousRows=data.transactions.filter(t=>inPeriod(t.date,previousStart,previousEnd));
+ const previousRows=data.transactions.filter(t=>inPeriod(t.date,previousStart,previousEnd)&&(!project||t.projectId===project));
  const previousSummary=totals(previousRows);
  const posts=data.publications.filter(p=>inPeriod(p.date)&&(!project||p.projectId===project)).sort((a,b)=>a.date.localeCompare(b.date));
  const previousPosts=data.publications.filter(p=>inPeriod(p.date,previousStart,previousEnd)&&(!project||p.projectId===project));
