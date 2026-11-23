@@ -105,11 +105,27 @@ export async function updateTaskStatus({taskId,status},file=FILE){
 }
 
 /** Structured table values keep image references as opaque file IDs. */
+/** Keep raw values for compatibility, while exposing choice metadata to agents. */
+function parsedChoiceValues(value){
+ if(value===null||value===undefined||value==="")return [];
+ if(Array.isArray(value))return value.map(v=>String(v));
+ const raw=String(value);
+ try{const array=JSON.parse(raw);if(Array.isArray(array))return array.map(v=>String(v));}catch{/* legacy text */}
+ return raw.split(/[;,|\n]/).map(v=>v.trim()).filter(Boolean);
+}
+function structuredField(column,raw){
+ const value=raw??null;
+ const isChoice=column.type==="select"||column.type==="multiselect";
+ return {type:column.type,value,
+   ...(isChoice?{options:Array.isArray(column.options)?column.options:[]}:{}),
+   ...(column.type==="multiselect"?{selectedOptions:parsedChoiceValues(value)}:{})
+ };
+}
 export async function listTables(file=FILE){
  const snapshot=await readWorkspace(file);
  const tables=decodeRecord(snapshot,"fox-tables-v1",[]);
  if(!Array.isArray(tables))throw Error("Invalid tables collection");
- return tables.map(t=>({id:t.id,name:t.name,updatedAt:t.updatedAt,rowCount:t.rows?.length??0,columns:t.columns?.map(c=>({id:c.id,name:c.name,type:c.type}))??[]}));
+ return tables.map(t=>({id:t.id,name:t.name,updatedAt:t.updatedAt,rowCount:t.rows?.length??0,columns:t.columns?.map(c=>({id:c.id,name:c.name,type:c.type,...((c.type==="select"||c.type==="multiselect")?{options:c.options??[]}:{} )}))??[]}));
 }
 export async function getTableRecord({tableId,rowId},file=FILE){
  validateId(tableId);validateId(rowId);
@@ -118,7 +134,7 @@ export async function getTableRecord({tableId,rowId},file=FILE){
  if(!Array.isArray(tables))throw Error("Invalid tables collection");
  const table=tables.find(t=>t.id===tableId);if(!table)throw Error("Table not found");
  const row=table.rows?.find(r=>r.id===rowId);if(!row)throw Error("Record not found");
- return {tableId,tableName:table.name,id:row.id,fields:(table.columns||[]).map(c=>({columnId:c.id,name:c.name,type:c.type,value:row.cells?.[c.id]??null,...(c.type==="image"?{imageFileId:row.cells?.[c.id]||null}:{} )}))};
+ return {tableId,tableName:table.name,id:row.id,fields:(table.columns||[]).map(c=>({columnId:c.id,name:c.name,...structuredField(c,row.cells?.[c.id]),...(c.type==="image"?{imageFileId:row.cells?.[c.id]||null}:{} )}))};
 }
 export async function listTableRecords({tableId,offset=0,limit=30},file=FILE){
  validateId(tableId);
@@ -127,7 +143,7 @@ export async function listTableRecords({tableId,offset=0,limit=30},file=FILE){
  if(!Array.isArray(tables))throw Error("Invalid tables collection");
  const table=tables.find(t=>t.id===tableId);if(!table)throw Error("Table not found");
  const rows=table.rows||[];
- return {tableId,tableName:table.name,total:rows.length,rows:rows.slice(offset,offset+limit).map(row=>({id:row.id,fields:Object.fromEntries((table.columns||[]).map(c=>[c.name,{type:c.type,value:row.cells?.[c.id]??null}]))}))};
+ return {tableId,tableName:table.name,total:rows.length,rows:rows.slice(offset,offset+limit).map(row=>({id:row.id,fields:Object.fromEntries((table.columns||[]).map(c=>[c.name,structuredField(c,row.cells?.[c.id])]))}))};
 }
 /** Read image bytes only when the ID is referenced from an image-typed table column. */
 export async function getTableImage({tableId,rowId,columnId},file=FILE){
