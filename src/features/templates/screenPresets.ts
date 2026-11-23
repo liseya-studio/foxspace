@@ -151,14 +151,13 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
    const matches=existing.filter(tab=>[schema.title,...(schema.aliases??[])].some(name=>norm(tab.name)===norm(name)||norm(tab.name).endsWith(norm(name))));
    const found=matches[0];
    if(found){
-     // Keep all original rows; only add fields needed by new finance widgets.
-     if(preset.id==="finance"){
-       const missing=schema.columns.filter(([name])=>!found.columns.some(col=>norm(col.name)===norm(name)));
-       if(missing.length){
-         const updated={...found,columns:[...found.columns,...missing.map(([name,type])=>({id:crypto.randomUUID(),name,type}))]};
-         existing[existing.findIndex(tab=>tab.id===found.id)]=updated;
-         updatedTables.push(updated);
-       }
+     // Reuse an existing base without touching its records. Extend the schema
+     // non-destructively if the selected screen needs additional fields.
+     const missing=schema.columns.filter(([name])=>!found.columns.some(col=>norm(col.name)===norm(name)));
+     if(missing.length){
+       const updated={...found,columns:[...found.columns,...missing.map(([name,type])=>({id:crypto.randomUUID(),name,type}))]};
+       existing[existing.findIndex(tab=>tab.id===found.id)]=updated;
+       updatedTables.push(updated);
      }
      ids.set(schema.key,found.id);continue;
    }
