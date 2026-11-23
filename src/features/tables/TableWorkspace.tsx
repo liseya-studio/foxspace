@@ -268,7 +268,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
 
   function exportXlsx(){
     if(!activeTable)return;
-    downloadXlsx(activeTable.name,activeTable.columns.map(column=>column.name),activeTable.rows.map(row=>activeTable.columns.map(column=>computedCell(column,row,tables))));
+    downloadXlsx(activeTable.name,activeTable.columns.map(column=>column.name),activeTable.rows.map(row=>activeTable.columns.map(column=>column.type==="multiselect"?splitMultiple(row.cells[column.id]).join("; "):computedCell(column,row,tables))),activeTable.columns);
   }
   function exportCsv() {
     if (!activeTable) return;
