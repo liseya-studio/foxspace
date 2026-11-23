@@ -12,7 +12,7 @@ export type ImportTable={
 };
 const MAX_ROWS=50000,MAX_COLS=150;
 const normalize=(value:unknown)=>String(value??"").trim();
-const clean=(value:ImportedCell):string=>value instanceof Date ? value.toISOString().slice(0,10):normalize(value);
+const clean=(value:ImportedCell):string=>value instanceof Date ? [value.getFullYear(),String(value.getMonth()+1).padStart(2,"0"),String(value.getDate()).padStart(2,"0")].join("-"):normalize(value);
 const knownSelect=/(статус|приоритет|категор|тип|площадк|канал|этап|раздел|status|priority|category|platform|stage|format|состояние|проект.*статус)/i;
 const maybeMultiple=/(теги|метки|категории|участники|жанры|навыки|платформы|тематик|пейринги|tags|labels|skills|genres|channels|topics)/i;
 export function splitMultiple(raw:unknown):string[]{
