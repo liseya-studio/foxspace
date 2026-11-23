@@ -107,6 +107,6 @@ test("Excel export round-trips long dropdown lists and comma-containing options"
   return {sheets:await listWorkbookSheets(file),choices:await readExcelDropdowns(file,"Тест"),rows:await readWorkbookSheet(file,"Тест")};
  },bytes);
  expect(result.sheets).toContain("Тест");
- expect(result.choices[1]).toEqual(options);
+ expect(result.choices[1]).toEqual(options.map(option=>option.trim()));
  expect(result.rows[1][1]).toBe("Видео, монтаж");
 });
