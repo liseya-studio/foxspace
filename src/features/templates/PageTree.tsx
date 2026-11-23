@@ -14,10 +14,10 @@ type Props = {
 };
 
 export default function PageTree({pages,activeId,onNavigate,onAddChild,collapsed=false,onToggle}:Props){
-  const [collapsed,setCollapsed]=useState<string[]>([]);
+  const [collapsedIds,setCollapsedIds]=useState<string[]>([]);
   const byId=new Map(pages.map(page=>[page.id,page]));
   const roots=pages.filter(page=>!page.parentId || !byId.has(page.parentId) || page.parentId===page.id);
-  const toggle=(id:string)=>setCollapsed(current=>current.includes(id)?current.filter(x=>x!==id):[...current,id]);
+  const toggle=(id:string)=>setCollapsedIds(current=>current.includes(id)?current.filter(x=>x!==id):[...current,id]);
   const descendants=(id:string,seen=new Set<string>()):Set<string>=>{
     if(seen.has(id))return seen;
     seen.add(id);
@@ -28,7 +28,7 @@ export default function PageTree({pages,activeId,onNavigate,onAddChild,collapsed
     if(visited.has(page.id) || level>32)return null;
     const nextVisited=new Set(visited); nextVisited.add(page.id);
     const children=pages.filter(item=>item.parentId===page.id && item.id!==page.id);
-    const expanded=!collapsed.includes(page.id);
+    const expanded=!collapsedIds.includes(page.id);
     return <div key={page.id} className="fox-tree-group">
       <div className={"fox-tree-line"+(activeId===page.id?" selected":"")} style={{paddingLeft:8+level*15}}>
         {children.length?<button className="fox-tree-expand" type="button" aria-label={expanded?"Свернуть":"Развернуть"} onClick={()=>toggle(page.id)}>{expanded?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</button>:<span className="fox-tree-placeholder"/>}
