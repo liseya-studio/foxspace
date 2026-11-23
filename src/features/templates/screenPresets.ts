@@ -142,6 +142,19 @@ widget("table","Контакты клиентов","clients",{width:12})]}
 
 ];
 export type StoredWidget = {id:string;type:string;title:string;tableId?:string;columnId?:string;labelColumnId?:string;body?:string;width:number;height:number;aggregate?:string;filter:Record<string,string>;limit:number;target:number;startDate?:string;financeKind?:string;financeRow?:number;financeColumn?:number;financeRowSpan?:number};
+type PresetColumn = {id:string;name:string;type:string;options?:string[];formulaSourceId?:string;formulaSecondSourceId?:string;formulaOperator?:string};
+function createPresetColumns(fields:[string,string][],existing:PresetColumn[]=[]):PresetColumn[]{
+  const added:PresetColumn[]=fields.map(([name,type])=>({id:crypto.randomUUID(),name,type,...(type==="select"?{options:["Новый","В работе","Готово"]}:{})}));
+  const all=[...existing,...added];
+  // A line-item amount is calculated directly from quantity and unit price.
+  for(const column of added){
+    if(column.type!=="formula"||column.name.toLocaleLowerCase("ru")!=="сумма")continue;
+    const quantity=all.find(item=>item.type==="number"&&item.name.toLocaleLowerCase("ru")==="количество");
+    const price=all.find(item=>item.type==="number"&&item.name.toLocaleLowerCase("ru")==="цена");
+    if(quantity&&price){column.formulaSourceId=quantity.id;column.formulaSecondSourceId=price.id;column.formulaOperator="*";}
+  }
+  return added;
+}
 export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:string;columns:{id:string;name:string;type:string}[]}[]){
  const existing=[...available];
  const newTables:{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:unknown[];updatedAt:string}[]=[];
@@ -156,13 +169,13 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
      // non-destructively if the selected screen needs additional fields.
      const missing=schema.columns.filter(([name])=>!found.columns.some(col=>norm(col.name)===norm(name)));
      if(missing.length){
-       const updated={...found,columns:[...found.columns,...missing.map(([name,type])=>({id:crypto.randomUUID(),name,type}))]};
+       const updated={...found,columns:[...found.columns,...createPresetColumns(missing,found.columns)]};
        existing[existing.findIndex(tab=>tab.id===found.id)]=updated;
        updatedTables.push(updated);
      }
      ids.set(schema.key,found.id);continue;
    }
-   const table={id:crypto.randomUUID(),name:schema.title,columns:schema.columns.map(([name,type])=>({id:crypto.randomUUID(),name,type})),rows:[],updatedAt:new Date().toISOString()};
+   const table={id:crypto.randomUUID(),name:schema.title,columns:createPresetColumns(schema.columns),rows:[],updatedAt:new Date().toISOString()};
    newTables.push(table);existing.push(table);ids.set(schema.key,table.id);
  }
  const widgets:StoredWidget[]=preset.widgets.map(def=>{
