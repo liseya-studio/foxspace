@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getItem } from "../files/storage";
 import { CalendarDays, ChevronLeft, ChevronRight, FolderOpen, Image as ImageIcon } from "lucide-react";
-import type { TableData, TableRow } from "./values";
+import {valueForColumn,type TableData, type TableRow } from "./values";
 
 type Props = {
   table: TableData;
@@ -30,13 +30,13 @@ function GalleryThumbnail({fileId}:{fileId:string}){
 export function GalleryView({table,rows,onOpen}:Omit<Props,"onUpdate">){
   const description=table.columns.find(column=>column.type==="text"&&column.id!==table.columns[0]?.id);
   const photo=table.columns.find(column=>column.type==="image");
-  const statuses=table.columns.filter(column=>column.type==="select").slice(0,2);
+  const statuses=table.columns.filter(column=>(column.type==="select"||column.type==="multiselect")).slice(0,2);
   return <div className="fox-db-gallery" aria-label="Галерея записей">
     {rows.map(row=><button type="button" className="fox-db-gallery-card" key={row.id} onClick={()=>onOpen(row.id)}>
       {photo&&<GalleryThumbnail fileId={String(row.cells[photo.id]??"")}/> }
       <strong>{titleFor(table,row)}</strong>
       {description&&<p>{String(row.cells[description.id]??"").slice(0,180)}</p>}
-      <div className="fox-db-card-tags">{statuses.map(column=><span key={column.id}>{statusFor(row.cells[column.id])}</span>)}</div>
+      <div className="fox-db-card-tags">{statuses.map(column=><span key={column.id}>{statusFor(valueForColumn(row,column,[table]))}</span>)}</div>
       <small>Открыть запись</small>
     </button>)}
     {!rows.length&&<div className="table-no-results">Нет записей для галереи</div>}
