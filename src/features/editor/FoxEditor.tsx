@@ -192,7 +192,7 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     return <div className="fox-widget-timeline"><div className="fox-timeline-line"/>{dated.map((row,i)=><div key={row.id} className="fox-timeline-event"><span className="fox-timeline-date">{new Date(String(value(row,dateCol))+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"short"})}</span><i style={{borderColor:widget.accent||"var(--accent)"}}/><strong title={String(row.cells[textCol?.id]??"")}>{String(row.cells[textCol?.id]??"Событие "+(i+1))}</strong></div>)}</div>;
   }
   if (widget.type === "list") return <div className="fox-widget-list">{rows.slice(0, maxItems).map((row,i) => <div key={row.id}><span>{String(i+1).padStart(2,"0")}</span><strong>{String(textCol ? value(row,textCol) ?? "Запись" : "Запись")}</strong>{numberCol && <small>{fmt(Number(value(row,numberCol))||0)}</small>}</div>)}{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
-  return <WidgetTablePreview table={table} tables={tables} rows={rows} limit={maxItems} onOpenRecord={rowId=>onOpenRecord?.(table.id,rowId)}/>;
+  return <WidgetTablePreview widgetId={widget.id} table={table} tables={tables} rows={rows} limit={maxItems} onOpenRecord={rowId=>onOpenRecord?.(table.id,rowId)}/>;
 }
 
 export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, tableId, onTableChange, onOpenTables, onCreateTable,onOpenRecord }: Props) {
