@@ -681,3 +681,46 @@
 .fox-custom-template-row .fox-preset-card{flex:1;min-width:0}
 .fox-custom-template-delete{flex:0 0 34px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--muted);display:grid;place-items:center}
 .fox-custom-template-delete:hover{color:#d45e60;border-color:#d45e60}
+
+/* Workspace navigation is a genuine layout column, never a floating overlay.
+   The topbar controls the same collapsed state as the sidebar header. */
+.app-shell .main-area.has-page-tree{display:grid;grid-template-columns:236px minmax(0,1fr);column-gap:24px;align-items:start;max-width:none;width:100%;padding:24px clamp(16px,2vw,34px) 108px;position:relative}
+.app-shell .main-area.has-page-tree.tree-collapsed{grid-template-columns:48px minmax(0,1fr)}
+.app-shell .main-area.has-page-tree > :not(.fox-page-tree){min-width:0;grid-column:2}
+.app-shell .main-area.has-page-tree .fox-page-tree{position:sticky;top:16px;left:auto;width:100%;max-height:calc(100vh - 106px);min-height:0;grid-column:1;grid-row:1;z-index:1;border-radius:12px;box-shadow:none;overflow:hidden}
+.app-shell .main-area.has-page-tree .fox-page-tree.is-hidden{width:48px;min-height:0;align-self:start}
+.app-shell .fox-tree-scroll{overflow-y:auto;overscroll-behavior:contain;max-height:calc(100vh - 240px)}
+.app-shell .fox-tree-header button{width:27px;height:27px}
+.app-shell .fox-tree-page .fox-symbol-icon,.app-shell .fox-tree-page .fox-platform-icon{background:transparent!important;color:currentColor!important;border-radius:0}
+.app-shell .fox-tree-page .fox-symbol-icon svg{width:17px;height:17px}
+.app-shell .fox-tree-line.selected{color:var(--accent)}
+.app-shell .fox-tree-add{opacity:.65}
+.app-shell .fox-tree-line:hover .fox-tree-add,.app-shell .fox-tree-line:focus-within .fox-tree-add{opacity:1}
+.fox-global-sidebar-toggle{display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid var(--line);background:var(--surface);border-radius:8px;color:var(--muted);flex:none}
+.fox-global-sidebar-toggle:hover{color:var(--accent);background:var(--canvas)}
+@media(max-width:1050px){.app-shell .main-area.has-page-tree{grid-template-columns:205px minmax(0,1fr);gap:14px;padding:18px 16px 106px}}
+@media(max-width:760px){.app-shell .main-area.has-page-tree{grid-template-columns:48px minmax(0,1fr);gap:10px}.app-shell .main-area.has-page-tree .fox-page-tree{width:48px}.app-shell .main-area.has-page-tree .fox-tree-scroll,.app-shell .main-area.has-page-tree .fox-tree-hint,.app-shell .main-area.has-page-tree .fox-tree-orphan,.app-shell .main-area.has-page-tree .fox-tree-header strong{display:none}}
+@media(max-width:600px){.app-shell .main-area.has-page-tree{grid-template-columns:40px minmax(0,1fr);gap:8px;padding:14px 10px 105px}.app-shell .main-area.has-page-tree .fox-page-tree{display:flex;width:40px}.app-shell .main-area.has-page-tree.tree-collapsed{grid-template-columns:40px minmax(0,1fr)}}
+
+/* Refined common widget surfaces: labels float in the card rather than being divided
+   from the data by a strong horizontal rule. */
+.fox-editor-layout .fox-widget{border-radius:15px;box-shadow:0 3px 16px rgba(33,28,20,.035);border-color:var(--line)}
+.fox-editor-layout .fox-widget-header{border-bottom:0!important;min-height:46px;height:auto;padding:15px 17px 5px;gap:9px}
+.fox-editor-layout .fox-widget-header h3{font-size:13px;letter-spacing:-.12px;font-weight:750}
+.fox-editor-layout .fox-widget-body{padding:8px 17px 17px;min-width:0}
+.fox-editor-layout .fox-widget:has(.fox-finance-card) .fox-widget-body{padding:0}
+.fox-editor-layout .fox-widget-table-scroll{min-width:0;border:1px solid var(--line);border-radius:10px;overflow:auto}
+.fox-editor-layout .fox-widget-table-scroll table{border-collapse:separate;border-spacing:0;min-width:440px}
+.fox-editor-layout .fox-widget-table-scroll th{background:color-mix(in srgb,var(--canvas) 62%,var(--surface));text-transform:none;font-size:11px;padding:12px 12px;border-bottom:1px solid var(--line)}
+.fox-editor-layout .fox-widget-table-scroll td{font-size:11px;padding:11px 12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid var(--line)}
+.fox-editor-layout .fox-widget-table-scroll tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--surface))}
+.fox-editor-layout .fox-widget-table-scroll tbody tr:last-child td{border-bottom:0}
+.fox-widget-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.fox-widget-toolbar-search{flex:1;min-width:100px;display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);padding:7px 10px;border-radius:8px;color:var(--muted)}
+.fox-widget-toolbar-search input{width:100%;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-size:11px}
+.fox-widget-toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px;font-size:11px;color:var(--text);max-width:115px}
+.fox-widget-toolbar-count{font-size:10px;color:var(--muted);white-space:nowrap}
+.fox-widget-check{width:15px;height:15px;border:1px solid var(--line);border-radius:5px;display:inline-grid;place-items:center;color:var(--accent);background:var(--surface)}
+.fox-widget-check.checked{background:color-mix(in srgb,var(--accent) 13%,var(--surface));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.fox-widget-table-skeleton td{color:var(--muted);opacity:.75}
+.fox-widget-table-skeleton td span{display:block;background:var(--canvas);border-radius:6px;height:12px;width:70%;min-width:28px}
