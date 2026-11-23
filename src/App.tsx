@@ -53,6 +53,7 @@ function read<T>(key: string, fallback: T): T {
 
 export default function App() {
   const [screens, setScreens] = useState<Screen[]>(() => read("fox-screens", starterScreens));
+  const [pageSidebarCollapsed,setPageSidebarCollapsed]=useState(()=>read("fox-page-tree-collapsed",false));
   const [customTemplates,setCustomTemplates]=useState<CustomScreenTemplate[]>(()=>read(CUSTOM_TEMPLATE_KEY,[]));
   const [active, setActive] = useState<Section>("home");
   const [theme, setTheme] = useState(() => read("fox-theme", "light"));
@@ -90,6 +91,7 @@ export default function App() {
     return ()=>{window.clearInterval(timer);window.clearInterval(backupTimer);window.clearInterval(automationTimer);window.removeEventListener("fox-notes-tasks-updated",update);};
   },[]);
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
+  useEffect(()=>{localStorage.setItem("fox-page-tree-collapsed",JSON.stringify(pageSidebarCollapsed));},[pageSidebarCollapsed]);
   useEffect(() => { localStorage.setItem(CUSTOM_TEMPLATE_KEY,JSON.stringify(customTemplates)); }, [customTemplates]);
   useEffect(()=>{const update=()=>setTableRevision(v=>v+1);window.addEventListener("fox-tables-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-tables-updated",update);window.removeEventListener("storage",update);};},[]);
   useEffect(()=>{
@@ -252,6 +254,7 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <div className="top-left">
+          {activeScreen&&<button className="fox-global-sidebar-toggle" aria-label={pageSidebarCollapsed?"Развернуть боковое меню":"Свернуть боковое меню"} title={pageSidebarCollapsed?"Развернуть боковое меню":"Свернуть боковое меню"} onClick={()=>setPageSidebarCollapsed(value=>!value)}><LayoutDashboard size={18}/></button>}
           <button className="profile-avatar" aria-label="Профиль и настройки" onClick={() => setSettingsOpen(true)}>L</button>
           <span className="workspace-name">Fox Space</span>
           <ChevronDown size={14} className="muted-icon" />
@@ -266,8 +269,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className={"main-area"+(activeScreen?" has-page-tree":"")}>
-        {activeScreen&&<PageTree pages={screens} activeId={activeScreen.id} onNavigate={setActive} onAddChild={addChildScreen} onMove={moveScreen}/>}
+      <main className={"main-area"+(activeScreen?" has-page-tree"+(pageSidebarCollapsed?" tree-collapsed":""):"")}>
+        {activeScreen&&<PageTree pages={screens} activeId={activeScreen.id} onNavigate={setActive} onAddChild={addChildScreen} onMove={moveScreen} collapsed={pageSidebarCollapsed} onToggle={()=>setPageSidebarCollapsed(value=>!value)}/>}
         {active === "home" ? (
           <section className="fox-home">
             <div className="fox-home-hero">
