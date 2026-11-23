@@ -52,9 +52,14 @@ export function valueForColumn(
       // Permit references to computed rollups, without recursive formula chains.
       return field?.type==="rollup" ? valueForColumn(row,field,tables) : row.cells[id];
     };
-    const number = Number(operand(column.formulaSourceId));
+    const first = operand(column.formulaSourceId);
+    // Missing or blank input is not the numeric value zero.
+    if(first === undefined || first === null || String(first).trim() === "") return undefined;
+    const number = Number(first);
     if (!Number.isFinite(number)) return undefined;
-    const factor = column.formulaSecondSourceId ? Number(operand(column.formulaSecondSourceId)) : Number(column.formulaFactor ?? 1);
+    const second = column.formulaSecondSourceId ? operand(column.formulaSecondSourceId) : column.formulaFactor ?? 1;
+    if(second === undefined || second === null || String(second).trim() === "") return undefined;
+    const factor = Number(second);
     if (!Number.isFinite(factor)) return undefined;
     switch (column.formulaOperator) {
       case "+": return number + factor;
@@ -147,8 +152,12 @@ export function filterRows(
     const actual = String(actualValue ?? "").toLocaleLowerCase("ru");
     if (op === "empty") return !actual;
     if (op === "not_empty") return Boolean(actual);
-    if (op === "equals") return actual === expected;
-    if (op === "not_equals") return actual !== expected;
+    if (op === "equals" || op === "not_equals") {
+      const matches = column.type === "multiselect"
+        ? (() => { try { const values=JSON.parse(String(row.cells[column.id]??"")); return Array.isArray(values) && values.some(value=>String(value).trim().toLocaleLowerCase("ru")===expected); } catch { return actual.split(/[,;|]/).some(value=>value.trim()===expected); } })()
+        : actual === expected;
+      return op === "equals" ? matches : !matches;
+    }
     if (op === "gt" || op === "lt") {
       if (actualValue === undefined || actualValue === "" || expected === "") return false;
       const a = Number(actualValue), b = Number(expected);
