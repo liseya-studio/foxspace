@@ -29,21 +29,24 @@ export function downloadXlsx(name:string,headers:string[],rows:SpreadsheetValue[
  if(headers.length>16384||rows.length>1048575)throw new Error("Таблица превышает лимиты Excel");
  const safeName=(name.trim()||"Fox Space").replace(/[\\/*?:\[\]]/g," ").slice(0,31)||"Fox Space";
  const sheetRows=[headers,...rows].map((row,rowIndex)=>`<row r="${rowIndex+1}">${headers.map((_,colIndex)=>cellXml(row[colIndex],columnName(colIndex)+(rowIndex+1))).join("")}</row>`).join("");
- const lists=(columns??[]).flatMap((col,i)=>{
-   if(!["select","multiselect"].includes(col.type)||!col.options?.length)return [];
-   const contents=col.options.join(",");
-   if(contents.length>255)return [];
-   return `<dataValidation type="list" allowBlank="1" showDropDown="0" sqref="${columnName(i)}2:${columnName(i)}1048576"><formula1>"${xml(contents.replaceAll('"','""'))}"</formula1></dataValidation>`;
- });
+ // Store validation choices on an auxiliary hidden worksheet. Inline lists
+ // silently break at Excel's 255-character limit and cannot contain commas.
+ const choiceColumns=(columns??[]).map((column,index)=>({column,index,options:[...new Set((column.options??[]).map(v=>v.trim()).filter(Boolean))]}))
+   .filter(item=>["select","multiselect"].includes(item.column.type)&&item.options.length>0);
+ const lists=choiceColumns.map(({index},i)=>`<dataValidation type="list" allowBlank="1" showDropDown="0" sqref="${columnName(index)}2:${columnName(index)}1048576"><formula1>FoxChoices_${i+1}</formula1></dataValidation>`);
  const validations=lists.length?`<dataValidations count="${lists.length}">${lists.join("")}</dataValidations>`:"";
+ const names=choiceColumns.map(({options},i)=>`<definedName name="FoxChoices_${i+1}">'_FoxSpace_Choices'!$${columnName(i)}$1:$${columnName(i)}$${options.length}</definedName>`).join("");
+ const hiddenRows=choiceColumns.length?Array.from({length:Math.max(...choiceColumns.map(({options})=>options.length))},(_,row)=>
+  `<row r="${row+1}">${choiceColumns.map(({options},col)=>row<options.length?cellXml(options[row],columnName(col)+(row+1)):"").join("")}</row>`).join(""):"";
  const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData>${validations}</worksheet>`;
- const workbook=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${xml(safeName)}" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+ const workbook=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${xml(safeName)}" sheetId="1" r:id="rId1"/>${choiceColumns.length?'<sheet name="_FoxSpace_Choices" sheetId="2" state="hidden" r:id="rId2"/>':""}</sheets>${names?"<definedNames>"+names+"</definedNames>":""}</workbook>`;
  const files:ZipFile[]=[
- {name:"[Content_Types].xml",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`)},
+ {name:"[Content_Types].xml",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>${choiceColumns.length?'<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>':""}</Types>`)},
  {name:"_rels/.rels",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`)},
  {name:"xl/workbook.xml",data:encoder.encode(workbook)},
- {name:"xl/_rels/workbook.xml.rels",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`)},
- {name:"xl/worksheets/sheet1.xml",data:encoder.encode(sheet)}
+ {name:"xl/_rels/workbook.xml.rels",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>${choiceColumns.length?'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>':""}</Relationships>`)},
+ {name:"xl/worksheets/sheet1.xml",data:encoder.encode(sheet)},
+ ...(choiceColumns.length?[{name:"xl/worksheets/sheet2.xml",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${hiddenRows}</sheetData></worksheet>`)}]:[])
  ];
  const bytes=zipStore(files);const buffer=new ArrayBuffer(bytes.byteLength);new Uint8Array(buffer).set(bytes);
  const blob=new Blob([buffer],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
