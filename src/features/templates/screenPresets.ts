@@ -142,7 +142,7 @@ widget("table","Контакты клиентов","clients",{width:12})]}
 
 ];
 export type StoredWidget = {id:string;type:string;title:string;tableId?:string;columnId?:string;labelColumnId?:string;body?:string;width:number;height:number;aggregate?:string;filter:Record<string,string>;limit:number;target:number;startDate?:string;financeKind?:string;financeRow?:number;financeColumn?:number;financeRowSpan?:number};
-type PresetColumn = {id:string;name:string;type:string;options?:string[];formulaSourceId?:string;formulaSecondSourceId?:string;formulaOperator?:string};
+type PresetColumn = {id:string;name:string;type:string;options?:string[];relationTableId?:string;backlinkSourceTableId?:string;backlinkSourceColumnId?:string;rollupRelationId?:string;rollupTargetId?:string;rollupAggregate?:string;formulaSourceId?:string;formulaSecondSourceId?:string;formulaOperator?:string};
 function createPresetColumns(fields:[string,string][],existing:PresetColumn[]=[]):PresetColumn[]{
   const added:PresetColumn[]=fields.map(([name,type])=>({id:crypto.randomUUID(),name,type,...(type==="select"?{options:["Новый","В работе","Готово"]}:{})}));
   const all=[...existing,...added];
@@ -155,7 +155,7 @@ function createPresetColumns(fields:[string,string][],existing:PresetColumn[]=[]
   }
   return added;
 }
-export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:string;columns:{id:string;name:string;type:string}[]}[]){
+export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:string;columns:PresetColumn[]}[]){
  const existing=[...available];
  const newTables:{id:string;name:string;columns:{id:string;name:string;type:string}[];rows:unknown[];updatedAt:string}[]=[];
  const ids=new Map<string,string>();
@@ -192,7 +192,7 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
    const targetId=ids.get(targetKey);
    if(!table||!targetId)continue;
    const column=table.columns.find(item=>item.name===field&&item.type==="relation");
-   if(!column)continue;
+   if(!column||column.relationTableId)continue; // Preserve existing user-defined links.
    const patched={...table,columns:table.columns.map(item=>item.id===column.id?{...item,relationTableId:targetId}:item)};
    existing[existing.findIndex(item=>item.id===table.id)]=patched;
    const createdIndex=newTables.findIndex(item=>item.id===table.id);
@@ -225,7 +225,7 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
    const source=existing.find(item=>item.id===ids.get(sourceKey));
    const link=source?.columns.find(item=>item.name===forwardName&&item.type==="relation");
    const backward=dest?.columns.find(item=>item.name===display&&item.type==="backlink");
-   if(!dest||!source||!link||!backward)continue;
+   if(!dest||!source||!link||!backward||backward.backlinkSourceTableId)continue;
    const columns=dest.columns.map(col=>col.id===backward.id?{...col,backlinkSourceTableId:source.id,backlinkSourceColumnId:link.id}:col);
    const patched={...dest,columns};
    existing[existing.findIndex(table=>table.id===dest.id)]=patched;
@@ -243,11 +243,11 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
    const paid=order?.columns.find(col=>col.name==="Оплачено"&&col.type==="rollup");
    const amount=payments?.columns.find(col=>col.name==="Сумма"&&col.type==="number");
    const link=reverseByKey.get("orders.Оплаты");
-   if(order&&paid&&amount&&link){
+   if(order&&paid&&amount&&link&&!paid.rollupRelationId){
      const remaining=order.columns.find(col=>col.name==="Осталось"&&col.type==="formula");
      const budget=order.columns.find(col=>col.name==="Бюджет"&&col.type==="number");
      const columns=order.columns.map(col=>col.id===paid.id?{...col,rollupRelationId:link,rollupTargetId:amount.id,rollupAggregate:"sum"}:
-       col.id===remaining?.id&&budget?{...col,formulaSourceId:budget.id,formulaSecondSourceId:paid.id,formulaOperator:"-"}:col);
+       col.id===remaining?.id&&budget&&!remaining.formulaSourceId?{...col,formulaSourceId:budget.id,formulaSecondSourceId:paid.id,formulaOperator:"-"}:col);
      const patched={...order,columns};
      existing[existing.findIndex(table=>table.id===order.id)]=patched;
      const idx=newTables.findIndex(table=>table.id===order.id);
