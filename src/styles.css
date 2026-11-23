@@ -593,3 +593,27 @@
 @media(max-width:650px){.table-record-panel>header,.table-record-content{padding:18px}}
 
 .data-grid .row-index:has(.table-open-record){white-space:nowrap;min-width:58px;padding-left:4px;padding-right:4px}.table-open-record{display:inline-grid;place-items:center;width:26px;height:26px;border:0;border-radius:6px;background:transparent;color:var(--muted);vertical-align:middle;cursor:pointer}.table-open-record:hover{color:var(--accent);background:var(--canvas)}
+
+/* Nested workspace pages: a compact collapsible sidebar alongside the editor. */
+.main-area.has-page-tree{position:relative;max-width:1580px;padding-left:290px}
+.fox-page-tree{position:absolute;left:26px;top:30px;width:238px;min-height:260px;max-height:calc(100vh - 180px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fox-tree-header{display:flex;justify-content:space-between;align-items:center;padding:12px 12px 10px 16px;border-bottom:1px solid var(--line);font-size:12px}
+.fox-tree-header button,.fox-tree-expand,.fox-tree-add{display:grid;place-items:center;width:24px;height:24px;border:0;background:transparent;color:var(--muted);border-radius:5px;flex-shrink:0}
+.fox-tree-header button:hover,.fox-tree-expand:hover,.fox-tree-add:hover{background:var(--canvas);color:var(--text)}
+.fox-tree-scroll{padding:9px 5px;overflow:auto;min-height:40px}
+.fox-tree-line{display:flex;align-items:center;min-height:34px;border-radius:7px;padding-right:5px;gap:2px}
+.fox-tree-line:hover{background:var(--canvas)}
+.fox-tree-line.selected{background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--accent)}
+.fox-tree-page{min-width:0;flex:1;display:flex;align-items:center;gap:7px;text-align:left;padding:6px 3px;border:0;background:transparent;font-size:12px;color:inherit}
+.fox-tree-page span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fox-tree-add{opacity:0}
+.fox-tree-line:hover .fox-tree-add,.fox-tree-line:focus-within .fox-tree-add{opacity:1}
+.fox-tree-placeholder{width:24px;flex-shrink:0}
+.fox-tree-hint,.fox-tree-orphan{padding:12px 14px;color:var(--muted);font-size:11px;line-height:1.5;border-top:1px solid var(--line)}
+.fox-page-tree.is-hidden{width:43px;min-height:0}
+.main-area.has-page-tree:has(.fox-page-tree.is-hidden){padding-left:115px}
+.fox-parent-crumb{border:0;background:transparent;color:var(--accent);padding:0;font-weight:600;font-size:11px}
+.fox-screen-parent-label{display:grid;gap:5px;padding:8px 10px;font-size:11px;color:var(--muted)}
+.fox-screen-parent-label select{width:100%;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--text);padding:7px;font-size:12px}
+@media(max-width:950px){.main-area.has-page-tree{padding-left:72px}.fox-page-tree{left:10px;width:43px;min-height:0}.fox-page-tree:not(.is-hidden) .fox-tree-scroll,.fox-page-tree:not(.is-hidden) .fox-tree-hint,.fox-page-tree:not(.is-hidden) .fox-tree-orphan,.fox-page-tree:not(.is-hidden) .fox-tree-header strong{display:none}}
+@media(max-width:600px){.main-area.has-page-tree,.main-area.has-page-tree:has(.fox-page-tree.is-hidden){padding-left:20px}.fox-page-tree{display:none}}
