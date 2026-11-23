@@ -19,12 +19,12 @@ export function saveAutomations(v:AutomationData){localStorage.setItem(AUTOMATIO
 function dayKey(now:Date){return [now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");}
 function addDays(day:string,count:number){const d=new Date(day+"T12:00:00");d.setDate(d.getDate()+count);return dayKey(d);}
 function runKey(a:Automation,now:Date){return dayKey(now);}
-function scheduleDue(a:Automation,now:Date){if(!a.enabled)return false;const current=now.getHours()*60+now.getMinutes(),[h,m]=a.time.split(":").map(Number),target=h*60+m;if(current<target)return false;if(a.cadence==="once")return a.date===dayKey(now);if(a.cadence==="weekly"&&a.weekday!==now.getDay())return false;if(a.cadence==="monthly"&&Number(a.date.slice(-2))!==now.getDate())return false;return true;}
+function scheduleDue(a:Automation,now:Date){if(!a.enabled)return false;const current=now.getHours()*60+now.getMinutes(),[h,m]=a.time.split(":").map(Number),target=h*60+m;if(current<target)return false;if(a.cadence==="once")return a.date===dayKey(now);if(a.cadence==="weekly"&&a.weekday!==now.getDay())return false;if(a.cadence==="monthly"){const requested=Number(a.date.slice(-2));const last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();if(!Number.isInteger(requested)||requested<1||requested>31||now.getDate()!==Math.min(requested,last))return false;}return true;}
 type TriggerResult={key:string;message:string;scheduledFor:string};
 function evaluateTrigger(a:Automation,now:Date):TriggerResult|null{
  const today=dayKey(now),limit=addDays(today,Math.max(0,Math.min(30,a.triggerOffsetDays??1)));
  if(a.trigger==="task_due"){
-  const tasks=readNotesTasks().tasks.filter(t=>t.status!=="done"&&t.dueDate&&t.dueDate<=limit&&!(t.seriesId??"").startsWith("fox-automation:"+a.id+":"));
+  const tasks=readNotesTasks().tasks.filter(t=>t.status!=="done"&&t.dueDate&&t.dueDate<=limit&&!(t.seriesId??"").startsWith("fox-automation:"));
   if(!tasks.length)return null;
   return {key:"task_due:"+today,message:a.message+"\n"+tasks.slice(0,8).map(t=>"• "+t.title+" — "+t.dueDate).join("\n"),scheduledFor:today};
  }
