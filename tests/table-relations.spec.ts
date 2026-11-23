@@ -108,11 +108,14 @@ test("project templates provide reverse links and paid amounts without duplicate
   const amount=payments.columns.find(col=>col.name==="Сумма")!;
   expect(relatedPayments).toMatchObject({type:"backlink",backlinkSourceTableId:payments.id,backlinkSourceColumnId:link.id});
   expect(paid).toMatchObject({type:"rollup",rollupRelationId:relatedPayments.id,rollupTargetId:amount.id,rollupAggregate:"sum"});
-  const orderRow={id:"order-1",cells:{[orders.columns[0].id]:"Сайт"}};
+  const budget=orders.columns.find(col=>col.name==="Бюджет")!;
+  const remaining=orders.columns.find(col=>col.name==="Осталось")!;
+  const orderRow={id:"order-1",cells:{[orders.columns[0].id]:"Сайт",[budget.id]:13000}};
   const paymentRow={id:"payment-1",cells:{[link.id]:"order-1",[amount.id]:4000,[payments.columns[0].id]:"Первая оплата"}};
   const all=[
     {...orders,rows:[orderRow]},
     {...payments,rows:[paymentRow]}
   ] as TableData[];
   expect(valueForColumn(orderRow,paid,all)).toBe(4000);
+  expect(valueForColumn(orderRow,remaining,all)).toBe(9000);
 });
