@@ -16,27 +16,35 @@ export default function WidgetTablePreview({table,tables,rows,limit,onOpenRecord
   const [query,setQuery]=useState("");
   const [sortColumn,setSortColumn]=useState("");
   const [direction,setDirection]=useState<"asc"|"desc">("asc");
-  const columns=table.columns.slice(0,6);
+  const [columnSelections,setColumnSelections]=useState<Record<string,string[]>>({});
+  const columnIds=columnSelections[table.id]??table.columns.slice(0,6).map(column=>column.id);
+  const columns=table.columns.filter(column=>columnIds.includes(column.id));
+  const changeColumn=(id:string,checked:boolean)=>setColumnSelections(previous=>{
+    const current=previous[table.id]??table.columns.slice(0,6).map(column=>column.id);
+    const next=checked?[...new Set([...current,id])]:current.filter(value=>value!==id);
+    return {...previous,[table.id]:next.length?next:current};
+  });
   const matching=useMemo(()=>{
     const normalized=query.trim().toLocaleLowerCase("ru");
     const filtered=normalized?rows.filter(row=>columns.some(column=>String(valueForColumn(row,column,tables)??"").toLocaleLowerCase("ru").includes(normalized))):rows;
-    const selected=columns.find(col=>col.id===sortColumn);
+    const selected=table.columns.find(col=>col.id===sortColumn);
     if(!selected)return filtered;
     return [...filtered].sort((a,b)=>{
       const x=valueForColumn(a,selected,tables),y=valueForColumn(b,selected,tables);
       const compare=typeof x==="number"&&typeof y==="number"?x-y:String(x??"").localeCompare(String(y??""),"ru",{numeric:true});
       return direction==="asc"?compare:-compare;
     });
-  },[query,rows,columns,sortColumn,direction,tables]);
+  },[query,rows,columns,sortColumn,direction,tables,table.columns]);
   const shown=matching.slice(0,limit);
   return <div className="fox-widget-table-view">
     <div className="fox-widget-toolbar">
       <label className="fox-widget-toolbar-search"><Search size={14}/><input aria-label="Поиск по таблице" placeholder="Поиск..." value={query} onChange={e=>setQuery(e.target.value)}/></label>
       <select aria-label="Сортировка таблицы" value={sortColumn} onChange={e=>setSortColumn(e.target.value)}>
         <option value="">Без сортировки</option>
-        {columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}
+        {table.columns.map(col=><option key={col.id} value={col.id}>{col.name}</option>)}
       </select>
       {sortColumn&&<button type="button" className="fox-widget-sort-direction" title="Направление сортировки" aria-label="Направление сортировки" onClick={()=>setDirection(d=>d==="asc"?"desc":"asc")}>{direction==="asc"?"↑":"↓"}</button>}
+      <details className="fox-widget-column-picker"><summary>Поля ({columns.length})</summary><div className="fox-widget-column-options">{table.columns.map(col=><label key={col.id}><input type="checkbox" checked={columnIds.includes(col.id)} onChange={e=>changeColumn(col.id,e.target.checked)}/><span>{col.name}</span></label>)}</div></details>
       <span className="fox-widget-toolbar-count">{query.trim()?matching.length+" из "+rows.length:rows.length} записей</span>
     </div>
     <div className="fox-widget-table-scroll"><table><thead><tr>{columns.map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>
