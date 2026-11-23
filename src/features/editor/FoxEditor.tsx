@@ -19,7 +19,7 @@ type EditorWidget = {
   id: string; type: WidgetType; title: string; tableId?: string; startDate?: string; financeKind?:FinanceKind; financeRow?:number; financeColumn?:number; financeRowSpan?:number; financeBackground?: "mountains"|"sunset"|"plain";
   columnId?: string; labelColumnId?: string; target?: number;
   body?: string; width: number; height: number; accent?: string;
-  aggregate?: Aggregate; filter?: RowFilter; limit?: number; hideTitle?: boolean; taskStatus?: TaskStatus | "all";
+  aggregate?: Aggregate; groupBars?: boolean; filter?: RowFilter; limit?: number; hideTitle?: boolean; taskStatus?: TaskStatus | "all";
 };
 type WidgetStore = Record<string, EditorWidget[]>;
 type SettingsTab = "data" | "appearance" | "behavior";
@@ -133,11 +133,22 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
   }
   if (widget.type === "bars") {
     if (!numberCol) return <div className="fox-widget-empty">Для графика нужна числовая колонка.</div>;
-    const valid=rows.map(row=>({row,raw:value(row,numberCol)})).filter(item=>item.raw!==undefined&&item.raw!==null&&String(item.raw).trim()!==""&&Number.isFinite(Number(item.raw))).slice(0,maxItems);
-    if (!valid.length) return <EmptyChartPreview kind="bars"/>;
-    const vals=valid.map(item=>Number(item.raw));
-    const max = Math.max(1, ...vals.map(Math.abs));
-    return <div className="fox-widget-bars">{valid.map(({row}, i) => <div className="fox-widget-bar-row" key={row.id}><span title={String(textCol ? value(row,textCol) ?? "" : "")}>{String(textCol ? value(row,textCol) ?? "Запись "+(i+1) : "Запись "+(i+1))}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(vals[i])/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(vals[i])}</b></div>)}</div>;
+    const mode=widget.aggregate??"sum";
+    const grouped=new Map<string,number[]>();
+    rows.forEach((row,i)=>{
+      const raw=value(row,numberCol);
+      if(mode!=="count"&&(raw===undefined||raw===null||String(raw).trim()===""||!Number.isFinite(Number(raw))))return;
+      const label=widget.groupBars?String(textCol?value(row,textCol)??"":"").trim()||"Без значения":String(textCol?value(row,textCol)??"Запись "+(i+1):"Запись "+(i+1));
+      const key=widget.groupBars?label:row.id;
+      grouped.set(key,[...(grouped.get(key)??[]),mode==="count"?1:Number(raw)]);
+    });
+    const summary=[...grouped].map(([key,values])=>({
+      key,label:widget.groupBars?key:String(textCol?value(rows.find(row=>row.id===key)!,textCol)??"Запись":"Запись"),
+      total:widget.groupBars?(mode==="count"?values.length:mode==="average"?values.reduce((a,b)=>a+b,0)/values.length:mode==="min"?Math.min(...values):mode==="max"?Math.max(...values):values.reduce((a,b)=>a+b,0)):values[0]
+    })).sort((a,b)=>widget.groupBars?b.total-a.total:0).slice(0,maxItems);
+    if (!summary.length) return <EmptyChartPreview kind="bars"/>;
+    const max = Math.max(1, ...summary.map(item=>Math.abs(item.total)));
+    return <div className="fox-widget-bars">{summary.map(item => <div className="fox-widget-bar-row" key={item.key}><span title={item.label}>{item.label}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(item.total)/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(item.total)}</b></div>)}</div>;
   }
   if (widget.type === "line") {
     if (!numberCol) return <div className="fox-widget-empty">Выберите числовую колонку.</div>;
@@ -270,6 +281,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
           target:Number.isFinite(Number(w.target))?Number(w.target):100,
           limit:Math.max(1,Math.min(30,Number(w.limit)||8)),
           aggregate:(["sum","average","min","max","count"].includes(String(w.aggregate))?w.aggregate:"sum") as Aggregate,
+          groupBars:w.groupBars===true,
           filter: w.filter && typeof w.filter==="object" ? { columnId:String(w.filter.columnId??""), operator:w.filter.operator, value:String(w.filter.value??"") } : {},
           body:typeof w.body==="string"?w.body.slice(0,10000):"",
           startDate:typeof w.startDate==="string"?w.startDate:undefined,
@@ -380,6 +392,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
                   <button type="button" className="fox-editor-create-source" onClick={onCreateTable}><Plus size={15}/> Создать таблицу</button>
                 </div>
                 {["metric","progress","bars","line"].includes(selected.type)&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+                {selected.type==="bars"&&<><label className="fox-widget-group-switch"><input type="checkbox" checked={Boolean(selected.groupBars)} onChange={e=>setWidget(selected.id,{groupBars:e.target.checked})}/> Группировать по подписям</label>{selected.groupBars&&<label>Агрегация<select value={selected.aggregate??"sum"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="sum">Сумма</option><option value="average">Среднее</option><option value="count">Количество</option><option value="min">Минимум</option><option value="max">Максимум</option></select></label>}</>}
                 {selected.type==="donut"&&<><label>Показатель<select value={selected.aggregate==="sum"?"sum":"count"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="count">Количество записей</option><option value="sum">Сумма значений</option></select></label>{selected.aggregate==="sum"&&<label>Числовое поле<select value={selected.columnId??""} onChange={e=>setWidget(selected.id,{columnId:e.target.value})}><option value="">Автоматически</option>{numericFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}</>}
                 {["bars","list","donut","timeline"].includes(selected.type)&&<label>Подписи<select value={selected.labelColumnId??""} onChange={e=>setWidget(selected.id,{labelColumnId:e.target.value})}><option value="">Автоматически</option>{allFields.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
                 {["metric","progress"].includes(selected.type)&&<label>Расчёт<select value={selected.aggregate??"sum"} onChange={e=>setWidget(selected.id,{aggregate:e.target.value as Aggregate})}><option value="sum">Сумма</option><option value="average">Среднее</option><option value="min">Минимум</option><option value="max">Максимум</option><option value="count">Количество записей</option></select></label>}{selected.type==="progress"&&<label>Целевое значение<input type="number" value={selected.target??100} onChange={e=>setWidget(selected.id,{target:Number(e.target.value)})}/></label>}
