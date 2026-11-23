@@ -52,7 +52,7 @@ function nodes(doc:Document,local:string):Element[]{
  return Array.from(doc.getElementsByTagNameNS("*",local));
 }
 function formulaText(node:Element):string{
- return Array.from(node.childNodes).filter(child=>child.nodeType===1&&child.localName==="formula1").map(child=>child.textContent??"")[0]?.trim()??"";
+ return Array.from(node.childNodes).filter(child=>child.nodeType===1&&(child as Element).localName==="formula1").map(child=>child.textContent??"")[0]?.trim()??"";
 }
 function directOptions(formula:string):string[]{
  if(!(formula.startsWith('"')&&formula.endsWith('"')))return [];
