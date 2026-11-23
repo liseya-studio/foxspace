@@ -13,6 +13,11 @@ test("convert text labels to multiselect without losing records and options",()=
  expect(input.rows[0].cells.tags).toBe("Видео; Срочно");
  expect(input.columns[1].type).toBe("text");
 });
+test("empty text fields stay blank after multiselect conversion",()=>{
+ const source={columns:[{id:"tags",name:"Теги",type:"text"}],rows:[{id:"row",cells:{tags:""}}]};
+ const converted=changeChoiceColumn(source,"tags","multiselect",["Новости"]);
+ expect(converted.rows[0].cells.tags).toBe("");
+});
 test("multi-to-single refuses destructive conversion, text conversion is lossless",()=>{
  const table={columns:[{id:"tags",name:"Теги",type:"multiselect",options:["Видео","Срочно"]}],rows:[{id:"one",cells:{tags:'["Видео","Срочно"]'}}]};
  expect(()=>changeChoiceColumn(table,"tags","select",["Видео","Срочно"])).toThrow(/без потери данных/);
