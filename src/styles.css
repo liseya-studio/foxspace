@@ -673,3 +673,11 @@
 .fox-widget-body .fox-db-kanban-lane{flex-basis:185px}
 .fox-widget-body .fox-db-calendar{padding:8px}
 .fox-widget-body .fox-db-calendar-day{min-height:58px}
+
+.fox-custom-template-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.fox-custom-template-section h3{margin:0 0 6px;font-size:14px}
+.fox-custom-template-section p{font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 10px}
+.fox-custom-template-row{display:flex;align-items:stretch;gap:6px;min-width:0}
+.fox-custom-template-row .fox-preset-card{flex:1;min-width:0}
+.fox-custom-template-delete{flex:0 0 34px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--muted);display:grid;place-items:center}
+.fox-custom-template-delete:hover{color:#d45e60;border-color:#d45e60}
