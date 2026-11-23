@@ -191,7 +191,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   useEffect(() => { setSelectedId(null); setRightMode("library"); }, [screenId]);
 
   function exportLayout() {
-    const blob = new Blob([JSON.stringify({format:"fox-space-screen-v1",widgets},null,2)],{type:"application/json"});
+    const blob = new Blob([JSON.stringify({format:"fox-space-screen-v2",widgets,grid},null,2)],{type:"application/json"});
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href=url;link.download="fox-space-screen.json";link.click();
@@ -200,8 +200,8 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   async function importLayout(file: File | undefined) {
     if (!file) return;
     try {
-      const content = JSON.parse(await file.text()) as {format?:string;widgets?:unknown};
-      if (content.format!=="fox-space-screen-v1" || !Array.isArray(content.widgets) || content.widgets.length>80) throw Error("Некорректный формат макета");
+      const content = JSON.parse(await file.text()) as {format?:string;widgets?:unknown;grid?:GridLayout};
+      if (!["fox-space-screen-v1","fox-space-screen-v2"].includes(content.format??"") || !Array.isArray(content.widgets) || content.widgets.length>80) throw Error("Некорректный формат макета");
       const safe = content.widgets.map((entry:unknown)=>{
         if (!entry || typeof entry!=="object") throw Error("Повреждённый виджет");
         const w=entry as Partial<EditorWidget>;
@@ -227,6 +227,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
         } satisfies EditorWidget;
       });
       updateWidgets(()=>safe);
+      saveGrid(reconcileGrid(content.grid,safe));
       setSelectedId(null);setRightMode("library");setImportError("");
     } catch(error) {
       setImportError(error instanceof Error?error.message:"Не удалось импортировать макет");
@@ -247,6 +248,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
       columnId: numeric?.id, labelColumnId: type==="donut" ? defaultTable?.columns.find(c=>c.type==="select")?.id : text?.id,
       target: 100, aggregate:"sum", filter:{}, limit:8, body: "", width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : type === "heading" ? 100 : type === "divider" ? 65 : 205
     };
+    if(!addPositions([widget]))return;
     updateWidgets(prev => [...prev, widget]);
     setSelectedId(widget.id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
   }
@@ -258,6 +260,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
       tableId: defaultTable?.id, columnId: numeric?.id, labelColumnId: text?.id,
       target: 100, aggregate:"sum" as Aggregate, filter: {} as RowFilter, limit:8, width: ["worldmap","table","heading","divider"].includes(type) ? 12 : 6, height: type === "worldmap" ? 480 : type === "table" ? 270 : 205
     }));
+    if(!addPositions(additions))return;
     updateWidgets(prev => [...prev, ...additions]);
     setSelectedId(additions[0].id); setRightMode("settings"); setSettingsTab("data"); setShowRight(true);
   }
@@ -265,6 +268,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
     const widget = widgets.find(w=>w.id===id);
     if (!widget) return;
     const copy = {...widget,id:newId(),title:widget.title+" — копия"};
+    if(!addPositions([copy]))return;
     updateWidgets(prev=>[...prev,copy]);
     setSelectedId(copy.id); setRightMode("settings"); setSettingsTab("data");
   }
@@ -280,28 +284,19 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
       return next;
     });
   }
-  function resize(widget: EditorWidget, deltaX: number, deltaY: number) {
-    const canvasWidth = canvasRef.current?.clientWidth ?? 1000;
-    const styles = canvasRef.current ? window.getComputedStyle(canvasRef.current) : null;
-    const gap = Number.parseFloat(styles?.columnGap ?? "12") || 12;
-    const colPx = Math.max(30, (canvasWidth - 11 * gap) / 12 + gap);
-    setWidget(widget.id, {
-      width: Math.max(3, Math.min(12, Math.round(widget.width + deltaX / colPx))),
-      height: Math.max(65, Math.min(900, Math.round((widget.height + deltaY) / 10) * 10))
-    });
-  }
-
   const selectedTable = tables.find(t => t.id === selected?.tableId);
   const numericFields = selectedTable?.columns.filter(c => c.type === "number" || c.type === "formula") ?? [];
   const allFields = selectedTable?.columns ?? [];
 
   return <div className="fox-editor">
     {editMode&&<div className="fox-editor-toolbar"><div><span className="fox-editor-overline">FOX EDITOR</span><h2>Редактор экрана</h2><p>Перемещайте виджеты и изменяйте их размеры перетаскиванием границ.</p></div><div className="fox-editor-toolbar-actions"><button className="primary-button" onClick={()=>{setSelectedId(null);onDoneEditing();}}>Готово</button><button className="outline-button" onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Виджет</button><button className="soft-icon" title="Экспортировать макет" onClick={exportLayout}><Download size={17}/></button><button className="soft-icon" title="Импортировать макет" onClick={()=>importRef.current?.click()}><Upload size={17}/></button><input ref={importRef} className="fox-editor-hidden-file" type="file" accept=".json,application/json" onChange={event=>{void importLayout(event.target.files?.[0]);}}/><button className="soft-icon" title="Показать или скрыть панель" onClick={()=>setShowRight(v=>!v)}><PanelRightOpen size={18}/></button></div></div>}
+    {editMode&&gridError&&<div className="fox-editor-import-error" role="alert">{gridError}<button onClick={()=>setGridError("")}><X size={14}/></button></div>}
     {editMode&&importError&&<div className="fox-editor-import-error" role="alert">{importError}<button onClick={()=>setImportError("")}><X size={14}/></button></div>}
     <div className={"fox-editor-layout"+(previewMode?" preview":"")}>
       <div className="fox-editor-workspace">
+        {editMode&&<div className="fox-grid-config"><label>Столбцы<input type="number" min={4} max={24} value={grid.settings.columns} onChange={e=>patchGrid({columns:Number(e.target.value)})}/></label><label>Строки<input type="number" min={4} max={60} value={grid.settings.rows} onChange={e=>patchGrid({rows:Number(e.target.value)})}/></label><label>Зазор, px<input type="number" min={0} max={32} value={grid.settings.gap} onChange={e=>patchGrid({gap:Number(e.target.value)})}/></label><label>Высота ячейки, px<input type="number" min={40} max={140} value={grid.settings.rowHeight} onChange={e=>patchGrid({rowHeight:Number(e.target.value)})}/></label></div>}
         {editMode&&<div className="fox-editor-source"><Database size={16}/><span>Основная таблица</span><select value={tableId??""} onChange={e=>onTableChange(e.target.value)}><option value="">Не выбрана</option>{tables.map(t=><option value={t.id} key={t.id}>{t.name}</option>)}</select><button onClick={onOpenTables}>Управление таблицами <ChevronsRight size={14}/></button></div>}
-        <div className={"fox-editor-grid"+(financeLayout?" finance-dashboard-grid":"")} style={financeGridStyle} ref={canvasRef}>
+        <div className="fox-editor-grid fox-editor-true-grid" style={{gridTemplateColumns:`repeat(${grid.settings.columns},minmax(0,1fr))`,gridTemplateRows:`repeat(${grid.settings.rows},${grid.settings.rowHeight}px)`,gap:grid.settings.gap}} ref={canvasRef}>
           {widgets.map(widget => {
             const table = tables.find(t => t.id === widget.tableId);
             const isSelected = !previewMode && selectedId === widget.id;
