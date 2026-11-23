@@ -84,7 +84,7 @@ export function valueForColumn(
     if(column.rollupAggregate==="count")return match.rows.length;
     const source=match.table.columns.find(item=>item.id===column.rollupTargetId);
     if(!source || source.type==="rollup")return undefined; // Avoid recursive rollup chains.
-    const numbers=match.rows.map(item=>Number(valueForColumn(item,source,tables))).filter(Number.isFinite);
+    const numbers=match.rows.map(item=>valueForColumn(item,source,tables)).filter(value=>value!==undefined&&value!==null&&String(value).trim()!=="").map(Number).filter(Number.isFinite);
     if(!numbers.length)return 0;
     switch(column.rollupAggregate){
       case "average":return numbers.reduce((a,b)=>a+b,0)/numbers.length;
@@ -112,7 +112,9 @@ export function aggregateRows(
   if (mode === "count") return rows.length;
   if (!column) return 0;
   const values = rows
-    .map(row => Number(valueForColumn(row, column, tables)))
+    .map(row => valueForColumn(row, column, tables))
+    .filter(value => value !== undefined && value !== null && String(value).trim() !== "")
+    .map(Number)
     .filter(n => Number.isFinite(n));
   if (!values.length) return 0;
   switch (mode) {
