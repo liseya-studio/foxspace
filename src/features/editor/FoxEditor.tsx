@@ -203,11 +203,13 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
     try {
       const content = JSON.parse(await file.text()) as {format?:string;widgets?:unknown;grid?:GridLayout};
       if (!["fox-space-screen-v1","fox-space-screen-v2"].includes(content.format??"") || !Array.isArray(content.widgets) || content.widgets.length>80) throw Error("Некорректный формат макета");
+      const importedIds=new Map<string,string>();
       const safe = content.widgets.map((entry:unknown)=>{
         if (!entry || typeof entry!=="object") throw Error("Повреждённый виджет");
         const w=entry as Partial<EditorWidget>;
         if (!catalog.some(item=>item.type===w.type)) throw Error("Неизвестный тип виджета");
-        return {id:newId(),type:w.type!,title:String(w.title??"Виджет").slice(0,100),
+        const id=newId();if(typeof w.id==="string")importedIds.set(w.id,id);
+        return {id,type:w.type!,title:String(w.title??"Виджет").slice(0,100),
           tableId:typeof w.tableId==="string"?w.tableId:undefined,
           columnId:typeof w.columnId==="string"?w.columnId:undefined,
           labelColumnId:typeof w.labelColumnId==="string"?w.labelColumnId:undefined,
@@ -228,7 +230,8 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
         } satisfies EditorWidget;
       });
       updateWidgets(()=>safe);
-      saveGrid(reconcileGrid(content.grid,safe));
+      const positions=Object.fromEntries(Object.entries(content.grid?.positions??{}).filter(([id])=>importedIds.has(id)).map(([id,rect])=>[importedIds.get(id)!,rect])) as Record<string,Rect>;
+      saveGrid(reconcileGrid(content.grid?{...content.grid,positions}:undefined,safe));
       setSelectedId(null);setRightMode("library");setImportError("");
     } catch(error) {
       setImportError(error instanceof Error?error.message:"Не удалось импортировать макет");
