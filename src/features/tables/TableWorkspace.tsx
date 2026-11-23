@@ -144,7 +144,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
   function importExcel(){
     if(!excelDraft)return;
     try{
-      const current=excelTarget==="append"?activeTable:undefined;
+      const current=excelTarget==="append"?(activeTable??undefined):undefined;
       const imported=mergeExcelIntoTable(excelDraft,current,id);
       const result=imported as DataTable;
       setTables(old=>current?old.map(table=>table.id===current.id?result:table):[...old,result]);
