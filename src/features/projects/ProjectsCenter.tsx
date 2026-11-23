@@ -15,9 +15,10 @@ const blankProject=():Project=>{const now=new Date().toISOString();return {id:pr
 const blankGoal=():ProjectGoal=>{const now=new Date().toISOString();return {id:projectId(),title:"",description:"",horizon:"quarter",deadline:"",keyResults:[],createdAt:now,updatedAt:now};};
 const blankKR=():KeyResult=>({id:projectId(),title:"",metricType:"number",unit:"",plannedValue:1,actualValue:0,deadline:"",taskIds:[],history:[]});
 
-export default function ProjectsCenter({onOpenTask}:{onOpenTask?:(id:string)=>void}){
+export default function ProjectsCenter({onOpenTask,onOpenScreen}:{onOpenTask?:(id:string)=>void;onOpenScreen?:(id:string)=>void}){
   const [data,setData]=useState(readProjects);
   const [selectedId,setSelectedId]=useState<string|null>(null);
+  const availableScreens=(()=>{try{return JSON.parse(localStorage.getItem("fox-screens")||"[]") as {id:string;name:string}[];}catch{return [];}})();
   const [editing,setEditing]=useState<Project|null>(null);
   const [goalEditing,setGoalEditing]=useState<ProjectGoal|null>(null);
   const [krEditing,setKrEditing]=useState<{goalId:string;value:KeyResult}|null>(null);
@@ -44,6 +45,7 @@ export default function ProjectsCenter({onOpenTask}:{onOpenTask?:(id:string)=>vo
   function detachProjectFile(id:string){if(!selected)return;patchProject({fileIds:selected.fileIds.filter(fileId=>fileId!==id)});}
   if(selected)return <section className="projects-center">
     <div className="projects-heading"><button className="projects-back" onClick={()=>setSelectedId(null)}><ArrowLeft size={16}/> Все проекты</button><div className="projects-heading-actions"><button className="project-action" onClick={()=>setEditing({...selected})}><Pencil size={15}/> Изменить</button><button className="project-action danger" onClick={()=>removeProject(selected)}><Trash2 size={15}/></button></div></div>
+    <div className="project-linked-screen-bar"><label>Рабочий экран проекта <select aria-label="Рабочий экран проекта" value={selected.workspaceScreenId??""} onChange={e=>patchProject({workspaceScreenId:e.target.value||undefined})}><option value="">Не привязан</option>{availableScreens.map(screen=><option key={screen.id} value={screen.id}>{screen.name}</option>)}</select></label>{selected.workspaceScreenId&&availableScreens.some(screen=>screen.id===selected.workspaceScreenId)&&<button type="button" className="outline-button" onClick={()=>onOpenScreen?.(selected.workspaceScreenId!)}>Открыть экран ↗</button>}</div>
     <div className="project-detail-hero"><div><div className="eyebrow">{selected.category} · {PROJECT_STATUS[selected.status]}</div><h1>{selected.name}</h1><p>{selected.description||"Описание проекта пока не добавлено."}</p></div><span className={"project-priority priority-"+selected.priority}>{PROJECT_PRIORITY[selected.priority]} приоритет</span></div>
     <div className="project-metrics">
       <div><small>Бюджет</small><strong>{money(selected.budget)}</strong></div><div><small>Доходы</small><strong>{money(projectTotals(selected.id,selected.income,selected.expenses).income)}</strong></div><div><small>Расходы</small><strong>{money(projectTotals(selected.id,selected.income,selected.expenses).expense)}</strong></div><div><small>Результат</small><strong>{money(projectTotals(selected.id,selected.income,selected.expenses).income-projectTotals(selected.id,selected.income,selected.expenses).expense)}</strong></div>
