@@ -199,10 +199,27 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
   const patchGrid=(patch:Partial<GridLayout["settings"]>)=>{saveGrid(updateGridSettings(grid,widgets,patch));setGridError("");};
   function addPositions(items:EditorWidget[]){const next=reconcileGrid(grid,widgets);for(const item of items){const w=Math.min(next.settings.columns,Math.max(1,item.width));const h=Math.max(1,Math.ceil(item.height/(next.settings.rowHeight+next.settings.gap)));let p=nextSlot(w,h,next.positions,next.settings);while(!p&&next.settings.rows<60){next.settings={...next.settings,rows:Math.min(60,next.settings.rows+4)};p=nextSlot(w,h,next.positions,next.settings);}if(!p){setGridError("Нет места на сетке");return false;}next.positions[item.id]=p;}saveGrid(next);return true;}
   function setPosition(id:string,patch:Partial<Rect>){const current=grid.positions[id];if(!current)return;const changed=reposition(grid,id,{...current,...patch});if(changed){saveGrid(changed);setGridError("");}else setGridError("Место занято или размер выходит за границу сетки");}
-  function pointerDown(e:React.PointerEvent<HTMLElement>,id:string,kind:"move"|"resize",edge=""){if(e.button!==0)return;const origin=grid.positions[id];if(!origin)return;e.stopPropagation();e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);drag.current={id,kind,edge,x:e.clientX,y:e.clientY,origin,preview:origin,valid:true};setSelectedId(id);}
-  function pointerMove(e:React.PointerEvent<HTMLElement>){const d=drag.current;if(!d||!canvasRef.current)return;const cell=(canvasRef.current.clientWidth-grid.settings.gap*(grid.settings.columns-1))/grid.settings.columns;const dx=Math.round((e.clientX-d.x)/(cell+grid.settings.gap)),dy=Math.round((e.clientY-d.y)/(grid.settings.rowHeight+grid.settings.gap));const r={...d.origin};if(d.kind==="move"){r.x+=dx;r.y+=dy;}else{if(d.edge==="right")r.w+=dx;if(d.edge==="left"){r.x+=dx;r.w-=dx;}if(d.edge==="bottom")r.h+=dy;if(d.edge==="top"){r.y+=dy;r.h-=dy;}}const valid=r.w>0&&r.h>0&&r.x>=0&&r.y>=0&&r.x+r.w<=grid.settings.columns&&r.y+r.h<=grid.settings.rows&&Boolean(reposition(grid,d.id,r));drag.current={...d,preview:r,valid};setPreview(valid?{id:d.id,rect:r}:null);}
+  function pointerDown(e:React.PointerEvent<HTMLElement>,id:string,kind:"move"|"resize",edge=""){if(e.button!==0)return;const origin=grid.positions[id];if(!origin)return;e.stopPropagation();e.preventDefault();drag.current={id,kind,edge,x:e.clientX,y:e.clientY,origin,preview:origin,valid:true};setSelectedId(id);}
+  function pointerMove(e:{clientX:number;clientY:number}){const d=drag.current;if(!d||!canvasRef.current)return;const cell=(canvasRef.current.clientWidth-grid.settings.gap*(grid.settings.columns-1))/grid.settings.columns;const dx=Math.round((e.clientX-d.x)/(cell+grid.settings.gap)),dy=Math.round((e.clientY-d.y)/(grid.settings.rowHeight+grid.settings.gap));const r={...d.origin};if(d.kind==="move"){r.x+=dx;r.y+=dy;}else{if(d.edge==="right")r.w+=dx;if(d.edge==="left"){r.x+=dx;r.w-=dx;}if(d.edge==="bottom")r.h+=dy;if(d.edge==="top"){r.y+=dy;r.h-=dy;}}const valid=r.w>0&&r.h>0&&r.x>=0&&r.y>=0&&r.x+r.w<=grid.settings.columns&&r.y+r.h<=grid.settings.rows&&Boolean(reposition(grid,d.id,r));drag.current={...d,preview:r,valid};setPreview(valid?{id:d.id,rect:r}:null);}
   function pointerUp(){const d=drag.current;if(!d)return;if(d.valid){const next=reposition(grid,d.id,d.preview);if(next)saveGrid(next);}else setGridError("Положение недоступно: пересечение или выход за границу");drag.current=null;setPreview(null);}
   function pointerCancel(){drag.current=null;setPreview(null);}
+  // Attach dragging to the window rather than a moving widget node. A widget
+  // repositions under the pointer during a gesture and cannot safely own the
+  // pointer capture or the final mouse-up event.
+  useEffect(()=>{
+    if(!editMode)return;
+    const onMove=(event:PointerEvent)=>pointerMove(event);
+    const onUp=()=>pointerUp();
+    const onCancel=()=>pointerCancel();
+    window.addEventListener("pointermove",onMove);
+    window.addEventListener("pointerup",onUp);
+    window.addEventListener("pointercancel",onCancel);
+    return()=>{
+      window.removeEventListener("pointermove",onMove);
+      window.removeEventListener("pointerup",onUp);
+      window.removeEventListener("pointercancel",onCancel);
+    };
+  },[editMode,grid]);
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
   useEffect(() => { localStorage.setItem(GRID_KEY,JSON.stringify(grids)); }, [grids]);
   useEffect(()=>{const update=()=>setOrganizer(readNotesTasks());window.addEventListener("fox-notes-tasks-updated",update);window.addEventListener("storage",update);return ()=>{window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};},[]);
@@ -314,10 +331,10 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
              if(!rect)return null;
              return <div className={"fox-widget fox-grid-widget"+(isSelected?" selected":"")+(widget.type==="finance"?" fox-finance-card fox-finance-"+(widget.financeKind??"balance"):"")} style={{gridColumn:`${rect.x+1} / span ${rect.w}`,gridRow:`${rect.y+1} / span ${rect.h}`,"--fox-col":`${rect.x+1} / span ${rect.w}`,"--fox-row":`${rect.y+1} / span ${rect.h}`,minHeight:0} as React.CSSProperties} key={widget.id}
                onClick={()=>{if(previewMode)return;setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}}>
-              {!previewMode&&<div className="fox-grid-drag-handle" title="Перетащить карточку" onPointerDown={e=>pointerDown(e,widget.id,"move")} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerCancel}><GripVertical size={16}/></div>}
+              {!previewMode&&<div className="fox-grid-drag-handle" title="Перетащить карточку" onPointerDown={e=>pointerDown(e,widget.id,"move")}><GripVertical size={16}/></div>}
                {widget.type!=="finance" && <div className="fox-widget-header"><h3>{widget.title}</h3>{!previewMode&&<button onClick={e=>{e.stopPropagation();setSelectedId(widget.id);setRightMode("settings");setShowRight(true);}} title="Параметры"><Settings2 size={16}/></button>}</div>}
               <div className="fox-widget-body"><WidgetPreview widget={widget} table={table} tables={tables} organizer={organizer} editMode={editMode} onOpenRecord={onOpenRecord} onUpdateCell={updateDatabaseCell} onConfigure={()=>{setSelectedId(widget.id);setSettingsTab("data");setRightMode("settings");setShowRight(true);}}/></div>
-              {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} onPointerDown={e=>pointerDown(e,widget.id,"resize",edge)} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerCancel}/>)}
+              {!previewMode&&(["right","bottom","left","top"] as const).map(edge=><div key={edge} className={"fox-widget-edge fox-widget-edge-"+edge} onPointerDown={e=>pointerDown(e,widget.id,"resize",edge)}/>)}
             </div>;
           })}
           {!widgets.length && <div className="fox-editor-empty"><LayoutGrid size={30}/><h3>Пустой экран</h3><p>Добавьте первый виджет. Показатели, таблицы и графики будут брать данные из выбранного источника.</p>{editMode&&<button className="primary-button" onClick={()=>{setShowRight(true);setRightMode("library");}}><Plus size={16}/> Выбрать виджет</button>}</div>}
