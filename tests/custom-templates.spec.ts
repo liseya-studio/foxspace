@@ -15,7 +15,7 @@ test("user can save a composed screen as a reusable template with widget layout"
   await page.getByRole("button",{name:"Готово"}).click();
   await page.getByRole("button",{name:"Действия с экраном"}).click();
   page.once("dialog",dialog=>dialog.accept("Мой экран"));
-  await page.getByRole("button",{name:"Сохранить как шаблон"}).click();
+  await page.getByRole("button",{name:"Сохранить экран как шаблон"}).click();
 
   let saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("fox-custom-screen-templates-v1")||"[]"));
   expect(saved).toHaveLength(1);
