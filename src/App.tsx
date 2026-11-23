@@ -20,6 +20,7 @@ import FeedCenter from "./features/feed/FeedCenter";
 import { SCREEN_PRESETS, instantiatePreset } from "./features/templates/screenPresets";
 import PageTree from "./features/templates/PageTree";
 import {captureWorkspaceTemplate,instantiateWorkspaceTemplate,persistWorkspaceSnapshot,type WorkspaceTemplate} from "./features/templates/workspaceTreeTemplates";
+import {createProjectWorkspace} from "./features/projects/projectScreenBuilder";
 import {GRID_KEY,type GridLayout} from "./features/editor/gridLayout";
 import PlatformIcon,{ PLATFORM_ICONS, DECORATIVE_ICONS } from "./features/icons/PlatformIcon";
 import { unreadNotificationCount, dispatchDesktopReminders } from "./features/notifications/data";
@@ -212,22 +213,12 @@ export default function App() {
     }
   }
   function createProjectScreen(projectId:string,projectName:string):string{
-    const screenId=crypto.randomUUID();
     const tables=read<{id:string;name:string;columns:{id:string;name:string;type:string}[]}[]>("fox-tables-v1",[]);
-    const linked=tables.flatMap(table=>table.columns.filter(column=>column.type==="project").map(column=>({table,column})));
-    const widgets=[
-      {id:crypto.randomUUID(),type:"heading",title:projectName,body:"Материалы и связанные данные проекта",width:12,height:110,filter:{},limit:8,target:100,aggregate:"sum"},
-      ...linked.slice(0,8).map(({table,column})=>({
-        id:crypto.randomUUID(),type:"table",title:table.name,tableId:table.id,
-        width:12,height:285,filter:{columnId:column.id,operator:"equals",value:projectId},
-        limit:8,target:100,aggregate:"sum"
-      }))
-    ];
-    const current=read<Record<string,unknown[]>>("fox-editor-widgets-v1",{});
-    localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({...current,[screenId]:widgets}));
-    setScreens(prev=>[...prev,{id:screenId,name:projectName,icon:"▣"}]);
-    setActive(screenId);
-    return screenId;
+    const workspace=createProjectWorkspace(projectId,projectName,tables,()=>crypto.randomUUID());
+    persistWorkspaceSnapshot(localStorage,workspace);
+    setScreens(previous=>[...previous,...workspace.pages]);
+    setActive(workspace.pages[0].id);
+    return workspace.pages[0].id;
   }
   function addChildScreen(parentId:string){
     const parent=screens.find(screen=>screen.id===parentId);
