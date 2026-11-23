@@ -43,7 +43,7 @@ function loadTables(): DataTable[] {
 }
 const id = () => crypto.randomUUID();
 
-export default function TableWorkspace({openCreate=false,onCreateConsumed}:{openCreate?:boolean;onCreateConsumed?:()=>void}) {
+export default function TableWorkspace({openCreate=false,onCreateConsumed,openRecord,onRecordOpened}:{openCreate?:boolean;onCreateConsumed?:()=>void;openRecord?:{tableId:string;rowId:string;id:number}|null;onRecordOpened?:()=>void}) {
   const [tables, setTables] = useState<DataTable[]>(loadTables);
   const [projectRevision,setProjectRevision]=useState(0);
   const projectOptions=useMemo(()=>readProjects().projects,[projectRevision]);
@@ -90,6 +90,11 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed}:{open
   const activeTable = tables.find(t => t.id === activeId) ?? null;
   const openedRow=activeTable?.rows.find(r=>r.id===openedRowId);
   useEffect(()=>{setOpenedRowId(null);},[activeId]);
+  useEffect(()=>{
+    if(!openRecord)return;
+    if(activeId!==openRecord.tableId){setActiveId(openRecord.tableId);return;}
+    if(tables.some(t=>t.id===openRecord.tableId&&t.rows.some(row=>row.id===openRecord.rowId))){setOpenedRowId(openRecord.rowId);onRecordOpened?.();}
+  },[openRecord,activeId,tables,onRecordOpened]);
 
   function updateTable(updater: (table: DataTable) => DataTable) {
     setTables(current => current.map(table => {
