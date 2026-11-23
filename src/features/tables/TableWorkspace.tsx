@@ -64,6 +64,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
   const [excelSheets,setExcelSheets]=useState<string[]>([]);
   const [excelSheet,setExcelSheet]=useState("");
   const [excelDraft,setExcelDraft]=useState<ImportDraft|null>(null);
+  const [excelOptionsText,setExcelOptionsText]=useState<Record<string,string>>({});
   const [excelTarget,setExcelTarget]=useState<"new"|"append">("new");
   const [excelBusy,setExcelBusy]=useState(false);
   const [excelError,setExcelError]=useState("");
@@ -125,7 +126,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
   }
   function parseOptionText(text:string){return [...new Set(text.split(/[\n;]+/).map(value=>value.trim()).filter(Boolean))].slice(0,200);}
   async function loadExcel(file:File,sheet?:string){
-    setExcelBusy(true);setExcelError("");setExcelDraft(null);
+    setExcelBusy(true);setExcelError("");setExcelDraft(null);setExcelOptionsText({});
     try{
       if(!/\.xlsx$/i.test(file.name))throw Error("Поддерживается формат Excel .xlsx");
       if(file.size>25*1024*1024)throw Error("Файл Excel превышает 25 МБ.");
@@ -145,7 +146,8 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
     if(!excelDraft)return;
     try{
       const current=excelTarget==="append"?(activeTable??undefined):undefined;
-      const imported=mergeExcelIntoTable(excelDraft,current,id);
+      const selectedFields=excelDraft.fields.map(field=>({...field,options:parseOptionText(excelOptionsText[field.id]??field.options.join("\n"))}));
+      const imported=mergeExcelIntoTable({...excelDraft,fields:selectedFields},current,id);
       const result=imported as DataTable;
       setTables(old=>current?old.map(table=>table.id===current.id?result:table):[...old,result]);
       setActiveId(result.id);setView("table");setQuery("");setCategoryFilter("Все");
@@ -307,7 +309,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
     {excelDialog&&<div className="overlay" onMouseDown={e=>e.target===e.currentTarget&&setExcelDialog(false)}><div className="dialog fox-excel-dialog" role="dialog" aria-label="Импорт Excel"><button className="close-button" onClick={()=>setExcelDialog(false)}><X size={18}/></button><div className="dialog-icon"><FileSpreadsheet size={21}/></div><h2>Импорт Excel</h2><p>Столбцы и записи сохраняются. Варианты выпадающих списков Excel по возможности извлекаются из файла. Перед импортом можно изменить типы и варианты.</p>
       <label className="form-label">Книга Excel (.xlsx)<input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={e=>{const file=e.target.files?.[0];if(file){setExcelFile(file);setExcelSheets([]);void loadExcel(file);}e.target.value="";}}/></label>
       {excelFile&&excelSheets.length>1&&<label className="form-label">Лист<select className="form-input" value={excelSheet} onChange={e=>{setExcelSheet(e.target.value);void loadExcel(excelFile,e.target.value);}}>{excelSheets.map(sheet=><option key={sheet}>{sheet}</option>)}</select></label>}
-      {excelDraft&&<><label className="form-label">Режим загрузки<select className="form-input" value={excelTarget} onChange={e=>setExcelTarget(e.target.value as "new"|"append")}><option value="new">Новая таблица — {excelDraft.sheet}</option>{activeTable&&<option value="append">Добавить строки в «{activeTable.name}»</option>}</select></label><div className="fox-excel-summary">{excelDraft.rows.length} строк · {excelDraft.fields.length} колонок · {excelDraft.fields.filter(field=>field.type==="select"||field.type==="multiselect").length} полей с вариантами</div><div className="fox-excel-field-map">{excelDraft.fields.map(field=><div className="fox-excel-field" key={field.id}><strong title={field.name}>{field.name}</strong><select aria-label={"Тип поля "+field.name} value={field.type} onChange={e=>setExcelDraft(current=>current?{...current,fields:current.fields.map(x=>x.id===field.id?{...x,type:e.target.value as ImportType,source:"manual"}:x)}:current)}>{[["text","Текст"],["number","Число"],["date","Дата"],["checkbox","Флажок"],["select","Выбор"],["multiselect","Мультивыбор"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select>{(field.type==="select"||field.type==="multiselect")&&<textarea aria-label={"Варианты "+field.name} rows={2} value={field.options.join("\n")} onChange={e=>setExcelDraft(current=>current?{...current,fields:current.fields.map(x=>x.id===field.id?{...x,options:parseOptionText(e.target.value),source:"manual"}:x)}:current)}/>}</div>)}</div><p className="fox-excel-footnote">При добавлении в существующую таблицу колонки сопоставляются по названиям. Существующие записи и варианты сохраняются.</p></>}
+      {excelDraft&&<><label className="form-label">Режим загрузки<select className="form-input" value={excelTarget} onChange={e=>setExcelTarget(e.target.value as "new"|"append")}><option value="new">Новая таблица — {excelDraft.sheet}</option>{activeTable&&<option value="append">Добавить строки в «{activeTable.name}»</option>}</select></label><div className="fox-excel-summary">{excelDraft.rows.length} строк · {excelDraft.fields.length} колонок · {excelDraft.fields.filter(field=>field.type==="select"||field.type==="multiselect").length} полей с вариантами</div><div className="fox-excel-field-map">{excelDraft.fields.map(field=><div className="fox-excel-field" key={field.id}><strong title={field.name}>{field.name}</strong><select aria-label={"Тип поля "+field.name} value={field.type} onChange={e=>setExcelDraft(current=>current?{...current,fields:current.fields.map(x=>x.id===field.id?{...x,type:e.target.value as ImportType,source:"manual"}:x)}:current)}>{[["text","Текст"],["number","Число"],["date","Дата"],["checkbox","Флажок"],["select","Выбор"],["multiselect","Мультивыбор"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select>{(field.type==="select"||field.type==="multiselect")&&<textarea aria-label={"Варианты "+field.name} rows={2} value={excelOptionsText[field.id]??field.options.join("\n")} onChange={e=>setExcelOptionsText(current=>({...current,[field.id]:e.target.value}))}/>}</div>)}</div><p className="fox-excel-footnote">При добавлении в существующую таблицу колонки сопоставляются по названиям. Существующие записи и варианты сохраняются.</p></>}
       {excelBusy&&<p role="status">Чтение Excel…</p>}{excelError&&<p role="alert" className="table-record-error">{excelError}</p>}
       <button className="primary-button full" disabled={!excelDraft||excelBusy} onClick={importExcel}><FileSpreadsheet size={16}/> Импортировать {excelDraft?.rows.length??0} строк</button>
       <button className="text-button" onClick={()=>setExcelDialog(false)}>Отмена</button>
