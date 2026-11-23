@@ -8,7 +8,7 @@ export const AUTOMATIONS_KEY="fox-automations-v1";
 export type Cadence="once"|"daily"|"weekly"|"monthly";
 export type AutomationTrigger="schedule"|"task_due"|"goal_deadline"|"budget_exceeded";
 export type AutomationAction="notification"|"create_task";
-export type Automation={id:string;name:string;message:string;action?:AutomationAction;trigger?:AutomationTrigger;triggerOffsetDays?:number;cadence:Cadence;date:string;weekday:number;time:string;enabled:boolean;lastRunKey:string|null;lastRunAt:string|null;createdAt:string;updatedAt:string};
+export type Automation={id:string;name:string;message:string;action?:AutomationAction;trigger?:AutomationTrigger;triggerOffsetDays?:number;monthlyDay?:number;cadence:Cadence;date:string;weekday:number;time:string;enabled:boolean;lastRunKey:string|null;lastRunAt:string|null;createdAt:string;updatedAt:string};
 export type AutomationRun={id:string;automationId:string;automationName:string;scheduledFor:string;ranAt:string;status:"sent"|"completed"|"permission_missing"|"failed";detail:string};
 export type AutomationData={version:1;items:Automation[];history:AutomationRun[];notificationsEnabled:boolean};
 const empty=():AutomationData=>({version:1,items:[],history:[],notificationsEnabled:false});
@@ -19,7 +19,7 @@ export function saveAutomations(v:AutomationData){localStorage.setItem(AUTOMATIO
 function dayKey(now:Date){return [now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");}
 function addDays(day:string,count:number){const d=new Date(day+"T12:00:00");d.setDate(d.getDate()+count);return dayKey(d);}
 function runKey(a:Automation,now:Date){return dayKey(now);}
-function scheduleDue(a:Automation,now:Date){if(!a.enabled)return false;const current=now.getHours()*60+now.getMinutes(),[h,m]=a.time.split(":").map(Number),target=h*60+m;if(current<target)return false;if(a.cadence==="once")return a.date===dayKey(now);if(a.cadence==="weekly"&&a.weekday!==now.getDay())return false;if(a.cadence==="monthly"){const requested=Number(a.date.slice(-2));const last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();if(!Number.isInteger(requested)||requested<1||requested>31||now.getDate()!==Math.min(requested,last))return false;}return true;}
+function scheduleDue(a:Automation,now:Date){if(!a.enabled)return false;const current=now.getHours()*60+now.getMinutes(),[h,m]=a.time.split(":").map(Number),target=h*60+m;if(current<target)return false;if(a.cadence==="once")return a.date===dayKey(now);if(a.cadence==="weekly"&&a.weekday!==now.getDay())return false;if(a.cadence==="monthly"){const requested=Number(a.monthlyDay??a.date.slice(-2));const last=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();if(!Number.isInteger(requested)||requested<1||requested>31||now.getDate()!==Math.min(requested,last))return false;}return true;}
 type TriggerResult={key:string;message:string;scheduledFor:string};
 function evaluateTrigger(a:Automation,now:Date):TriggerResult|null{
  const today=dayKey(now),limit=addDays(today,Math.max(0,Math.min(30,a.triggerOffsetDays??1)));
