@@ -5,6 +5,7 @@ import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type Tas
 import WorldTravelMap from "./WorldTravelMap";
 import {GalleryView,KanbanView,CalendarView} from "../tables/ExtraTableViews";
 import FinanceWidget,{type FinanceKind} from "./FinanceWidget";
+import WidgetTablePreview from "./WidgetTablePreview";
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
   AlignLeft, List, Target, GripVertical, Trash2, X, Database,
@@ -163,7 +164,7 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     return <div className="fox-widget-timeline"><div className="fox-timeline-line"/>{dated.map((row,i)=><div key={row.id} className="fox-timeline-event"><span className="fox-timeline-date">{new Date(String(value(row,dateCol))+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"short"})}</span><i style={{borderColor:widget.accent||"var(--accent)"}}/><strong title={String(row.cells[textCol?.id]??"")}>{String(row.cells[textCol?.id]??"Событие "+(i+1))}</strong></div>)}</div>;
   }
   if (widget.type === "list") return <div className="fox-widget-list">{rows.slice(0, maxItems).map((row,i) => <div key={row.id}><span>{String(i+1).padStart(2,"0")}</span><strong>{String(textCol ? value(row,textCol) ?? "Запись" : "Запись")}</strong>{numberCol && <small>{fmt(Number(value(row,numberCol))||0)}</small>}</div>)}{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
-  return <div className="fox-widget-table-scroll"><table><thead><tr>{table.columns.slice(0,5).map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>{rows.slice(0,maxItems).map(r=><tr key={r.id}>{table.columns.slice(0,5).map(c=><td key={c.id}>{c.type==="checkbox"?(value(r,c)?"Да":"Нет"):formatCell(value(r,c))}</td>)}</tr>)}</tbody></table>{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
+  return <WidgetTablePreview table={table} tables={tables} rows={rows} limit={maxItems} onOpenRecord={rowId=>onOpenRecord?.(table.id,rowId)}/>;
 }
 
 export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, tableId, onTableChange, onOpenTables, onCreateTable,onOpenRecord }: Props) {
