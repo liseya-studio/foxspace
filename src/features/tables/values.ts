@@ -46,9 +46,15 @@ export function valueForColumn(
 ): TableCell | undefined {
   if (column.type === "formula") {
     if (!column.formulaSourceId) return undefined;
-    const number = Number(row.cells[column.formulaSourceId]);
+    const owner=tables.find(table=>table.columns.some(item=>item.id===column.id));
+    const operand=(id:string)=>{
+      const field=owner?.columns.find(item=>item.id===id);
+      // Permit references to computed rollups, without recursive formula chains.
+      return field?.type==="rollup" ? valueForColumn(row,field,tables) : row.cells[id];
+    };
+    const number = Number(operand(column.formulaSourceId));
     if (!Number.isFinite(number)) return undefined;
-    const factor = column.formulaSecondSourceId ? Number(row.cells[column.formulaSecondSourceId]) : Number(column.formulaFactor ?? 1);
+    const factor = column.formulaSecondSourceId ? Number(operand(column.formulaSecondSourceId)) : Number(column.formulaFactor ?? 1);
     if (!Number.isFinite(factor)) return undefined;
     switch (column.formulaOperator) {
       case "+": return number + factor;
