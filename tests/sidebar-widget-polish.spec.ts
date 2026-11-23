@@ -64,6 +64,9 @@ test("embedded table widget can display a selected column beyond its initial six
  await widget.locator(".fox-widget-column-options").getByRole("checkbox",{name:"Поле 8"}).check();
  await expect(widget.getByRole("columnheader",{name:"Поле 8"})).toBeVisible();
  await expect(widget.getByText("Последнее")).toBeVisible();
+ await page.reload();
+ await page.locator(".dock-screen").first().click();
+ await expect(page.locator(".fox-widget").first().getByRole("columnheader",{name:"Поле 8"})).toBeVisible();
 });
 
 test("bar widget groups numeric values by labels when grouping is enabled",async({page})=>{
