@@ -119,3 +119,18 @@ test("project templates provide reverse links and paid amounts without duplicate
   expect(valueForColumn(orderRow,paid,all)).toBe(4000);
   expect(valueForColumn(orderRow,remaining,all)).toBe(9000);
 });
+
+test("reapplying a template keeps an existing user-defined relation",()=>{
+  const preset=SCREEN_PRESETS.find(item=>item.id==="client-work")!;
+  const existing=[{
+    id:"my-orders",name:"Работа · Заказы",
+    columns:[
+      {id:"title",name:"Название",type:"text"},
+      {id:"custom-client",name:"Клиент",type:"relation",relationTableId:"my-own-client-database"}
+    ]
+  }];
+  const result=instantiatePreset(preset,existing);
+  const reused=result.updatedTables.find(table=>table.id==="my-orders")!;
+  const field=reused.columns.find(column=>column.id==="custom-client");
+  expect(field?.relationTableId).toBe("my-own-client-database");
+});
