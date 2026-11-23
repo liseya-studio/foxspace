@@ -94,7 +94,7 @@ async function sheetLocation(file:File,sheetName:string):Promise<string>{
 export async function listWorkbookSheets(file:File):Promise<string[]>{
  const workbook=(await zipXml(file,["xl/workbook.xml"]))["xl/workbook.xml"];
  if(!workbook)throw Error("Книга Excel не содержит описания листов.");
- return nodes(workbook,"sheet").map(node=>node.getAttribute("name")??"").filter(Boolean);
+ return nodes(workbook,"sheet").filter(node=>!(node.getAttribute("state")==="hidden"&&node.getAttribute("name")==="_FoxSpace_Choices")).map(node=>node.getAttribute("name")??"").filter(Boolean);
 }
 function excelDate(value:number):string{
  const epoch=Date.UTC(1899,11,30);
