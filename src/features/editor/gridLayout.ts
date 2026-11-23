@@ -40,7 +40,8 @@ export function reconcileGrid(layout:GridLayout|undefined,widgets:GridWidget[]):
  return {settings,positions:output};
 }
 export function reposition(layout:GridLayout,id:string,rect:Rect):GridLayout|null{
- const position=normalizeRect(rect,layout.settings);
+ if(!Number.isInteger(rect.x)||!Number.isInteger(rect.y)||!Number.isInteger(rect.w)||!Number.isInteger(rect.h))return null;
+ const position=rect;
  if(!fits(position,layout.positions,layout.settings,id))return null;
  return {...layout,positions:{...layout.positions,[id]:position}};
 }
