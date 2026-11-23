@@ -65,3 +65,21 @@ test("embedded table widget can display a selected column beyond its initial six
  await expect(widget.getByRole("columnheader",{name:"Поле 8"})).toBeVisible();
  await expect(widget.getByText("Последнее")).toBeVisible();
 });
+
+test("bar widget groups numeric values by labels when grouping is enabled",async({page})=>{
+ await page.evaluate(()=>{
+  localStorage.setItem("fox-screens",JSON.stringify([{id:"report",name:"Аналитика"}]));
+  localStorage.setItem("fox-tables-v1",JSON.stringify([{
+   id:"sales",name:"Продажи",columns:[{id:"category",name:"Категория",type:"text"},{id:"amount",name:"Сумма",type:"number"}],
+   rows:[{id:"a",cells:{category:"Видео",amount:1200}},{id:"b",cells:{category:"Видео",amount:800}},{id:"c",cells:{category:"Сайты",amount:3000}}]
+  }]));
+  localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({report:[{id:"bar",type:"bars",title:"Расходы",tableId:"sales",columnId:"amount",labelColumnId:"category",groupBars:true,aggregate:"sum",width:12,height:300,limit:8}]}));
+ });
+ await page.reload();
+ await page.locator(".dock-screen").first().click();
+ const chart=page.locator(".fox-widget-bars");
+ await expect(chart.locator(".fox-widget-bar-row")).toHaveCount(2);
+ await expect(chart.getByText("Видео")).toBeVisible();
+ await expect(chart.getByText("Сайты")).toBeVisible();
+ await expect(chart.getByText("2 000")).toBeVisible();
+});
