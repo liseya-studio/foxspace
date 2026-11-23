@@ -85,6 +85,13 @@ export function mergeExcelIntoTable(draft:ImportDraft,existing:ImportTable|undef
    }else if(col.type==="select"||col.type==="multiselect"){
      col={...col,options:[...new Set([...(col.options??[]),...fieldOptions])]};
      table.columns=table.columns.map(item=>item.id===col!.id?col!:item);
+   }else if(col.type==="text"&&(field.type==="select"||field.type==="multiselect")){
+     // Upgrade only an entirely empty text column. Never rewrite existing user data.
+     const empty=table.rows.every(row=>row.cells[col!.id]===undefined||row.cells[col!.id]===null||row.cells[col!.id]==="");
+     if(empty){
+       col={...col,type:field.type,options:fieldOptions};
+       table.columns=table.columns.map(item=>item.id===col!.id?col!:item);
+     }
    }
    mapping.set(field.index,col.id);
  }
