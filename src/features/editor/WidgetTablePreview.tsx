@@ -41,7 +41,7 @@ export default function WidgetTablePreview({table,tables,rows,limit,onOpenRecord
     <div className="fox-widget-table-scroll"><table><thead><tr>{columns.map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>
       {shown.map(row=><tr key={row.id} onClick={()=>onOpenRecord?.(row.id)} style={{cursor:onOpenRecord?"pointer":undefined}}>{columns.map(col=>{
         const value=valueForColumn(row,col,tables);
-        return <td key={col.id} title={String(value??"")}>{col.type==="checkbox"?<span role="img" aria-label={value?"Да":"Нет"} className={"fox-widget-check"+(value?" checked":"")}>{value&&<Check size={12}/>}</span>:col.type==="select"?<span className="fox-widget-table-tag">{formatCell(value)}</span>:formatCell(value)}</td>;
+        return <td key={col.id} title={String(value??"")}>{col.type==="checkbox"?<span role="img" aria-label={value?"Да":"Нет"} className={"fox-widget-check"+(value?" checked":"")}>{value&&<Check size={12}/>}</span>:(col.type==="select"||col.type==="multiselect")?<span className="fox-widget-table-tag">{formatCell(value)}</span>:formatCell(value)}</td>;
       })}</tr>)}
       {!rows.length&&<tr className="fox-widget-table-skeleton" aria-label="Пример оформления строки">{columns.map((column,index)=><td key={column.id}>{column.type==="checkbox"?<span className="fox-widget-check"/>:<span style={{width:index===0?"80%":index%2?"55%":"70%"}}/>}</td>)}</tr>}
     </tbody></table></div>
