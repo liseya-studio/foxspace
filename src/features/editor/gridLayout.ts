@@ -25,11 +25,12 @@ export function nextSlot(w:number,h:number,positions:Record<string,Rect>,setting
 export function preferredRect(widget:GridWidget,settings:GridSettings):Rect{
  const w=clamp(Number(widget.width)||6,1,settings.columns);
  const h=clamp(Math.ceil((Number(widget.height)||205)/(settings.rowHeight+settings.gap)),1,settings.rows);
- return {x:widget.financeColumn?widget.financeColumn-1:0,y:widget.financeRow?widget.financeRow-1:0,w,h:widget.financeRowSpan?clamp(widget.financeRowSpan,1,settings.rows):h};
+ if(widget.financeRow){const y=widget.financeRow===4?5:widget.financeRow===3?2:widget.financeRow-1;const span=widget.financeRowSpan??(widget.financeRow>=3?3:1);return {x:(widget.financeColumn??1)-1,y,w,h:span};}
+ return {x:0,y:0,w,h};
 }
 export function reconcileGrid(layout:GridLayout|undefined,widgets:GridWidget[]):GridLayout{
  let settings=normalizeSettings(layout?.settings);
- if(!layout?.settings){const legacyColumns=Math.max(12,...widgets.map(w=>(w.financeColumn??1)+(w.financeColumn?Math.max(1,w.width)-1:0)));settings=normalizeSettings({...settings,columns:legacyColumns});}
+ if(!layout?.settings){const legacyColumns=Math.max(12,...widgets.map(w=>(w.financeColumn??1)+(w.financeColumn?Math.max(1,w.width)-1:0)));settings=normalizeSettings({...settings,columns:legacyColumns,rowHeight:widgets.some(w=>w.financeColumn)?105:settings.rowHeight});}
  const output:Record<string,Rect>={};
  for(const widget of widgets){
   const candidate=layout?.positions?.[widget.id]??preferredRect(widget,settings);
