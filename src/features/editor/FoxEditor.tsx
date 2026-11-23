@@ -5,6 +5,8 @@ import { readNotesTasks, STATUS_LABELS, dateLabel, type NotesTasksData, type Tas
 import WorldTravelMap from "./WorldTravelMap";
 import {GalleryView,KanbanView,CalendarView} from "../tables/ExtraTableViews";
 import FinanceWidget,{type FinanceKind} from "./FinanceWidget";
+import WidgetTablePreview from "./WidgetTablePreview";
+import EmptyChartPreview from "./EmptyChartPreview";
 import {
   Plus, Settings2, LayoutGrid, Table2, BarChart3, TrendingUp,
   AlignLeft, List, Target, GripVertical, Trash2, X, Database,
@@ -132,7 +134,7 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
   if (widget.type === "bars") {
     if (!numberCol) return <div className="fox-widget-empty">Для графика нужна числовая колонка.</div>;
     const sample = rows.slice(0, maxItems);
-    if (!sample.length) return <div className="fox-widget-empty">Добавьте записи в таблицу.</div>;
+    if (!sample.length) return <EmptyChartPreview kind="bars"/>;
     const vals = sample.map(row => Number(value(row, numberCol)) || 0);
     const max = Math.max(1, ...vals.map(Math.abs));
     return <div className="fox-widget-bars">{sample.map((row, i) => <div className="fox-widget-bar-row" key={row.id}><span title={String(textCol ? value(row,textCol) ?? "" : "")}>{String(textCol ? value(row,textCol) ?? "Запись "+(i+1) : "Запись "+(i+1))}</span><div className="fox-widget-bar-track"><div style={{width:(Math.abs(vals[i])/max*100)+"%",background:widget.accent||"var(--accent)"}}/></div><b>{fmt(vals[i])}</b></div>)}</div>;
@@ -140,12 +142,13 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
   if (widget.type === "line") {
     if (!numberCol) return <div className="fox-widget-empty">Выберите числовую колонку.</div>;
     const data = rows.slice(0, maxItems).map(row => Number(value(row,numberCol)) || 0);
-    if (!data.length) return <div className="fox-widget-empty">Для графика нужны записи.</div>;
+    if (!data.length) return <EmptyChartPreview kind="line"/>;
     const min = Math.min(...data), max = Math.max(...data), spread = Math.max(1, max-min);
     const points = data.map((value,i) => (10 + (i/Math.max(1,data.length-1))*280).toFixed(1)+","+(110-(value-min)/spread*90).toFixed(1)).join(" ");
     return <div className="fox-widget-line"><svg viewBox="0 0 300 130" role="img" aria-label="График значений"><path d="M10 20H290M10 65H290M10 110H290" fill="none" stroke="currentColor" strokeOpacity=".1"/><polyline points={points} fill="none" stroke={widget.accent||"var(--accent)"} strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round"/>{data.map((value,i)=><circle key={i} cx={10+(i/Math.max(1,data.length-1))*280} cy={110-(value-min)/spread*90} r="3.3" fill={widget.accent||"var(--accent)"}/>)}</svg><div className="fox-widget-line-caption"><span>{fmt(min)} мин.</span><span>{fmt(max)} макс.</span></div></div>;
   }
   if (widget.type === "donut") {
+    if(!rows.length)return <EmptyChartPreview kind="donut"/>;
     const groupCol = table.columns.find(col=>col.id===widget.labelColumnId) ?? table.columns.find(col=>col.type==="select"||col.type==="text");
     if (!groupCol) return <div className="fox-widget-empty">Выберите поле для группировки.</div>;
     const counts = new Map<string, number>();
@@ -163,7 +166,7 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     return <div className="fox-widget-timeline"><div className="fox-timeline-line"/>{dated.map((row,i)=><div key={row.id} className="fox-timeline-event"><span className="fox-timeline-date">{new Date(String(value(row,dateCol))+"T00:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"short"})}</span><i style={{borderColor:widget.accent||"var(--accent)"}}/><strong title={String(row.cells[textCol?.id]??"")}>{String(row.cells[textCol?.id]??"Событие "+(i+1))}</strong></div>)}</div>;
   }
   if (widget.type === "list") return <div className="fox-widget-list">{rows.slice(0, maxItems).map((row,i) => <div key={row.id}><span>{String(i+1).padStart(2,"0")}</span><strong>{String(textCol ? value(row,textCol) ?? "Запись" : "Запись")}</strong>{numberCol && <small>{fmt(Number(value(row,numberCol))||0)}</small>}</div>)}{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
-  return <div className="fox-widget-table-scroll"><table><thead><tr>{table.columns.slice(0,5).map(c=><th key={c.id}>{c.name}</th>)}</tr></thead><tbody>{rows.slice(0,maxItems).map(r=><tr key={r.id}>{table.columns.slice(0,5).map(c=><td key={c.id}>{c.type==="checkbox"?(value(r,c)?"Да":"Нет"):formatCell(value(r,c))}</td>)}</tr>)}</tbody></table>{!rows.length&&<div className="fox-widget-empty">Записей пока нет</div>}</div>;
+  return <WidgetTablePreview table={table} tables={tables} rows={rows} limit={maxItems} onOpenRecord={rowId=>onOpenRecord?.(table.id,rowId)}/>;
 }
 
 export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, tableId, onTableChange, onOpenTables, onCreateTable,onOpenRecord }: Props) {

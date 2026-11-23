@@ -681,3 +681,82 @@
 .fox-custom-template-row .fox-preset-card{flex:1;min-width:0}
 .fox-custom-template-delete{flex:0 0 34px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--muted);display:grid;place-items:center}
 .fox-custom-template-delete:hover{color:#d45e60;border-color:#d45e60}
+
+/* Workspace navigation is a genuine layout column, never a floating overlay.
+   The topbar controls the same collapsed state as the sidebar header. */
+.app-shell .main-area.has-page-tree{display:grid;grid-template-columns:236px minmax(0,1fr);column-gap:24px;align-items:start;max-width:none;width:100%;padding:24px clamp(16px,2vw,34px) 108px;position:relative}
+.app-shell .main-area.has-page-tree.tree-collapsed{grid-template-columns:48px minmax(0,1fr)}
+.app-shell .main-area.has-page-tree > :not(.fox-page-tree){min-width:0;grid-column:2}
+.app-shell .main-area.has-page-tree .fox-page-tree{position:sticky;top:16px;left:auto;width:100%;max-height:calc(100vh - 106px);min-height:0;grid-column:1;grid-row:1;z-index:1;border-radius:12px;box-shadow:none;overflow:hidden}
+.app-shell .main-area.has-page-tree .fox-page-tree.is-hidden{width:48px;min-height:0;align-self:start}
+.app-shell .fox-tree-scroll{overflow-y:auto;overscroll-behavior:contain;max-height:calc(100vh - 240px)}
+.app-shell .fox-tree-header button{width:27px;height:27px}
+.app-shell .fox-tree-page .fox-symbol-icon{background:transparent!important;color:currentColor!important;border-radius:0}
+.app-shell .fox-tree-page .fox-symbol-icon svg{width:17px;height:17px}
+.app-shell .fox-tree-line.selected{color:var(--accent)}
+.app-shell .fox-tree-add{opacity:.65}
+.app-shell .fox-tree-line:hover .fox-tree-add,.app-shell .fox-tree-line:focus-within .fox-tree-add{opacity:1}
+.fox-global-sidebar-toggle{display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid var(--line);background:var(--surface);border-radius:8px;color:var(--muted);flex:none}
+.fox-global-sidebar-toggle:hover{color:var(--accent);background:var(--canvas)}
+@media(max-width:1050px){.app-shell .main-area.has-page-tree{grid-template-columns:205px minmax(0,1fr);gap:14px;padding:18px 16px 106px}}
+@media(max-width:760px){.app-shell .main-area.has-page-tree{grid-template-columns:48px minmax(0,1fr);gap:10px}.app-shell .main-area.has-page-tree .fox-page-tree{width:48px}.app-shell .main-area.has-page-tree .fox-tree-scroll,.app-shell .main-area.has-page-tree .fox-tree-hint,.app-shell .main-area.has-page-tree .fox-tree-orphan,.app-shell .main-area.has-page-tree .fox-tree-header strong{display:none}}
+@media(max-width:600px){.app-shell .main-area.has-page-tree{grid-template-columns:40px minmax(0,1fr);gap:8px;padding:14px 10px 105px}.app-shell .main-area.has-page-tree .fox-page-tree{display:flex;width:40px}.app-shell .main-area.has-page-tree.tree-collapsed{grid-template-columns:40px minmax(0,1fr)}}
+
+/* Refined common widget surfaces: labels float in the card rather than being divided
+   from the data by a strong horizontal rule. */
+.fox-editor-layout .fox-widget{border-radius:15px;box-shadow:0 3px 16px rgba(33,28,20,.035);border-color:var(--line)}
+.fox-editor-layout .fox-widget-header{border-bottom:0!important;min-height:46px;height:auto;padding:15px 17px 5px;gap:9px}
+.fox-editor-layout .fox-widget-header h3{font-size:13px;letter-spacing:-.12px;font-weight:750}
+.fox-editor-layout .fox-widget-body{padding:8px 17px 17px;min-width:0}
+.fox-editor-layout .fox-widget:has(.fox-finance-card) .fox-widget-body{padding:0}
+.fox-editor-layout .fox-widget-table-scroll{min-width:0;border:1px solid var(--line);border-radius:10px;overflow:auto}
+.fox-editor-layout .fox-widget-table-scroll table{border-collapse:separate;border-spacing:0;min-width:440px}
+.fox-editor-layout .fox-widget-table-scroll th{background:color-mix(in srgb,var(--canvas) 62%,var(--surface));text-transform:none;font-size:11px;padding:12px 12px;border-bottom:1px solid var(--line)}
+.fox-editor-layout .fox-widget-table-scroll td{font-size:11px;padding:11px 12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid var(--line)}
+.fox-editor-layout .fox-widget-table-scroll tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--surface))}
+.fox-editor-layout .fox-widget-table-scroll tbody tr:last-child td{border-bottom:0}
+.fox-widget-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.fox-widget-toolbar-search{flex:1;min-width:100px;display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);padding:7px 10px;border-radius:8px;color:var(--muted)}
+.fox-widget-toolbar-search input{width:100%;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-size:11px}
+.fox-widget-toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px;font-size:11px;color:var(--text);max-width:115px}
+.fox-widget-toolbar-count{font-size:10px;color:var(--muted);white-space:nowrap}
+.fox-widget-check{width:15px;height:15px;border:1px solid var(--line);border-radius:5px;display:inline-grid;place-items:center;color:var(--accent);background:var(--surface)}
+.fox-widget-check.checked{background:color-mix(in srgb,var(--accent) 13%,var(--surface));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.fox-widget-table-skeleton td{color:var(--muted);opacity:.75}
+.fox-widget-table-skeleton td span{display:block;background:var(--canvas);border-radius:6px;height:12px;width:70%;min-width:28px}
+
+/* Flush left navigation: it occupies the side of the workspace, not a dialog offset. */
+@media(min-width:761px){
+  .app-shell .main-area.has-page-tree{padding-left:0;grid-template-columns:248px minmax(0,1fr)}
+  .app-shell .main-area.has-page-tree.tree-collapsed{grid-template-columns:48px minmax(0,1fr)}
+  .app-shell .main-area.has-page-tree .fox-page-tree{border-left:0;border-radius:0 12px 12px 0}
+  .app-shell .main-area.has-page-tree > :not(.fox-page-tree){padding-right:clamp(8px,1vw,18px)}
+}
+@media(min-width:761px) and (max-width:1050px){.app-shell .main-area.has-page-tree{grid-template-columns:216px minmax(0,1fr)}}
+.fox-widget-table-view{min-width:0;height:100%;display:flex;flex-direction:column}
+.fox-widget-table-view .fox-widget-table-scroll{flex:1;min-height:80px}
+.fox-widget-sort-direction{border:1px solid var(--line);background:var(--surface);padding:6px 9px;border-radius:7px;color:var(--accent)}
+.fox-widget-table-tag{display:inline-block;padding:4px 8px;border-radius:7px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--accent);font-weight:650}
+.fox-widget-data-hint{font-size:10px;color:var(--muted);margin:9px 0 0;line-height:1.4}
+.fox-widget-bars{display:flex;flex-direction:column;gap:12px}
+.fox-widget-bar-track{border-radius:99px;overflow:hidden}
+.fox-widget-bar-track div{border-radius:99px}
+.fox-widget-line svg{height:155px;width:100%;min-width:0}
+.fox-widget-line circle{stroke:var(--surface);stroke-width:2}
+.fox-widget-donut .fox-donut-ring{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 35%,transparent)}
+
+.fox-notification-platforms{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:17px 19px}
+.fox-notification-platforms-head{display:flex;flex-direction:column;gap:5px;margin-bottom:15px}
+.fox-notification-platforms-head strong{font-size:13px}
+.fox-notification-platforms-head span{font-size:11px;color:var(--muted)}
+.fox-notification-platforms-icons{display:flex;flex-wrap:wrap;gap:10px 18px}
+.fox-notification-platform{display:flex;gap:7px;align-items:center;color:var(--muted);font-size:11px}
+.fox-notification-platform .fox-platform-icon{border:1px solid color-mix(in srgb,var(--surface) 70%,transparent)}
+
+.fox-chart-preview{width:100%;height:100%;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:8px 4px;color:var(--muted)}
+.fox-chart-preview small{text-align:center;line-height:1.35;font-size:10px;max-width:260px}
+.fox-chart-preview-bars{width:min(100%,380px);height:clamp(75px,13vw,170px);display:flex;align-items:end;justify-content:space-around;gap:7px;padding:0 14px;border-bottom:1px solid var(--line)}
+.fox-chart-preview-bars span{flex:1;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 23%,var(--surface)),color-mix(in srgb,var(--accent) 8%,var(--surface)));border-radius:5px 5px 0 0;min-width:4px}
+.fox-chart-preview-line svg{display:block;width:min(100%,380px);height:clamp(80px,13vw,156px)}
+.fox-chart-preview-donut{width:clamp(76px,12vw,136px);height:clamp(76px,12vw,136px);border-radius:100%;background:conic-gradient(color-mix(in srgb,var(--accent) 26%,var(--surface)) 0 42%,color-mix(in srgb,#4779d5 20%,var(--surface)) 42% 70%,color-mix(in srgb,#388b69 20%,var(--surface)) 70% 100%);position:relative}
+.fox-chart-preview-donut:after{content:"";position:absolute;inset:26%;background:var(--surface);border-radius:50%}
