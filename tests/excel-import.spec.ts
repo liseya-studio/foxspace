@@ -1,3 +1,4 @@
+import {readFile} from "node:fs/promises";
 import {test,expect} from "@playwright/test";
 import {deflateRawSync} from "node:zlib";
 import {createImportDraft,mergeExcelIntoTable,splitMultiple} from "../src/features/tables/excelImport";
@@ -86,4 +87,26 @@ test("Files hub quick Excel import retains dropdown options across all sheets",a
  expect(tables[0].columns.find((c:{name:string})=>c.name==="Статус").options).toEqual(["Новый","В работе","Готово"]);
  expect(tables[0].columns.find((c:{name:string})=>c.name==="Теги").type).toBe("multiselect");
  expect(tables[0].rows).toHaveLength(2);
+});
+
+test("Excel export round-trips long dropdown lists and comma-containing options",async({page})=>{
+ await page.goto("/");
+ const options=["Видео, монтаж","Очень длинный вариант ".repeat(15),"Дизайн"];
+ const promise=page.waitForEvent("download");
+ await page.evaluate(async choices=>{
+  const {downloadXlsx}=await import("/src/features/tables/xlsx.ts");
+  downloadXlsx("Тест",["Задача","Категория"],[["Монтаж","Видео, монтаж"]],[{type:"text"},{type:"select",options:choices}]);
+ },options);
+ const download=await promise;
+ const path=await download.path();
+ if(!path)throw Error("Export file missing");
+ const bytes=Array.from(await readFile(path));
+ const result=await page.evaluate(async data=>{
+  const {listWorkbookSheets,readExcelDropdowns,readWorkbookSheet}=await import("/src/features/tables/excelValidation.ts");
+  const file=new File([new Uint8Array(data)],"export.xlsx",{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  return {sheets:await listWorkbookSheets(file),choices:await readExcelDropdowns(file,"Тест"),rows:await readWorkbookSheet(file,"Тест")};
+ },bytes);
+ expect(result.sheets).toContain("Тест");
+ expect(result.choices[1]).toEqual(options);
+ expect(result.rows[1][1]).toBe("Видео, монтаж");
 });
