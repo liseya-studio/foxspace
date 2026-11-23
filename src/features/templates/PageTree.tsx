@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, LayoutDashboard, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 export type WorkspacePage = { id: string; name: string; parentId?: string; icon?: string };
@@ -22,7 +22,7 @@ export default function PageTree({pages,activeId,onNavigate,onAddChild,onMove}:P
     for(const child of pages.filter(page=>page.parentId===id))descendants(child.id,seen);
     return seen;
   };
-  function draw(page:WorkspacePage,level:number,visited:Set<string>):React.ReactNode{
+  function draw(page:WorkspacePage,level:number,visited:Set<string>):ReactNode{
     if(visited.has(page.id) || level>32)return null;
     const nextVisited=new Set(visited); nextVisited.add(page.id);
     const children=pages.filter(item=>item.parentId===page.id && item.id!==page.id);
