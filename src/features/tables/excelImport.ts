@@ -19,7 +19,7 @@ export function splitMultiple(raw:unknown):string[]{
  if(Array.isArray(raw))return [...new Set(raw.map(normalize).filter(Boolean))];
  const text=normalize(raw);if(!text)return [];
  try{const json=JSON.parse(text);if(Array.isArray(json))return [...new Set(json.map(normalize).filter(Boolean))];}catch{ /* delimiter-based Excel input */ }
- return [...new Set(text.split(/\s*[;|\n]\s*/).map(v=>v.trim()).filter(Boolean))];
+ return [...new Set(text.split(/\s*[;,|\n]\s*/).map(v=>v.trim()).filter(Boolean))];
 }
 export function encodedMultiple(value:unknown):string{
  return JSON.stringify(splitMultiple(value));
@@ -43,7 +43,7 @@ export function inferExcelFields(matrix:ImportedCell[][],overrides:Record<number
    else if(sample.length && sample.every(v=>typeof v==="boolean"))type="checkbox";
    else if(sample.length && sample.every(v=>typeof v==="number"))type="number";
    else if(sample.length && sample.every(v=>v instanceof Date || /^\d{4}-\d{2}-\d{2}(?:T|$)/.test(clean(v))))type="date";
-   else if(maybeMultiple.test(name)&&sample.length&&sample.some(v=>/[;|\n]/.test(clean(v))))type="multiselect";
+   else if(maybeMultiple.test(name)&&sample.length&&sample.some(v=>/[;,|\n]/.test(clean(v))))type="multiselect";
    else if(knownSelect.test(name)&&sample.length&&distinct.length<=24)type="select";
    const options=excelOptions.length?excelOptions:
      type==="multiselect"?[...new Set(sample.flatMap(v=>splitMultiple(v)))].slice(0,200):
