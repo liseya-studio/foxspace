@@ -551,3 +551,10 @@
 .fox-editor-true-grid .fox-editor-empty{grid-column:1/-1;grid-row:1/span 3}
 .fox-editor-layout.preview .fox-grid-drag-handle{display:none}
 @media(max-width:680px){.fox-editor-true-grid{overflow-x:auto}.fox-grid-config{gap:7px}}
+
+.fox-editor-true-grid .fox-grid-guides{position:absolute;inset:0;display:grid;grid-template-columns:inherit;grid-template-rows:inherit;gap:inherit;pointer-events:none;z-index:0}
+.fox-grid-guides i{border:1px dashed color-mix(in srgb,var(--accent) 18%,var(--line));border-radius:6px;background:color-mix(in srgb,var(--accent) 2%,transparent)}
+.fox-editor-true-grid .fox-grid-widget{z-index:1}
+.fox-editor-true-grid .fox-editor-empty{z-index:1}
+.fox-editor-true-grid .fox-grid-widget:has(.fox-grid-drag-handle){overflow:visible}
+.fox-editor-true-grid .fox-grid-widget:has(.fox-grid-drag-handle) .fox-widget-body{overflow:auto}
