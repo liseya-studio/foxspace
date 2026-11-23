@@ -103,3 +103,51 @@ export async function updateTaskStatus({taskId,status},file=FILE){
  },file);
  return result;
 }
+
+/** Structured table values keep image references as opaque file IDs. */
+export async function listTables(file=FILE){
+ const snapshot=await readWorkspace(file);
+ const tables=decodeRecord(snapshot,"fox-tables-v1",[]);
+ if(!Array.isArray(tables))throw Error("Invalid tables collection");
+ return tables.map(t=>({id:t.id,name:t.name,updatedAt:t.updatedAt,rowCount:t.rows?.length??0,columns:t.columns?.map(c=>({id:c.id,name:c.name,type:c.type}))??[]}));
+}
+export async function getTableRecord({tableId,rowId},file=FILE){
+ validateId(tableId);validateId(rowId);
+ const snapshot=await readWorkspace(file);
+ const tables=decodeRecord(snapshot,"fox-tables-v1",[]);
+ if(!Array.isArray(tables))throw Error("Invalid tables collection");
+ const table=tables.find(t=>t.id===tableId);if(!table)throw Error("Table not found");
+ const row=table.rows?.find(r=>r.id===rowId);if(!row)throw Error("Record not found");
+ return {tableId,tableName:table.name,id:row.id,fields:(table.columns||[]).map(c=>({columnId:c.id,name:c.name,type:c.type,value:row.cells?.[c.id]??null,...(c.type==="image"?{imageFileId:row.cells?.[c.id]||null}:{} )}))};
+}
+export async function listTableRecords({tableId,offset=0,limit=30},file=FILE){
+ validateId(tableId);
+ const snapshot=await readWorkspace(file);
+ const tables=decodeRecord(snapshot,"fox-tables-v1",[]);
+ if(!Array.isArray(tables))throw Error("Invalid tables collection");
+ const table=tables.find(t=>t.id===tableId);if(!table)throw Error("Table not found");
+ const rows=table.rows||[];
+ return {tableId,tableName:table.name,total:rows.length,rows:rows.slice(offset,offset+limit).map(row=>({id:row.id,fields:Object.fromEntries((table.columns||[]).map(c=>[c.name,{type:c.type,value:row.cells?.[c.id]??null}]))}))};
+}
+/** Read image bytes only when the ID is referenced from an image-typed table column. */
+export async function getTableImage({tableId,rowId,columnId},file=FILE){
+ validateId(tableId);validateId(rowId);validateId(columnId);
+ const snapshot=await readWorkspace(file);
+ const tables=decodeRecord(snapshot,"fox-tables-v1",[]);
+ if(!Array.isArray(tables))throw Error("Invalid tables collection");
+ const table=tables.find(t=>t.id===tableId);if(!table)throw Error("Table not found");
+ const col=table.columns?.find(c=>c.id===columnId&&c.type==="image");
+ if(!col)throw Error("Image column not found");
+ const row=table.rows?.find(r=>r.id===rowId);if(!row)throw Error("Record not found");
+ const fileId=row.cells?.[columnId];
+ if(typeof fileId!=="string"||!/^[A-Za-z0-9-]{1,128}$/.test(fileId))throw Error("Image reference is missing or invalid");
+ const index=decodeRecord(snapshot,"fox-native-files-index-v1",[]);
+ if(!Array.isArray(index))throw Error("Invalid native file index");
+ const item=index.find(i=>i.id===fileId&&i.kind==="file");
+ if(!item||!["image/png","image/jpeg","image/webp","image/gif"].includes(item.mime))throw Error("Image is unavailable or format unsupported");
+ const nativeFile=join(dirname(file),"files",fileId+".bin");
+ const st=await stat(nativeFile);
+ if(st.size>8*1024*1024)throw Error("Image exceeds 8 MB MCP transfer limit");
+ const data=await readFile(nativeFile);
+ return {fileId,name:item.name,mime:item.mime,dataBase64:data.toString("base64")};
+}
