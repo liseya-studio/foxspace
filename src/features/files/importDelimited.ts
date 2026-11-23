@@ -1,6 +1,6 @@
 import type { StoredItem } from "./storage";
 
-type Column={id:string;name:string;type:"text"|"number"|"date"|"checkbox"};
+type Column={id:string;name:string;type:"text"|"number"|"date"|"checkbox"|"select"|"multiselect";options?:string[]};
 export type ImportedTable={id:string;name:string;columns:Column[];rows:{id:string;cells:Record<string,string|number|boolean>}[];updatedAt:string};
 function splitRecords(input:string,separator:string):string[][]{
   const rows:string[][]=[];
@@ -96,9 +96,14 @@ export function persistImportedTables(tables:ImportedTable[]):void{
         columns.push(target);
       }else if(target.type==="text"&&column.type!=="text"){
         // Imported column types can improve an empty placeholder's initial type.
-        target={...target,type:column.type};
+        target={...target,type:column.type,options:column.options??target.options};
         const at=columns.findIndex(item=>item.id===target!.id);
         columns[at]=target;
+      }
+      if(target.type==="select"||target.type==="multiselect"){
+        const merged=[...new Set([...(target.options??[]),...(column.options??[])])];
+        const position=columns.findIndex(item=>item.id===target!.id);
+        columns[position]={...target,options:merged};
       }
       mapped.set(column.id,target.id);
     }

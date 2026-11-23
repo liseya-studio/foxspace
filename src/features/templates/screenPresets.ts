@@ -98,8 +98,8 @@ widget("calendar","Календарь событий","events",{column:"Дата
 widget("table","Расписание","events",{width:12}),
 widget("table","Этапы проектов","milestones",{width:12})]},
 {id:"documents",name:"Заметки и документы",icon:"▤",group:"Работа",description:"Единый каталог документов, ссылок, изображений, тегов и заметок.",tables:[
-table("library","Документы · Каталог",["Название","Проект|project","Тип","Теги","Ссылка","Описание","Фото|image","Дата изменения|date"]),
-table("links","Документы · Ссылки",["Название","URL","Категория","Проект|project","Теги"])],
+table("library","Документы · Каталог",["Название","Проект|project","Тип","Теги|multiselect","Ссылка","Описание","Фото|image","Дата изменения|date"]),
+table("links","Документы · Ссылки",["Название","URL","Категория","Проект|project","Теги|multiselect"])],
 widgets:[head("Заметки и документы","Каталог материалов и быстрый доступ к последним заметкам."),
 widget("counter","Документы","library",{width:4}),
 widget("counter","Ссылки","links",{width:4}),
@@ -112,7 +112,7 @@ widget("noteslist","Заметки","",{width:6})]},
 table("resources","Блоги · Ресурсы",["Ресурс","Проект|project","Платформа","Ссылка","Подписчики|number","Статус|select","Публикации|backlink"]),
 table("posts","Блоги · Публикации",["Название","Ресурс|relation","Проект|project","Тип","Дата|date","Статус|select","Просмотры|number","Реакции|number"]),
 table("metrics","Блоги · Метрики",["Дата|date","Ресурс|relation","Подписчики|number","Охват|number","Вовлечённость|number","Переходы|number"]),
-table("ideas","Блоги · Банк идей",["Идея","Проект|project","Тип","Статус","Приоритет"])],
+table("ideas","Блоги · Банк идей",["Идея","Проект|project","Тип|select","Статус|select","Приоритет|select"])],
 widgets:[head("Блоги и ресурсы","Общая аналитика, очередь публикаций и контент."),
 widget("counter","Ресурсы","resources",{width:3}),widget("counter","Публикации","posts",{width:3}),
 widget("metric","Охват","metrics",{column:"Охват",width:3}),
@@ -144,7 +144,7 @@ widget("table","Контакты клиентов","clients",{width:12})]}
 export type StoredWidget = {id:string;type:string;title:string;tableId?:string;columnId?:string;labelColumnId?:string;body?:string;width:number;height:number;aggregate?:string;filter:Record<string,string>;limit:number;target:number;startDate?:string;financeKind?:string;financeRow?:number;financeColumn?:number;financeRowSpan?:number};
 type PresetColumn = {id:string;name:string;type:string;options?:string[];relationTableId?:string;backlinkSourceTableId?:string;backlinkSourceColumnId?:string;rollupRelationId?:string;rollupTargetId?:string;rollupAggregate?:string;formulaSourceId?:string;formulaSecondSourceId?:string;formulaOperator?:string};
 function createPresetColumns(fields:[string,string][],existing:PresetColumn[]=[]):PresetColumn[]{
-  const added:PresetColumn[]=fields.map(([name,type])=>({id:crypto.randomUUID(),name,type,...(type==="select"?{options:["Новый","В работе","Готово"]}:{})}));
+  const added:PresetColumn[]=fields.map(([name,type])=>({id:crypto.randomUUID(),name,type,...(type==="select"?{options:["Новый","В работе","Готово"]}:type==="multiselect"?{options:[]}:{})}));
   const all=[...existing,...added];
   // A line-item amount is calculated directly from quantity and unit price.
   for(const column of added){

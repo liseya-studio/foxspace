@@ -25,11 +25,18 @@ function cellXml(value:SpreadsheetValue,ref:string):string{
  const text=value===null||value===undefined?"":String(value);
  return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xml(text)}</t></is></c>`;
 }
-export function downloadXlsx(name:string,headers:string[],rows:SpreadsheetValue[][]):void{
+export function downloadXlsx(name:string,headers:string[],rows:SpreadsheetValue[][],columns?:{type:string;options?:string[]}[]):void{
  if(headers.length>16384||rows.length>1048575)throw new Error("Таблица превышает лимиты Excel");
  const safeName=(name.trim()||"Fox Space").replace(/[\\/*?:\[\]]/g," ").slice(0,31)||"Fox Space";
  const sheetRows=[headers,...rows].map((row,rowIndex)=>`<row r="${rowIndex+1}">${headers.map((_,colIndex)=>cellXml(row[colIndex],columnName(colIndex)+(rowIndex+1))).join("")}</row>`).join("");
- const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`;
+ const lists=(columns??[]).flatMap((col,i)=>{
+   if(!["select","multiselect"].includes(col.type)||!col.options?.length)return [];
+   const contents=col.options.join(",");
+   if(contents.length>255)return [];
+   return `<dataValidation type="list" allowBlank="1" showDropDown="0" sqref="${columnName(i)}2:${columnName(i)}1048576"><formula1>"${xml(contents.replaceAll('"','""'))}"</formula1></dataValidation>`;
+ });
+ const validations=lists.length?`<dataValidations count="${lists.length}">${lists.join("")}</dataValidations>`:"";
+ const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData>${validations}</worksheet>`;
  const workbook=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${xml(safeName)}" sheetId="1" r:id="rId1"/></sheets></workbook>`;
  const files:ZipFile[]=[
  {name:"[Content_Types].xml",data:encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`)},
