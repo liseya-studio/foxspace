@@ -125,7 +125,7 @@ widget("list","Банк идей","ideas",{label:"Идея",width:6}),
 widget("table","Все публикации","posts",{width:12})]},
 {id:"client-work",name:"Работа — заказы и клиенты",icon:"▣",group:"Работа",description:"Клиенты, проекты, сметы, услуги, платежи и заявки из разных источников.",tables:[
 table("clients","Работа · Клиенты",["Имя","Компания","Контакт","Источник","Статус","Заметки","Заказы|backlink"]),
-table("orders","Работа · Заказы",["Название","Проект|project","Клиент|relation","Категория","Источник","Дедлайн|date","Статус|select","Бюджет|number","Прогресс|number","Смета|backlink","Оплаты|backlink","Оплачено|rollup"]),
+table("orders","Работа · Заказы",["Название","Проект|project","Клиент|relation","Категория","Источник","Дедлайн|date","Статус|select","Бюджет|number","Прогресс|number","Смета|backlink","Оплаты|backlink","Оплачено|rollup","Осталось|formula"]),
 table("services","Работа · Услуги",["Услуга","Категория","Цена|number","Описание"]),
 table("orderitems","Работа · Смета",["Заказ|relation","Услуга","Количество|number","Цена|number","Сумма|formula"]),
 table("payments","Работа · Оплаты",["Заказ|relation","Дата|date","Сумма|number","Статус"]),
@@ -244,7 +244,10 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
    const amount=payments?.columns.find(col=>col.name==="Сумма"&&col.type==="number");
    const link=reverseByKey.get("orders.Оплаты");
    if(order&&paid&&amount&&link){
-     const columns=order.columns.map(col=>col.id===paid.id?{...col,rollupRelationId:link,rollupTargetId:amount.id,rollupAggregate:"sum"}:col);
+     const remaining=order.columns.find(col=>col.name==="Осталось"&&col.type==="formula");
+     const budget=order.columns.find(col=>col.name==="Бюджет"&&col.type==="number");
+     const columns=order.columns.map(col=>col.id===paid.id?{...col,rollupRelationId:link,rollupTargetId:amount.id,rollupAggregate:"sum"}:
+       col.id===remaining?.id&&budget?{...col,formulaSourceId:budget.id,formulaSecondSourceId:paid.id,formulaOperator:"-"}:col);
      const patched={...order,columns};
      existing[existing.findIndex(table=>table.id===order.id)]=patched;
      const idx=newTables.findIndex(table=>table.id===order.id);
