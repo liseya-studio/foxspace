@@ -3,6 +3,7 @@ export type TableColumn = {
   id: string;
   name: string;
   type: string;
+  options?: string[];
   formulaSourceId?: string;
   formulaOperator?: string;
   formulaFactor?: number;
