@@ -7,6 +7,9 @@ export type TableColumn = {
   formulaOperator?: string;
   formulaFactor?: number;
   relationTableId?: string;
+  rollupRelationId?: string;
+  rollupTargetId?: string;
+  rollupAggregate?: Aggregate;
 };
 export type TableRow = { id: string; cells: Record<string, TableCell> };
 export type TableData = { id: string; name: string; columns: TableColumn[]; rows: TableRow[] };
@@ -33,6 +36,24 @@ export function valueForColumn(
     const target = tables.find(item => item.id === column.relationTableId);
     const linked = target?.rows.find(item => item.id === row.cells[column.id]);
     return linked ? String(linked.cells[target?.columns[0]?.id ?? ""] ?? linked.id) : undefined;
+  }
+  if (column.type === "rollup") {
+    const relation = tables.flatMap(table=>table.columns).find(item=>item.id===column.rollupRelationId && item.type==="relation");
+    const target=tables.find(table=>table.id===relation?.relationTableId);
+    const source=target?.columns.find(item=>item.id===column.rollupTargetId);
+    if(!target||!source||!relation)return undefined;
+    const raw=row.cells[relation.id];
+    const ids=String(raw??"").split(",").map(id=>id.trim()).filter(Boolean);
+    const matches=target.rows.filter(item=>ids.includes(item.id));
+    if(column.rollupAggregate==="count")return matches.length;
+    const values=matches.map(item=>Number(valueForColumn(item,source,tables))).filter(Number.isFinite);
+    if(!values.length)return 0;
+    switch(column.rollupAggregate){
+      case "average":return values.reduce((a,b)=>a+b,0)/values.length;
+      case "min":return Math.min(...values);
+      case "max":return Math.max(...values);
+      default:return values.reduce((a,b)=>a+b,0);
+    }
   }
   return row.cells[column.id];
 }
