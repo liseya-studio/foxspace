@@ -64,6 +64,7 @@ export default function App() {
   const [notificationRevision,setNotificationRevision] = useState(0);
   const [tableRevision,setTableRevision] = useState(0);
   const [taskToOpen,setTaskToOpen] = useState<string|null>(null);
+  const [recordToOpen,setRecordToOpen] = useState<{tableId:string;rowId:string;id:number}|null>(null);
   const [previousSection,setPreviousSection] = useState<Section>("home");
   const [createAction,setCreateAction] = useState<{type:"task"|"note"|"table"|"folder";id:number}|null>(null);
   const [createError,setCreateError] = useState("");
@@ -124,6 +125,7 @@ export default function App() {
     setActive(section);
   }
   function navigateToTask(taskId:string){setTaskToOpen(taskId);setActive("notes");}
+  function navigateToRecord(tableId:string,rowId:string){setRecordToOpen({tableId,rowId,id:Date.now()});setActive("files");}
   function startCreate(type:"task"|"note"|"table"|"folder"|"screen"|"upload"){
     setCreateOpen(false);setCreateError("");
     if(type==="screen"){addScreen();return;}
@@ -285,7 +287,7 @@ export default function App() {
         ) : active === "projects" ? (
           <ProjectsCenter onOpenTask={navigateToTask} onOpenScreen={setActive} onCreateScreen={createProjectScreen}/>
         ) : active === "files" ? (
-          <FilesHub createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
+          <FilesHub openRecord={recordToOpen} onRecordOpened={()=>setRecordToOpen(null)} createAction={createAction?.type==="table"||createAction?.type==="folder"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)}/>
         ) : active === "notes" ? (
           <NotesTasks createAction={createAction?.type==="task"||createAction?.type==="note"?{type:createAction.type,id:createAction.id}:null} onCreateConsumed={()=>setCreateAction(null)} openTaskId={taskToOpen} onTaskOpened={()=>setTaskToOpen(null)}/>
         ) : (
@@ -320,6 +322,7 @@ export default function App() {
               tableId={activeScreen.tableId}
               onTableChange={id => setScreens(prev => prev.map(s => s.id===activeScreen.id ? {...s,tableId:id||undefined} : s))}
               onOpenTables={() => setActive("files")}
+              onOpenRecord={navigateToRecord}
               onCreateTable={() => {setCreateAction({type:"table",id:Date.now()});setActive("files");}}
             />}
           </section>
