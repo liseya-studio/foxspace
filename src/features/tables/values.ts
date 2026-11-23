@@ -163,7 +163,7 @@ export function filterRows(
       if (column.type === "date") {
         // ISO calendar dates have a stable lexical ordering, independent of timezone.
         const left=String(actualValue).slice(0,10),right=expected.slice(0,10);
-        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(left) || !/^\\d{4}-\\d{2}-\\d{2}$/.test(right)) return false;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(left) || !/^\d{4}-\d{2}-\d{2}$/.test(right)) return false;
         return op==="gt"?left>right:left<right;
       }
       const a = Number(actualValue), b = Number(expected);
