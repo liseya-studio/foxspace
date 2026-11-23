@@ -49,3 +49,19 @@ test("data widget tables show a search field, sorting and a sample row without c
   const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem("fox-tables-v1")??"[]"));
   expect(stored[0].rows).toHaveLength(0);
 });
+
+test("embedded table widget can display a selected column beyond its initial six",async({page})=>{
+ await page.evaluate(()=>{
+  localStorage.setItem("fox-screens",JSON.stringify([{id:"fields",name:"Поля"}]));
+  localStorage.setItem("fox-tables-v1",JSON.stringify([{id:"fields-data",name:"Справочник",columns:Array.from({length:8},(_,i)=>({id:"c"+i,name:"Поле "+(i+1),type:"text"})),rows:[{id:"one",cells:{c0:"Начало",c7:"Последнее"}}]}]));
+  localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({fields:[{id:"fields-widget",type:"table",title:"Справочник",tableId:"fields-data",width:12,height:360,filter:{},limit:8,aggregate:"sum"}]}));
+ });
+ await page.reload();
+ await page.locator(".dock-screen").first().click();
+ const widget=page.locator(".fox-widget").first();
+ await expect(widget.getByRole("columnheader",{name:"Поле 8"})).toHaveCount(0);
+ await widget.locator(".fox-widget-column-picker summary").click();
+ await widget.locator(".fox-widget-column-options").getByRole("checkbox",{name:"Поле 8"}).check();
+ await expect(widget.getByRole("columnheader",{name:"Поле 8"})).toBeVisible();
+ await expect(widget.getByText("Последнее")).toBeVisible();
+});
