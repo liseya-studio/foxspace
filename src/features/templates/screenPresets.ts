@@ -74,7 +74,7 @@ widget("timeline","Ближайшие события","events",{column:"Дата
 widget("tasklist","Задачи",undefined,{width:6}),widget("list","Последние записи","journal",{label:"Запись",width:6}),
 widget("table","Привычки","habits",{width:12})]},
 {id:"learning",name:"Обучение и языки",icon:"▤",group:"Личное",description:"Направления, уроки, словарь, тесты и прогресс, включая подробные страницы направлений.",tables:[
-table("subjects","Обучение · Направления",["Название","Категория","Статус|select","Уровень","Всего уроков|number","Пройдено уроков|number"]),
+table("subjects","Обучение · Направления",["Название","Категория","Статус|select","Уровень","Всего уроков|number","Пройдено уроков|number","Уроки|backlink","Слова|backlink","Тесты|backlink"]),
 table("lessons","Обучение · Уроки",["Урок","Направление|relation","Тема","Статус|select","Дата|date","Заметки"]),
 table("words","Обучение · Слова",["Слово","Направление|relation","Перевод","Тема","Изучено|checkbox"]),
 table("tests","Обучение · Тесты",["Название","Направление|relation","Дата|date","Результат|number","Уровень"]),
@@ -109,7 +109,7 @@ widget("table","Каталог документов","library",{width:12,height:
 widget("list","Полезные ссылки","links",{label:"Название",width:6}),
 widget("noteslist","Заметки","",{width:6})]},
 {id:"social",name:"Блоги и ресурсы",icon:"▥",group:"Творчество",description:"Аккаунты, публикации, очередь, статистика и идеи по нескольким проектам.",tables:[
-table("resources","Блоги · Ресурсы",["Ресурс","Проект|project","Платформа","Ссылка","Подписчики|number","Статус|select"]),
+table("resources","Блоги · Ресурсы",["Ресурс","Проект|project","Платформа","Ссылка","Подписчики|number","Статус|select","Публикации|backlink"]),
 table("posts","Блоги · Публикации",["Название","Ресурс|relation","Проект|project","Тип","Дата|date","Статус|select","Просмотры|number","Реакции|number"]),
 table("metrics","Блоги · Метрики",["Дата|date","Ресурс|relation","Подписчики|number","Охват|number","Вовлечённость|number","Переходы|number"]),
 table("ideas","Блоги · Банк идей",["Идея","Проект|project","Тип","Статус","Приоритет"])],
@@ -124,8 +124,8 @@ widget("calendar","Очередь публикаций","posts",{column:"Дат�
 widget("list","Банк идей","ideas",{label:"Идея",width:6}),
 widget("table","Все публикации","posts",{width:12})]},
 {id:"client-work",name:"Работа — заказы и клиенты",icon:"▣",group:"Работа",description:"Клиенты, проекты, сметы, услуги, платежи и заявки из разных источников.",tables:[
-table("clients","Работа · Клиенты",["Имя","Компания","Контакт","Источник","Статус","Заметки"]),
-table("orders","Работа · Заказы",["Название","Проект|project","Клиент|relation","Категория","Источник","Дедлайн|date","Статус|select","Бюджет|number","Прогресс|number"]),
+table("clients","Работа · Клиенты",["Имя","Компания","Контакт","Источник","Статус","Заметки","Заказы|backlink"]),
+table("orders","Работа · Заказы",["Название","Проект|project","Клиент|relation","Категория","Источник","Дедлайн|date","Статус|select","Бюджет|number","Прогресс|number","Смета|backlink","Оплаты|backlink","Оплачено|rollup"]),
 table("services","Работа · Услуги",["Услуга","Категория","Цена|number","Описание"]),
 table("orderitems","Работа · Смета",["Заказ|relation","Услуга","Количество|number","Цена|number","Сумма|formula"]),
 table("payments","Работа · Оплаты",["Заказ|relation","Дата|date","Сумма|number","Статус"]),
@@ -201,6 +201,58 @@ export function instantiatePreset(preset:ScreenPreset,available:{id:string;name:
      const prior=updatedTables.findIndex(item=>item.id===table.id);
      if(prior>=0)updatedTables[prior]=patched;
      else updatedTables.push(patched);
+   }
+ }
+
+ // Create readable reverse links without copying any records into the target.
+ // Schema links are attached only where these fields were explicitly declared.
+ const backlinks:Record<string,[string,string,string,string][]> = {
+   learning:[
+     ["subjects","Уроки","lessons","Направление"],
+     ["subjects","Слова","words","Направление"],
+     ["subjects","Тесты","tests","Направление"]
+   ],
+   social:[["resources","Публикации","posts","Ресурс"]],
+   "client-work":[
+     ["clients","Заказы","orders","Клиент"],
+     ["orders","Смета","orderitems","Заказ"],
+     ["orders","Оплаты","payments","Заказ"]
+   ]
+ };
+ const reverseByKey=new Map<string,string>();
+ for(const [destinationKey,display,sourceKey,forwardName] of backlinks[preset.id]??[]){
+   const dest=existing.find(item=>item.id===ids.get(destinationKey));
+   const source=existing.find(item=>item.id===ids.get(sourceKey));
+   const link=source?.columns.find(item=>item.name===forwardName&&item.type==="relation");
+   const backward=dest?.columns.find(item=>item.name===display&&item.type==="backlink");
+   if(!dest||!source||!link||!backward)continue;
+   const columns=dest.columns.map(col=>col.id===backward.id?{...col,backlinkSourceTableId:source.id,backlinkSourceColumnId:link.id}:col);
+   const patched={...dest,columns};
+   existing[existing.findIndex(table=>table.id===dest.id)]=patched;
+   const newIndex=newTables.findIndex(table=>table.id===dest.id);
+   if(newIndex>=0)newTables[newIndex]={...newTables[newIndex],columns};
+   else{
+     const idx=updatedTables.findIndex(table=>table.id===dest.id);
+     if(idx>=0)updatedTables[idx]=patched;else updatedTables.push(patched);
+   }
+   reverseByKey.set(destinationKey+"."+display,backward.id);
+ }
+ if(preset.id==="client-work"){
+   const order=existing.find(table=>table.id===ids.get("orders"));
+   const payments=existing.find(table=>table.id===ids.get("payments"));
+   const paid=order?.columns.find(col=>col.name==="Оплачено"&&col.type==="rollup");
+   const amount=payments?.columns.find(col=>col.name==="Сумма"&&col.type==="number");
+   const link=reverseByKey.get("orders.Оплаты");
+   if(order&&paid&&amount&&link){
+     const columns=order.columns.map(col=>col.id===paid.id?{...col,rollupRelationId:link,rollupTargetId:amount.id,rollupAggregate:"sum"}:col);
+     const patched={...order,columns};
+     existing[existing.findIndex(table=>table.id===order.id)]=patched;
+     const idx=newTables.findIndex(table=>table.id===order.id);
+     if(idx>=0)newTables[idx]={...newTables[idx],columns};
+     else{
+       const updatedIndex=updatedTables.findIndex(table=>table.id===order.id);
+       if(updatedIndex>=0)updatedTables[updatedIndex]=patched;else updatedTables.push(patched);
+     }
    }
  }
  const widgets:StoredWidget[]=preset.widgets.map(def=>{
