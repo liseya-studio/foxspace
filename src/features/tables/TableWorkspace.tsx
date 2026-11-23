@@ -273,7 +273,7 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
   function exportCsv() {
     if (!activeTable) return;
     const quote = (v: Cell | undefined) => '"' + String(v ?? "").replaceAll('"', '""') + '"';
-    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(computedCell(c,r,tables) ?? "")).join(";"))].join("\n");
+    const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(c.type==="multiselect"?splitMultiple(r.cells[c.id]).join("; "):(computedCell(c,r,tables) ?? ""))).join(";"))].join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = activeTable.name + ".csv"; a.click(); URL.revokeObjectURL(url);
   }
