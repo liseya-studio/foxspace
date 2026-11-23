@@ -17,7 +17,7 @@ export type Project = {
   status: ProjectStatus; priority: ProjectPriority; owners: string[];
   createdAt: string; startDate: string; deadline: string; budget: number;
   relatedProjectIds: string[]; tableIds: string[]; fileIds: string[];
-  notes: string; goals: ProjectGoal[]; history: ProjectHistory[];
+  notes: string; workspaceScreenId?: string; goals: ProjectGoal[]; history: ProjectHistory[];
   income: number; expenses: number; updatedAt: string;
 };
 export type ProjectsData = { version: 1; projects: Project[] };
