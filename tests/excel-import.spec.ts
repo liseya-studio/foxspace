@@ -34,7 +34,8 @@ test("Excel importer retains columns, dropdown choices, multi-choice and values"
  await page.evaluate(()=>localStorage.clear());
  await page.reload();
  await page.getByRole("button",{name:"Файлы и таблицы"}).click();
- await page.getByRole("button",{name:"Импорт Excel"}).click();
+ await page.locator(".fox-files-tabs button").filter({hasText:"Таблицы"}).click();
+ await page.getByRole("button",{name:"Импорт Excel",exact:true}).click();
  await page.locator(".fox-excel-dialog input[type=file]").setInputFiles({name:"orders.xlsx",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",buffer:xlsx});
  const dialog=page.getByRole("dialog",{name:"Импорт Excel"});
  await expect(dialog.getByRole("combobox",{name:"Тип поля Статус"})).toHaveValue("select");
