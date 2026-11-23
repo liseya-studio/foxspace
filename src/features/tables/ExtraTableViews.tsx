@@ -52,7 +52,7 @@ export function CalendarView({table,rows,onOpen}:Omit<Props,"onUpdate">){
     if(!dateColumn)return result;
     rows.forEach(row=>{
       const value=String(row.cells[dateColumn.id]??"").slice(0,10);
-      if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return;
       result.set(value,[...(result.get(value)??[]),row]);
     });
     return result;
