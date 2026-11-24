@@ -162,7 +162,7 @@ test("Files hub import preserves formula columns and extends existing dropdown c
  expect(result.columns.find((column:{id:string})=>column.id==="formula-total").type).toBe("formula");
  expect(result.columns.some((column:{name:string;type:string})=>column.name==="Итого (Импорт 2)"&&column.type==="number")).toBeTruthy();
  expect(result.columns.find((column:{id:string})=>column.id==="status").options).toEqual(["Новый","Отложен"]);
- expect(result.columns.find((column:{id:string})=>column.id==="tags").options).toEqual(["Видео","Видео","Монтаж"]);
+ expect(result.columns.find((column:{id:string})=>column.id==="tags").options).toEqual(["Видео","Монтаж"]);
  const tags=result.columns.find((column:{id:string})=>column.id==="tags");
  expect(JSON.parse(result.rows[0].cells[tags.id])).toEqual(["Видео","Монтаж"]);
 });
