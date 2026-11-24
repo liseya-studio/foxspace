@@ -194,3 +194,16 @@ test("quick import does not mistake similarly named populated tables for the sam
  expect(result[1].name).toBe("Контент");
  expect(result[1].rows[0].cells[result[1].columns[0].id]).toBe("Новая запись");
 });
+
+test("CSV delimiter detection ignores commas inside quoted headers",async({page})=>{
+ await page.goto("/");
+ const result=await page.evaluate(async()=>{
+  const {parseDelimitedFile}=await import("/src/features/files/importDelimited.ts");
+  const text='"Задача, название, подробности";Статус;Срок\n"Монтаж, ролик, интервью";Готово;2026-11-24';
+  const blob=new Blob([text],{type:"text/csv"});
+  return parseDelimitedFile({id:"csv",parentId:null,name:"quoted.csv",kind:"file",mime:"text/csv",size:blob.size,blob,createdAt:"2026-01-01T00:00:00.000Z",updatedAt:"2026-01-01T00:00:00.000Z"});
+ });
+ expect(result.columns.map(column=>column.name)).toEqual(["Задача, название, подробности","Статус","Срок"]);
+ expect(result.rows[0].cells[result.columns[0].id]).toBe("Монтаж, ролик, интервью");
+ expect(result.rows[0].cells[result.columns[1].id]).toBe("Готово");
+});
