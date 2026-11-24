@@ -27,7 +27,17 @@ function splitRecords(input:string,separator:string):string[][]{
 }
 function guessDelimiter(text:string):string{
   const line=text.split(/\r?\n/,1)[0]??"";
-  return [";",",","\t"].sort((a,b)=>line.split(b).length-line.split(a).length)[0];
+  const candidates=[";",",","\t"],counts=new Map(candidates.map(value=>[value,0]));
+  let quoted=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(quoted&&line[i+1]==='"'){i++;continue;}
+      quoted=!quoted;continue;
+    }
+    if(!quoted&&counts.has(ch))counts.set(ch,(counts.get(ch)??0)+1);
+  }
+  return [...candidates].sort((a,b)=>(counts.get(b)??0)-(counts.get(a)??0))[0];
 }
 function cellType(values:string[]):Column["type"]{
   const filled=values.map(v=>v.trim()).filter(Boolean);
