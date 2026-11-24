@@ -144,3 +144,19 @@ test("table widget falls back to existing fields when saved column IDs are stale
  await expect(widget.getByRole("columnheader",{name:"Статус"})).toBeVisible();
  await expect(widget.getByText("Запись")).toBeVisible();
 });
+
+test("line chart uses the most recent records when its display limit is reached",async({page})=>{
+ await page.evaluate(()=>{
+  localStorage.setItem("fox-screens",JSON.stringify([{id:"trend",name:"Тренд"}]));
+  localStorage.setItem("fox-tables-v1",JSON.stringify([{id:"daily",name:"Динамика",columns:[
+   {id:"day",name:"Дата",type:"date"},{id:"views",name:"Просмотры",type:"number"}
+  ],rows:Array.from({length:20},(_,i)=>({id:"r"+i,cells:{day:"2026-11-"+String(i+1).padStart(2,"0"),views:i+1}}))}]));
+  localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({trend:[{id:"latest-line",type:"line",title:"Просмотры",tableId:"daily",columnId:"views",width:12,height:300,limit:8}]}));
+ });
+ await page.reload();
+ await page.locator(".dock-screen").first().click();
+ const chart=page.locator(".fox-widget-line");
+ await expect(chart.locator("circle")).toHaveCount(8);
+ await expect(chart.getByText("13 мин.")).toBeVisible();
+ await expect(chart.getByText("20 макс.")).toBeVisible();
+});
