@@ -125,3 +125,22 @@ test("Excel import adds observed values to an existing choice column even when i
  const result=mergeExcelIntoTable(draft,base,id);
  expect(result.columns[0].options).toEqual(["Новый","Отложен","В работе"]);
 });
+
+test("older backups without widget-column preferences remain restorable",async({page})=>{
+ await page.goto("/");
+ const result=await page.evaluate(async()=>{
+  const {inspectBackup}=await import("/src/features/backup/backup.ts");
+  const records={
+   "fox-screens":[],"fox-theme":"light","fox-accent":"#f06432","fox-tables-v1":[],
+   "fox-notes-tasks-v1":{notes:[],tasks:[]},"fox-editor-widgets-v1":{},"fox-screen-grid-v1":{},
+   "fox-projects-v1":{version:1,projects:[]},"fox-operations-v1":{version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]},
+   "fox-trackers-v1":{version:1,trackers:[]},"fox-agent-policies-v1":[],"fox-audit-log-v1":[],
+   "fox-automations-v1":{version:1,items:[],history:[],notificationsEnabled:false},"fox-agent-pending-v1":[]
+  };
+  const file=new File([JSON.stringify({format:"fox-space-backup-v1",createdAt:"2026-01-01T00:00:00.000Z",records,files:[]})],"old-backup.json",{type:"application/json"});
+  const inspected=await inspectBackup(file);
+  return {summary:inspected.summary,preferences:inspected.backup.records["fox-widget-table-columns-v1"]};
+ });
+ expect(result.preferences).toEqual({});
+ expect(result.summary).toContain("SHA-256");
+});
