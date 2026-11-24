@@ -101,3 +101,27 @@ test("monthly automation scheduled for the 31st runs on February's last day",asy
  expect(result.tasks[0].title).toBe("Закрыть месяц");
  expect(result.history).toHaveLength(1);
 });
+
+test("Excel import never overwrites formula or relation columns with the same display name",()=>{
+ let n=0;const id=()=>String(++n);
+ const draft=createImportDraft("Финансы",[["Итого","Клиент"],["1250","Новый клиент"]],{},id);
+ const base:TableData={id:"finance",name:"Финансы",columns:[
+  {id:"total",name:"Итого",type:"formula",formulaSourceId:"amount",formulaFactor:1,formulaOperator:"*"},
+  {id:"client",name:"Клиент",type:"relation",relationTableId:"clients"}
+ ],rows:[{id:"existing",cells:{amount:100,total:100,client:"client-1"}}]};
+ const result=mergeExcelIntoTable(draft,base,id);
+ expect(result.columns.find(column=>column.id==="total")?.type).toBe("formula");
+ expect(result.columns.find(column=>column.id==="client")?.type).toBe("relation");
+ expect(result.columns.some(column=>column.name==="Итого (Импорт 2)"&&column.type==="number")).toBeTruthy();
+ expect(result.columns.some(column=>column.name==="Клиент (Импорт 2)"&&column.type==="text")).toBeTruthy();
+ expect(result.rows[1].cells.total).toBeUndefined();
+ expect(result.rows[1].cells.client).toBeUndefined();
+});
+
+test("Excel import adds observed values to an existing choice column even when inference says text",()=>{
+ let n=0;const id=()=>String(++n);
+ const draft=createImportDraft("Заказы",[["Статус"],["Отложен"],["В работе"]],{},id);
+ const base={id:"orders",name:"Заказы",columns:[{id:"status",name:"Статус",type:"select",options:["Новый"]}],rows:[]};
+ const result=mergeExcelIntoTable(draft,base,id);
+ expect(result.columns[0].options).toEqual(["Новый","Отложен","В работе"]);
+});
