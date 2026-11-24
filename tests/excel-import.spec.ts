@@ -166,3 +166,16 @@ test("Files hub import preserves formula columns and extends existing dropdown c
  const tags=result.columns.find((column:{id:string})=>column.id==="tags");
  expect(JSON.parse(result.rows[0].cells[tags.id])).toEqual(["Видео","Монтаж"]);
 });
+
+test("CSV import keeps duplicate headers as separate columns and values",async({page})=>{
+ await page.goto("/");
+ const result=await page.evaluate(async()=>{
+  const {parseDelimitedFile}=await import("/src/features/files/importDelimited.ts");
+  const blob=new Blob(["Название;Название\nПервое;Второе"],{type:"text/csv"});
+  const item={id:"csv",parentId:null,name:"duplicate.csv",kind:"file",mime:"text/csv",size:blob.size,blob,createdAt:"2026-01-01T00:00:00.000Z",updatedAt:"2026-01-01T00:00:00.000Z"};
+  return parseDelimitedFile(item);
+ });
+ expect(result.columns.map(column=>column.name)).toEqual(["Название","Название (2)"]);
+ expect(result.rows[0].cells[result.columns[0].id]).toBe("Первое");
+ expect(result.rows[0].cells[result.columns[1].id]).toBe("Второе");
+});
