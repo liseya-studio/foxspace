@@ -127,3 +127,20 @@ test("grouped count bar chart works without any numeric column",async({page})=>{
  await expect(chart.getByText("Telegram")).toBeVisible();
  await expect(chart.getByText("2",{exact:true})).toBeVisible();
 });
+
+test("table widget falls back to existing fields when saved column IDs are stale",async({page})=>{
+ await page.evaluate(()=>{
+  localStorage.setItem("fox-screens",JSON.stringify([{id:"fields",name:"Поля"}]));
+  localStorage.setItem("fox-tables-v1",JSON.stringify([{id:"fields-data",name:"Справочник",columns:[
+   {id:"c1",name:"Название",type:"text"},{id:"c2",name:"Статус",type:"text"}
+  ],rows:[{id:"one",cells:{c1:"Запись",c2:"Готово"}}]}]));
+  localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({fields:[{id:"widget-stale",type:"table",title:"Справочник",tableId:"fields-data",width:12,height:320,filter:{},limit:8}]}));
+  localStorage.setItem("fox-widget-table-columns-v1",JSON.stringify({"widget-stale":["deleted-column-id"]}));
+ });
+ await page.reload();
+ await page.locator(".dock-screen").first().click();
+ const widget=page.locator(".fox-widget").first();
+ await expect(widget.getByRole("columnheader",{name:"Название"})).toBeVisible();
+ await expect(widget.getByRole("columnheader",{name:"Статус"})).toBeVisible();
+ await expect(widget.getByText("Запись")).toBeVisible();
+});
