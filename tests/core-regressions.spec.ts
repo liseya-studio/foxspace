@@ -168,3 +168,11 @@ test("automation retries revoked notification permission no more than once per h
  expect(result).toHaveLength(1);
  expect(result[0].status).toBe("permission_missing");
 });
+
+test("empty and not-empty filters treat whitespace-only cells as empty",()=>{
+ const table:TableData={id:"t",name:"Текст",columns:[{id:"value",name:"Значение",type:"text"}],rows:[
+  {id:"blank",cells:{value:""}},{id:"spaces",cells:{value:"   "}},{id:"filled",cells:{value:"есть"}}
+ ]};
+ expect(filterRows(table.rows,table,[table],{columnId:"value",operator:"empty"}).map(row=>row.id)).toEqual(["blank","spaces"]);
+ expect(filterRows(table.rows,table,[table],{columnId:"value",operator:"not_empty"}).map(row=>row.id)).toEqual(["filled"]);
+});
