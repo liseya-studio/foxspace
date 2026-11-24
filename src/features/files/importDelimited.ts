@@ -83,7 +83,7 @@ export function persistImportedTables(tables:ImportedTable[]):void{
     incomingNames.add(name);
     const matches=next.map((tab,index)=>({tab,index})).filter(({tab})=>{
       const oldName=normalize(tab.name);
-      return oldName===name||name.endsWith(oldName)||oldName.endsWith(name);
+      return oldName===name;
     });
     // An already populated table is never overwritten without explicit action.
     if(matches.some(({tab})=>tab.rows.length>0)){
