@@ -110,3 +110,30 @@ test("Excel export round-trips long dropdown lists and comma-containing options"
  expect(result.choices[1]).toEqual(options.map(option=>option.trim()));
  expect(result.rows[1][1]).toBe("Видео, монтаж");
 });
+
+test("Excel time-only number formats are not misread as calendar dates",async({page})=>{
+ await page.goto("/");
+ const styles='<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="0"/><cellXfs count="2"><xf numFmtId="0"/><xf numFmtId="45"/></cellXfs></styleSheet>';
+ const timeSheet='<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Длительность</t></is></c></row><row r="2"><c r="A2" s="1"><v>0.5</v></c></row></sheetData></worksheet>';
+ const timeFile=await page.evaluate(async()=>{
+  const {readWorkbookSheet}=await import("/src/features/tables/excelValidation.ts");
+  const workbook='<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Время" sheetId="1" r:id="rId1"/></sheets></workbook>';
+  const rels='<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+  const files={
+   "xl/workbook.xml":workbook,"xl/_rels/workbook.xml.rels":rels,
+   "xl/styles.xml":'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="0"/><cellXfs count="2"><xf numFmtId="0"/><xf numFmtId="45"/></cellXfs></styleSheet>',
+   "xl/worksheets/sheet1.xml":'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Длительность</t></is></c></row><row r="2"><c r="A2" s="1"><v>0.5</v></c></row></sheetData></worksheet>'
+  };
+  const local=[],central=[];let offset=0;
+  for(const [name,body] of Object.entries(files)){
+   const bytes=new TextEncoder().encode(body),filename=new TextEncoder().encode(name),crc=(data)=>{let c=0xffffffff;for(const b of data){c^=b;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^0xffffffff)>>>0;},sum=crc(bytes);
+   const h=new Uint8Array(30+filename.length),v=new DataView(h.buffer);v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x0800,true);v.setUint32(14,sum,true);v.setUint32(18,bytes.length,true);v.setUint32(22,bytes.length,true);v.setUint16(26,filename.length,true);h.set(filename,30);local.push(h,bytes);
+   const c=new Uint8Array(46+filename.length),w=new DataView(c.buffer);w.setUint32(0,0x02014b50,true);w.setUint16(4,20,true);w.setUint16(6,20,true);w.setUint16(8,0x0800,true);w.setUint32(16,sum,true);w.setUint32(20,bytes.length,true);w.setUint32(24,bytes.length,true);w.setUint16(28,filename.length,true);w.setUint32(42,offset,true);c.set(filename,46);central.push(c);offset+=h.length+bytes.length;
+  }
+  const join=(parts)=>{const length=parts.reduce((n,x)=>n+x.length,0),out=new Uint8Array(length);let at=0;for(const x of parts){out.set(x,at);at+=x.length;}return out;};
+  const dir=join(central),tail=new Uint8Array(22),dv=new DataView(tail.buffer);dv.setUint32(0,0x06054b50,true);dv.setUint16(8,files?Object.keys(files).length:0,true);dv.setUint16(10,Object.keys(files).length,true);dv.setUint32(12,dir.length,true);dv.setUint32(16,offset,true);
+  const blob=join([...local,dir,tail]);
+  return await readWorkbookSheet(new File([blob],"time.xlsx"),"Время");
+ });
+ expect(timeFile[1][0]).toBe(0.5);
+});
