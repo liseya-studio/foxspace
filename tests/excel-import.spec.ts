@@ -113,8 +113,6 @@ test("Excel export round-trips long dropdown lists and comma-containing options"
 
 test("Excel time-only number formats are not misread as calendar dates",async({page})=>{
  await page.goto("/");
- const styles='<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="0"/><cellXfs count="2"><xf numFmtId="0"/><xf numFmtId="45"/></cellXfs></styleSheet>';
- const timeSheet='<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Длительность</t></is></c></row><row r="2"><c r="A2" s="1"><v>0.5</v></c></row></sheetData></worksheet>';
  const timeFile=await page.evaluate(async()=>{
   const {readWorkbookSheet}=await import("/src/features/tables/excelValidation.ts");
   const workbook='<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Время" sheetId="1" r:id="rId1"/></sheets></workbook>';
