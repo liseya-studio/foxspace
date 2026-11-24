@@ -110,3 +110,20 @@ test("empty chart widgets show a compact message without fake bars or donut over
   expect(limits.inside).toBeTruthy();
  }
 });
+
+test("grouped count bar chart works without any numeric column",async({page})=>{
+ await page.evaluate(()=>{
+  localStorage.setItem("fox-screens",JSON.stringify([{id:"counts",name:"Сводка"}]));
+  localStorage.setItem("fox-tables-v1",JSON.stringify([{id:"posts",name:"Публикации",columns:[{id:"platform",name:"Площадка",type:"select",options:["VK","Telegram"]}],rows:[
+   {id:"a",cells:{platform:"VK"}},{id:"b",cells:{platform:"VK"}},{id:"c",cells:{platform:"Telegram"}}
+  ]}]));
+  localStorage.setItem("fox-editor-widgets-v1",JSON.stringify({counts:[{id:"count-chart",type:"bars",title:"Публикации по площадкам",tableId:"posts",labelColumnId:"platform",groupBars:true,aggregate:"count",width:12,height:320,limit:8}]}));
+ });
+ await page.reload();
+ await page.locator(".dock-screen").first().click();
+ const chart=page.locator(".fox-widget-bars");
+ await expect(chart.locator(".fox-widget-bar-row")).toHaveCount(2);
+ await expect(chart.getByText("VK")).toBeVisible();
+ await expect(chart.getByText("Telegram")).toBeVisible();
+ await expect(chart.getByText("2",{exact:true})).toBeVisible();
+});
