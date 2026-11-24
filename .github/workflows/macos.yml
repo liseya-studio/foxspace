@@ -32,7 +32,9 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Generate app icons
         run: npm run tauri:icons
-      - name: Build Apple Silicon DMG
+      - name: Build Apple Silicon app and DMG
+        env:
+          APPLE_SIGNING_IDENTITY: "-"
         run: npx tauri build --target aarch64-apple-darwin
       - uses: actions/upload-artifact@v4
         with:
@@ -40,27 +42,31 @@ jobs:
           path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
           if-no-files-found: error
           retention-days: 30
+      - name: Verify and package the replacement app
+        shell: bash
+        run: |
+          app="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Fox Space.app"
+          /usr/bin/codesign --verify --deep --strict "$app"
+          /usr/bin/ditto -c -k --keepParent "$app" "$RUNNER_TEMP/Fox-Space-Update.zip"
+          cd "$RUNNER_TEMP"
+          shasum -a 256 Fox-Space-Update.zip > Fox-Space-Update.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Fox-Space-Update-Apple-Silicon
+          path: |
+            ${{ runner.temp }}/Fox-Space-Update.zip
+            ${{ runner.temp }}/Fox-Space-Update.sha256
+          if-no-files-found: error
+          retention-days: 30
       - name: Launch bundled app and verify native storage
         shell: bash
         run: |
-          dmg="$(find src-tauri/target/aarch64-apple-darwin/release/bundle/dmg -name '*.dmg' -print -quit)"
-          test -n "$dmg"
-          mount_dir="$(mktemp -d "$RUNNER_TEMP/foxspace.XXXXXX")"
-          hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mount_dir"
-          app="$mount_dir/Fox Space.app"
-          app_pid=""
-          cleanup() {
-            if [ -n "$app_pid" ]; then
-              kill "$app_pid" 2>/dev/null || true
-              wait "$app_pid" 2>/dev/null || true
-            fi
-            hdiutil detach "$mount_dir" || true
-          }
-          trap cleanup EXIT
+          app="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Fox Space.app"
           executable="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
           file "$app/Contents/MacOS/$executable" | grep -q arm64
           "$app/Contents/MacOS/$executable" > "$RUNNER_TEMP/foxspace-app.log" 2>&1 &
           app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
           snapshot="$HOME/Library/Application Support/studio.liseya.foxspace/workspace.json"
           for attempt in $(seq 1 45); do
             if python3 -c 'import json,sys; assert "fox-screens" in json.load(open(sys.argv[1]))' "$snapshot" 2>/dev/null; then

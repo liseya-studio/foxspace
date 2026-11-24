@@ -63,9 +63,19 @@ Build a local DMG on an Apple Silicon Mac:
 npm run tauri:build
 ```
 
-The DMG is written under `src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/` on an M-series Mac. The GitHub Actions workflow **Build Fox Space for macOS Apple Silicon** builds the same target and uploads the DMG as a 14-day artifact.
+The DMG is written under `src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/` on an M-series Mac. The GitHub Actions workflow **Build Fox Space for macOS Apple Silicon** builds the same target and uploads the DMG and the Apple Silicon replacement archive.
 
-In the native shell, structured workspace records are atomically saved to the operating-system application-data directory as `workspace.json`; file blobs are stored under `files/`, and existing IndexedDB files are migrated into this native store on first access. Native snapshots include workspace data and file blobs, retain the latest ten versions, include SHA-256 manifests, and can be restored from Backup settings. Portable JSON exports and automatic snapshots are also integrity-checked with SHA-256. Browser mode continues to use localStorage with an IndexedDB recovery mirror and keeps file blobs in IndexedDB. Native macOS notifications and optional login autostart are integrated. This build is an unsigned development DMG; code signing, notarization, auto-updater and installer distribution are not configured yet.
+### Update an existing macOS installation
+
+Download `Fox-Space-Update-Apple-Silicon` from the repository's macOS build and check the inner ZIP against `Fox-Space-Update.sha256`. Unpack the update in a temporary folder, then quit Fox Space with Command-Q.
+
+```bash
+scripts/replace-macos-app.sh /path/to/unpacked/Fox\ Space.app /path/to/installed/Fox-Space.app
+```
+
+The helper checks the bundle identifier, code signature and Apple Silicon architecture, then atomically swaps the bundle at its current path. Application data stays in the same macOS data directory.
+
+In the native shell, structured workspace records are atomically saved to the operating-system application-data directory as `workspace.json`; file blobs are stored under `files/`, and existing IndexedDB files are migrated into this native store on first access. Native snapshots include workspace data and file blobs, retain the latest ten versions, include SHA-256 manifests, and can be restored from Backup settings. Portable JSON exports and automatic snapshots are also integrity-checked with SHA-256. Browser mode continues to use localStorage with an IndexedDB recovery mirror and keeps file blobs in IndexedDB. Native macOS notifications and optional login autostart are integrated. GitHub builds use local development signing. Automatic updates and Apple notarization are not configured.
 
 
 ## Project, finance and content workflows
