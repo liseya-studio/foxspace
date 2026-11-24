@@ -43,12 +43,24 @@ jobs:
       - name: Launch bundled app and verify native storage
         shell: bash
         run: |
-          app="$(find src-tauri/target/aarch64-apple-darwin/release/bundle -name 'Fox Space.app' -print -quit)"
-          test -n "$app"
+          dmg="$(find src-tauri/target/aarch64-apple-darwin/release/bundle/dmg -name '*.dmg' -print -quit)"
+          test -n "$dmg"
+          mount_dir="$(mktemp -d "$RUNNER_TEMP/foxspace.XXXXXX")"
+          hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mount_dir"
+          app="$mount_dir/Fox Space.app"
+          app_pid=""
+          cleanup() {
+            if [ -n "$app_pid" ]; then
+              kill "$app_pid" 2>/dev/null || true
+              wait "$app_pid" 2>/dev/null || true
+            fi
+            hdiutil detach "$mount_dir" || true
+          }
+          trap cleanup EXIT
           executable="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
+          file "$app/Contents/MacOS/$executable" | grep -q arm64
           "$app/Contents/MacOS/$executable" > "$RUNNER_TEMP/foxspace-app.log" 2>&1 &
           app_pid=$!
-          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
           snapshot="$HOME/Library/Application Support/studio.liseya.foxspace/workspace.json"
           for attempt in $(seq 1 45); do
             if python3 -c 'import json,sys; assert "fox-screens" in json.load(open(sys.argv[1]))' "$snapshot" 2>/dev/null; then
