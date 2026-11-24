@@ -132,8 +132,8 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     return <div className="fox-widget-progress"><div className="fox-widget-progress-value"><strong>{fmt(total)}</strong><span>из {fmt(target)}</span></div><div className="fox-progress-track"><div style={{width:percent+"%", background: widget.accent || "var(--accent)"}}/></div><small>{fmt(total/target*100)}% от цели</small></div>;
   }
   if (widget.type === "bars") {
-    if (!numberCol) return <div className="fox-widget-empty">Для графика нужна числовая колонка.</div>;
     const mode=widget.aggregate??"sum";
+    if (!numberCol&&mode!=="count") return <div className="fox-widget-empty">Для выбранного расчёта нужна числовая колонка.</div>;
     const grouped=new Map<string,number[]>();
     rows.forEach((row,i)=>{
       const raw=value(row,numberCol);
@@ -154,7 +154,7 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     if (!numberCol) return <div className="fox-widget-empty">Выберите числовую колонку.</div>;
     const dateColumn=table.columns.find(col=>col.type==="date");
     const ordered=dateColumn?[...rows].sort((a,b)=>String(value(a,dateColumn)??"").localeCompare(String(value(b,dateColumn)??""))):rows;
-    const data = ordered.map(row=>value(row,numberCol)).filter(raw=>raw!==undefined&&raw!==null&&String(raw).trim()!==""&&Number.isFinite(Number(raw))).slice(0,maxItems).map(Number);
+    const data = ordered.map(row=>value(row,numberCol)).filter(raw=>raw!==undefined&&raw!==null&&String(raw).trim()!==""&&Number.isFinite(Number(raw))).slice(-maxItems).map(Number);
     if (!data.length) return <EmptyChartPreview kind="line"/>;
     const min = Math.min(...data), max = Math.max(...data), spread = Math.max(1, max-min);
     const points = data.map((value,i) => (10 + (i/Math.max(1,data.length-1))*280).toFixed(1)+","+(110-(value-min)/spread*90).toFixed(1)).join(" ");
