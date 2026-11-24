@@ -142,5 +142,5 @@ test("older backups without widget-column preferences remain restorable",async({
   return {summary:inspected.summary,preferences:inspected.backup.records["fox-widget-table-columns-v1"]};
  });
  expect(result.preferences).toEqual({});
- expect(result.summary).toContain("SHA-256");
+ expect(result.summary).toContain("старый архив без контрольной суммы");
 });
