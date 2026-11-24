@@ -179,3 +179,18 @@ test("CSV import keeps duplicate headers as separate columns and values",async({
  expect(result.rows[0].cells[result.columns[0].id]).toBe("Первое");
  expect(result.rows[0].cells[result.columns[1].id]).toBe("Второе");
 });
+
+test("quick import does not mistake similarly named populated tables for the same table",async({page})=>{
+ await page.goto("/");
+ const result=await page.evaluate(async()=>{
+  const existing={id:"old",name:"Контент архив",columns:[{id:"title",name:"Название",type:"text"}],rows:[{id:"old-row",cells:{title:"Не трогать"}}],updatedAt:"2026-01-01T00:00:00.000Z"};
+  localStorage.setItem("fox-tables-v1",JSON.stringify([existing]));
+  const {persistImportedTables}=await import("/src/features/files/importDelimited.ts");
+  persistImportedTables([{id:"new",name:"Контент",columns:[{id:"title-new",name:"Название",type:"text"}],rows:[{id:"new-row",cells:{"title-new":"Новая запись"}}],updatedAt:"2026-11-24T00:00:00.000Z"}]);
+  return JSON.parse(localStorage.getItem("fox-tables-v1")||"[]");
+ });
+ expect(result).toHaveLength(2);
+ expect(result[0].rows[0].cells.title).toBe("Не трогать");
+ expect(result[1].name).toBe("Контент");
+ expect(result[1].rows[0].cells[result[1].columns[0].id]).toBe("Новая запись");
+});
