@@ -1,6 +1,15 @@
 name: Build Fox Space for macOS Apple Silicon
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src-tauri/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - ".github/workflows/macos.yml"
   pull_request:
     paths:
       - "src-tauri/**"
@@ -10,7 +19,7 @@ on:
       - ".github/workflows/macos.yml"
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,7 +36,7 @@ jobs:
         run: npx tauri build --target aarch64-apple-darwin
       - uses: actions/upload-artifact@v4
         with:
-          name: fox-space-macos-aarch64-dmg
+          name: Fox-Space-macOS-Apple-Silicon
           path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
