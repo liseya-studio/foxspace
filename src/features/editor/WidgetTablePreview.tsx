@@ -20,15 +20,20 @@ export default function WidgetTablePreview({table,tables,rows,limit,onOpenRecord
   const [direction,setDirection]=useState<"asc"|"desc">("asc");
   const [columnSelections,setColumnSelections]=useState<Record<string,string[]>>(()=>{try{const saved=JSON.parse(localStorage.getItem(VISIBLE_FIELDS_KEY)||"{}");return saved&&typeof saved==="object"&&!Array.isArray(saved)?saved:{};}catch{return {};}});
   const selectionKey=widgetId??table.id;
-  const columnIds=columnSelections[selectionKey]??table.columns.slice(0,6).map(column=>column.id);
+  const defaultColumnIds=table.columns.slice(0,6).map(column=>column.id);
+  const savedColumnIds=columnSelections[selectionKey];
+  const validSavedIds=savedColumnIds?.filter(id=>table.columns.some(column=>column.id===id));
+  // A schema edit can delete or rename fields after preferences were saved.
+  // Fall back to current columns rather than rendering a blank table.
+  const columnIds=validSavedIds?.length?validSavedIds:defaultColumnIds;
   const columns=table.columns.filter(column=>columnIds.includes(column.id));
-  const changeColumn=(id:string,checked:boolean)=>setColumnSelections(previous=>{
-    const current=previous[selectionKey]??table.columns.slice(0,6).map(column=>column.id);
+  const changeColumn=(id:string,checked:boolean)=>{
+    const current=columnIds;
     const next=checked?[...new Set([...current,id])]:current.filter(value=>value!==id);
-    const updated={...previous,[selectionKey]:next.length?next:current};
+    const updated={...columnSelections,[selectionKey]:next.length?next:current};
+    setColumnSelections(updated);
     try{localStorage.setItem(VISIBLE_FIELDS_KEY,JSON.stringify(updated));}catch{/* Keep interactive state when storage is full. */}
-    return updated;
-  });
+  };
   const matching=useMemo(()=>{
     const normalized=query.trim().toLocaleLowerCase("ru");
     const filtered=normalized?rows.filter(row=>columns.some(column=>String(valueForColumn(row,column,tables)??"").toLocaleLowerCase("ru").includes(normalized))):rows;
