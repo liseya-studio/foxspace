@@ -29,7 +29,8 @@ const shortDate=(iso:string)=>{const date=new Date(iso+"T12:00:00");return Numbe
 const signed=(sum:number,type:"income"|"expense")=>(type==="expense"?"− " : "+ ")+money(sum);
 const PALETTE=["#f06432","#ff966c","#ffc0a6","#e5c8b9","#b7a7a0","#f7dfd4","#a5c69b"];
 type FinanceForm={name:string;amount:string;date:string;category:string;period:string;direction:string;next:string;target:string;current:string};
-const newForm=():FinanceForm=>({name:"",amount:"",date:new Date().toISOString().slice(0,10),category:"",period:"мес",direction:"owe",next:"",target:"",current:""});
+const localDate=()=>{const now=new Date();return [now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");};
+const newForm=():FinanceForm=>({name:"",amount:"",date:localDate(),category:"",period:"мес",direction:"owe",next:"",target:"",current:""});
 const formTitles:Record<EntryType,string>={income:"Добавить доход",expense:"Добавить расход",payment:"Добавить обязательный платёж",debt:"Добавить долг",goal:"Добавить финансовую цель"};
 const iconFor=(name:string)=>name.trim().slice(0,1).toLocaleUpperCase("ru")||"•";
 
