@@ -136,7 +136,7 @@ function WidgetPreview({ widget, table, tables, organizer, onConfigure, onOpenRe
     if (!numberCol&&mode!=="count") return <div className="fox-widget-empty">Для выбранного расчёта нужна числовая колонка.</div>;
     const grouped=new Map<string,number[]>();
     rows.forEach((row,i)=>{
-      const raw=value(row,numberCol);
+      const raw=numberCol?value(row,numberCol):undefined;
       if(mode!=="count"&&(raw===undefined||raw===null||String(raw).trim()===""||!Number.isFinite(Number(raw))))return;
       const label=widget.groupBars?String(textCol?value(row,textCol)??"":"").trim()||"Без значения":String(textCol?value(row,textCol)??"Запись "+(i+1):"Запись "+(i+1));
       const key=widget.groupBars?label:row.id;
