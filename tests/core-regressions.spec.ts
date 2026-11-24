@@ -144,3 +144,27 @@ test("older backups without widget-column preferences remain restorable",async({
  expect(result.preferences).toEqual({});
  expect(result.summary).toContain("старый архив без контрольной суммы");
 });
+
+test("automation retries revoked notification permission no more than once per hour",async({page})=>{
+ await page.goto("/");
+ await page.evaluate(()=>localStorage.clear());
+ await page.reload();
+ const result=await page.evaluate(async()=>{
+  Object.defineProperty(window,"Notification",{configurable:true,value:class extends EventTarget{
+   static permission="denied";
+   constructor(){super();}
+  }});
+  const {saveAutomations,runDueAutomations,readAutomations}=await import("/src/features/automations/data.ts");
+  const first=new Date(2026,10,24,10,30),second=new Date(2026,10,24,10,31);
+  saveAutomations({version:1,notificationsEnabled:true,history:[],items:[{
+   id:"notify-1",name:"Напоминание",message:"Текст",action:"notification",
+   trigger:"schedule",cadence:"daily",date:"2026-11-24",weekday:2,time:"09:00",
+   enabled:true,lastRunKey:null,lastRunAt:null,createdAt:first.toISOString(),updatedAt:first.toISOString()
+  }]});
+  await runDueAutomations(first);
+  await runDueAutomations(second);
+  return readAutomations().history;
+ });
+ expect(result).toHaveLength(1);
+ expect(result[0].status).toBe("permission_missing");
+});
