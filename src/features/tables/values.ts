@@ -149,7 +149,7 @@ export function filterRows(
   if (!expected && op !== "empty" && op !== "not_empty") return rows;
   return rows.filter(row => {
     const actualValue = valueForColumn(row, column, tables);
-    const actual = String(actualValue ?? "").toLocaleLowerCase("ru");
+    const actual = String(actualValue ?? "").trim().toLocaleLowerCase("ru");
     if (op === "empty") return !actual;
     if (op === "not_empty") return Boolean(actual);
     if (op === "equals" || op === "not_equals") {
