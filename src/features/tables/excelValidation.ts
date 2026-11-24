@@ -25,24 +25,38 @@ async function zipXml(file:File,names:string[]):Promise<Record<string,Document>>
  let cursor=offset;
  for(let i=0;i<count&&cursor<bytes.length;i++){
    if(view.getUint32(cursor,true)!==0x02014b50)break;
-   const method=view.getUint16(cursor+10,true),size=view.getUint32(cursor+20,true);
+   const method=view.getUint16(cursor+10,true),flags=view.getUint16(cursor+8,true);
+   const size=view.getUint32(cursor+20,true),expandedSize=view.getUint32(cursor+24,true);
    const nameLength=view.getUint16(cursor+28,true),extra=view.getUint16(cursor+30,true),comment=view.getUint16(cursor+32,true);
    const localOffset=view.getUint32(cursor+42,true);
+   if(cursor+46+nameLength+extra+comment>bytes.length)throw Error("Повреждён каталог XLSX.");
    const name=decoder.decode(bytes.subarray(cursor+46,cursor+46+nameLength));
    cursor+=46+nameLength+extra+comment;
    if(!requested.has(name))continue;
-   if(size>8*1024*1024)throw Error("XML-часть Excel слишком большая.");
-   if(view.getUint32(localOffset,true)!==0x04034b50)continue;
+   if(flags&1)throw Error("Зашифрованные XLSX-файлы не поддерживаются.");
+   if(size>8*1024*1024||expandedSize>12*1024*1024)throw Error("XML-часть Excel слишком большая.");
+   if(localOffset>bytes.length-30||view.getUint32(localOffset,true)!==0x04034b50)throw Error("Повреждён XLSX: некорректная запись файла.");
    const dataStart=localOffset+30+view.getUint16(localOffset+26,true)+view.getUint16(localOffset+28,true);
+   if(dataStart+size>bytes.length)throw Error("Повреждён XLSX: данные выходят за границы файла.");
    const compressed=bytes.slice(dataStart,dataStart+size);
    let decoded:Uint8Array;
    if(method===0)decoded=compressed;
    else if(method===8){
-     // XLSX uses ZIP raw DEFLATE. No remote services or file uploads involved.
-     const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
-     decoded=new Uint8Array(await new Response(stream).arrayBuffer());
+     // Read in bounded chunks so a compressed XML bomb cannot allocate unbounded memory.
+     const reader=new Blob([compressed]).stream().pipeThrough(new DecompressionStream("deflate-raw")).getReader();
+     const chunks:Uint8Array[]=[];let total=0;
+     try{
+       while(true){
+         const part=await reader.read();if(part.done)break;
+         total+=part.value.length;
+         if(total>12*1024*1024){await reader.cancel();throw Error("Слишком большой XML-лист.");}
+         chunks.push(part.value);
+       }
+     }finally{reader.releaseLock();}
+     decoded=new Uint8Array(total);let offset=0;
+     for(const chunk of chunks){decoded.set(chunk,offset);offset+=chunk.length;}
    }else continue;
-   if(decoded.length>12*1024*1024)throw Error("Слишком большой XML-лист.");
+   if(decoded.length>12*1024*1024||expandedSize&&decoded.length!==expandedSize)throw Error("Размер XML-части XLSX не совпадает с каталогом.");
    const doc=new DOMParser().parseFromString(decoder.decode(decoded),"application/xml");
    if(!doc.getElementsByTagName("parsererror").length)result[name]=doc;
  }
