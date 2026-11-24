@@ -1,6 +1,6 @@
 import type { StoredItem } from "./storage";
 
-type Column={id:string;name:string;type:"text"|"number"|"date"|"checkbox"|"select"|"multiselect";options?:string[]};
+type Column={id:string;name:string;type:string;options?:string[]};
 export type ImportedTable={id:string;name:string;columns:Column[];rows:{id:string;cells:Record<string,string|number|boolean>}[];updatedAt:string};
 function splitRecords(input:string,separator:string):string[][]{
   const rows:string[][]=[];
@@ -91,8 +91,13 @@ export function persistImportedTables(tables:ImportedTable[]):void{
     const mapped=new Map<string,string>();
     for(const column of imported.columns){
       let target=columns.find(item=>normalize(item.name)===normalize(column.name));
+      // Never map imported scalar values into computed, relation, image, person,
+      // project, rollup, or backlink fields, even when their names match.
+      if(target&&!["text","number","date","checkbox","select","multiselect"].includes(target.type))target=undefined;
       if(!target){
-        target={...column};
+        let importedName=column.name,suffix=2;
+        while(columns.some(item=>normalize(item.name)===normalize(importedName)))importedName=column.name+" (Импорт "+(suffix++)+")";
+        target={...column,name:importedName};
         columns.push(target);
       }else if(target.type==="text"&&column.type!=="text"){
         // Imported column types can improve an empty placeholder's initial type.
@@ -101,7 +106,16 @@ export function persistImportedTables(tables:ImportedTable[]):void{
         columns[at]=target;
       }
       if(target.type==="select"||target.type==="multiselect"){
-        const merged=[...new Set([...(target.options??[]),...(column.options??[])])];
+        const observed=imported.rows.flatMap(row=>{
+          const raw=row.cells[column.id];
+          if(raw===undefined||raw===null||String(raw).trim()==="")return [];
+          if(target!.type==="multiselect"){
+            try{const parsed=JSON.parse(String(raw));if(Array.isArray(parsed))return parsed.map(String).filter(Boolean);}catch{/* delimited text */}
+            return String(raw).split(/[;,|\n]/).map(value=>value.trim()).filter(Boolean);
+          }
+          return [String(raw).trim()];
+        });
+        const merged=[...new Set([...(target.options??[]),...(column.options??[]),...observed])];
         const position=columns.findIndex(item=>item.id===target!.id);
         columns[position]={...target,options:merged};
       }
@@ -109,7 +123,14 @@ export function persistImportedTables(tables:ImportedTable[]):void{
     }
     const rows=imported.rows.map(row=>({
       id:row.id,
-      cells:Object.fromEntries(Object.entries(row.cells).map(([id,value])=>[mapped.get(id)??id,value]))
+      cells:Object.fromEntries(Object.entries(row.cells).map(([id,value])=>{
+        const target=columns.find(column=>column.id===mapped.get(id));
+        if(target?.type==="multiselect"&&value!==undefined&&value!==null){
+          try{const parsed=JSON.parse(String(value));if(Array.isArray(parsed))return [mapped.get(id)??id,JSON.stringify(parsed)];}catch{/* delimiter-based input */}
+          return [mapped.get(id)??id,JSON.stringify(String(value).split(/[;,|\n]/).map(part=>part.trim()).filter(Boolean))];
+        }
+        return [mapped.get(id)??id,value];
+      }))
     }));
     next[match.index]={...match.tab,columns,rows,updatedAt:new Date().toISOString()};
   }
