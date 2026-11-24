@@ -125,7 +125,8 @@ export async function readWorkbookSheet(file:File,sheetName:string):Promise<Impo
  const customDates=new Set(formatNodes.filter(x=>/[dmy]/i.test((x.getAttribute("formatCode")??"").replace(/"[^"]*"/g,""))).map(x=>Number(x.getAttribute("numFmtId"))));
  const styleXfs=styles?nodes(styles,"cellXfs")[0]:undefined;
  const xfs=styleXfs?Array.from(styleXfs.children):[];
- const datedFormats=new Set([14,15,16,17,22,27,30,36,45,46,47,50,57]);
+ // Built-in formats 45–47 are time/duration formats, not calendar dates.
+ const datedFormats=new Set([14,15,16,17,22,27,30,36,50,57]);
  const result:ImportedCell[][]=[];
  for(const row of nodes(document,"row")){
    const index=Number(row.getAttribute("r"))||result.length+1;
