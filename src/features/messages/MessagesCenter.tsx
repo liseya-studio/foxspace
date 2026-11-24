@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { invoke, isTauri } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
 import { ExternalLink, Inbox, Mail, RefreshCw } from "lucide-react";
 import "./messages.css";
+import { useVkConnection } from "../settings/vkConnection";
 
 type Message = {
   id: number;
@@ -113,76 +114,37 @@ function VkThread({ peerId, name, onSent }: { peerId: number; name: string; onSe
   </div>;
 }
 
-export default function MessagesCenter() {
-  const [group, setGroup] = useState<number | null>(null);
-  const [groupInput, setGroupInput] = useState("");
-  const [token, setToken] = useState("");
+export default function MessagesCenter({onOpenConnections}: {onOpenConnections:()=>void}) {
+  const connection = useVkConnection();
+  const group = connection.status === "connected" ? connection.groupId : null;
   const [list, setList] = useState<Conversations | null>(null);
   const [active, setActive] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
-  const [statusLoaded, setStatusLoaded] = useState(!isTauri());
   const [problem, setProblem] = useState("");
   const dialog = list?.items.find(item => item.conversation.peer.id === active);
-
-  useEffect(() => {
-    if (!isTauri()) return;
-    let cancelled = false;
-    invoke<number | null>("vk_connection").then(id => {
-      if (!cancelled) setGroup(id);
-    }).catch(error => {
-      if (!cancelled) setProblem(String(error));
-    }).finally(() => {
-      if (!cancelled) setStatusLoaded(true);
-    });
-    return () => { cancelled = true; };
-  }, []);
+  const request = useRef(0);
 
   async function refresh() {
+    const revision = ++request.current;
     setBusy(true);
     setProblem("");
     try {
-      setList(await invoke<Conversations>("vk_conversations"));
+      const result = await invoke<Conversations>("vk_conversations");
+      if (revision === request.current) setList(result);
     } catch (error) {
-      setProblem(String(error));
+      if (revision === request.current) setProblem(String(error));
     } finally {
-      setBusy(false);
+      if (revision === request.current) setBusy(false);
     }
   }
   useEffect(() => {
-    if (group && !list) void refresh();
+    setList(null);
+    setActive(null);
+    setProblem("");
+    setBusy(false);
+    if (group) void refresh();
+    return ()=>{request.current++;};
   }, [group]);
-
-  async function connect(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy || !/^\d+$/.test(groupInput) || !token.trim()) return;
-    setBusy(true);
-    setProblem("");
-    try {
-      const id = Number(groupInput);
-      setList(await invoke<Conversations>("vk_connect", { groupId: id, token }));
-      setGroup(id);
-      setToken("");
-    } catch (error) {
-      setProblem(String(error));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function disconnect() {
-    setBusy(true);
-    setProblem("");
-    try {
-      await invoke("vk_disconnect");
-      setActive(null);
-      setList(null);
-      setGroup(null);
-    } catch (error) {
-      setProblem(String(error));
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return <section className="fox-messages-center">
     <div className="fox-comm-heading">
@@ -190,19 +152,16 @@ export default function MessagesCenter() {
       <div className="vk-actions">
         {group && <>
           <button type="button" title="Обновить диалоги" aria-label="Обновить диалоги" className="outline-button" disabled={busy} onClick={() => void refresh()}><RefreshCw size={16}/></button>
-          <button type="button" className="outline-button" disabled={busy} onClick={() => void disconnect()}>Отключить ВКонтакте</button>
+          <button type="button" className="outline-button" disabled={busy} onClick={onOpenConnections}>Настройки подключения</button>
         </>}
       </div>
     </div>
     {problem && <p role="alert" className="vk-status">{problem}</p>}
     {!group ? <div className="fox-comm-panel vk-connect">
       <h2>Подключить сообщество ВКонтакте</h2>
-      {isTauri() ? <form onSubmit={connect}>
-        <p>Включите сообщения в сообществе и создайте ключ доступа с правом управления сообщениями. Ключ сохранится в macOS Keychain.</p>
-        <label>Числовой ID сообщества<input inputMode="numeric" pattern="[0-9]+" required value={groupInput} onChange={event => setGroupInput(event.target.value)} /></label>
-        <label>Ключ доступа<input type="password" required autoComplete="off" value={token} onChange={event => setToken(event.target.value)} /></label>
-        <button className="primary-button" disabled={!statusLoaded || busy}>{busy ? "Проверка…" : "Подключить"}</button>
-      </form> : <p>Подключение сообщества доступно в приложении Fox Space для Mac.</p>}
+      {connection.status === "loading" ? <p role="status">Проверяем подключение…</p>
+        : connection.status === "browser" ? <p>Подключение доступно в Fox Space для Mac.</p>
+        : <button className="outline-button" onClick={onOpenConnections}>Открыть настройки подключения</button>}
     </div> : <div className="fox-comm-panel fox-messages-layout">
       <aside className="fox-messages-sidebar">
         <div className="fox-messages-sidebar-title"><Mail size={17}/> Диалоги ВКонтакте</div>

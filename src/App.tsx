@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import FilesHub from "./features/files/FilesHub";
 import { uploadFiles } from "./features/files/storage";
+import ConnectionSettings from "./features/settings/ConnectionSettings";
+import { AutoLaunchSettings, ReminderSettings } from "./features/settings/DesktopSettings";
+import "./features/settings/settings.css";
 import BackupPanel from "./features/backup/BackupPanel";
 import { listItems, type StoredItem } from "./features/files/storage";
 import FoxEditor from "./features/editor/FoxEditor";
@@ -28,7 +31,7 @@ import {
   Bell, Mail, Search, Plus, ChevronDown, MoreHorizontal, Settings,
   FileSpreadsheet, StickyNote, CheckSquare, LayoutDashboard, BriefcaseBusiness, Activity, ShieldCheck, AlarmClock, X, Sun,
   Moon, Monitor, Palette, PanelRightClose, Command, ArrowUpRight,
-  CircleHelp, CalendarDays, Folder, Sparkles, SlidersHorizontal, Upload, FolderPlus, Database, ArrowDownToLine, Rss
+  CircleHelp, CalendarDays, Folder, Sparkles, Upload, FolderPlus, Database, ArrowDownToLine, Rss
 } from "lucide-react";
 
 type Screen = { id: string; name: string; tableId?: string; icon?: string; parentId?: string };
@@ -59,6 +62,8 @@ export default function App() {
   const [theme, setTheme] = useState(() => read("fox-theme", "light"));
   const [accent, setAccent] = useState(() => read("fox-accent", "#f06432"));
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState("Оформление");
+  const openConnections = () => { setSettingsTab("Подключения"); setSettingsOpen(true); };
   const [createOpen, setCreateOpen] = useState(false);
   const [templateCategory,setTemplateCategory]=useState<"Все"|"Личное"|"Творчество"|"Работа">("Все");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -305,9 +310,9 @@ export default function App() {
         ) : active === "feed" ? (
           <FeedCenter />
         ) : active === "notifications" ? (
-          <NotificationCenter onOpenTask={navigateToTask}/>
+          <NotificationCenter onOpenTask={navigateToTask} onOpenConnections={openConnections}/>
         ) : active === "messages" ? (
-          <MessagesCenter />
+          <MessagesCenter onOpenConnections={openConnections} />
         ) : active === "automations" ? (
           <AutomationsCenter />
         ) : active === "agents" ? (
@@ -399,7 +404,15 @@ export default function App() {
       {iconPickerId && <div className="overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setIconPickerId(null);}}><div className="dialog fox-icon-picker"><button className="close-button" title="Закрыть" onClick={()=>setIconPickerId(null)}><X size={18}/></button><div className="eyebrow">НАСТРОЙКА ЭКРАНА</div><h2>Выберите значок</h2><p>Готовые значки площадок и универсальные символы для Dock.</p><div className="fox-icon-palette">{PLATFORM_ICONS.map(platform=><button type="button" key={platform.id} title={platform.title} onClick={()=>{setScreens(prev=>prev.map(s=>s.id===iconPickerId?{...s,icon:platform.id}:s));setIconPickerId(null);}}><PlatformIcon value={platform.id} size={32}/><small>{platform.title}</small></button>)}</div><div className="fox-icon-palette fox-symbol-palette">{DECORATIVE_ICONS.map(symbol=><button type="button" key={symbol} title={symbol} onClick={()=>{setScreens(prev=>prev.map(s=>s.id===iconPickerId?{...s,icon:symbol}:s));setIconPickerId(null);}}><PlatformIcon value={symbol} size={28}/></button>)}</div></div></div>}
       {searchOpen && <div className="overlay search-overlay" onMouseDown={e => e.target === e.currentTarget && setSearchOpen(false)}><div className="search-dialog"><div className="search-line"><Search size={19}/><input autoFocus placeholder="Экраны, таблицы, задачи, заметки..." value={search} onChange={e => setSearch(e.target.value)}/><kbd>ESC</kbd><button className="close-button" onClick={() => setSearchOpen(false)}><X size={17}/></button></div><div className="search-results"><button onClick={() => {setActive("home");setSearchOpen(false);}}><LayoutDashboard size={17}/>Главная</button><button onClick={() => {setActive("projects");setSearchOpen(false);}}><BriefcaseBusiness size={17}/>Проекты</button><button onClick={() => {setActive("trackers");setSearchOpen(false);}}><Activity size={17}/>Трекеры</button><button onClick={() => {setActive("agents");setSearchOpen(false);}}><ShieldCheck size={17}/>AI и доступ</button><button onClick={() => {setActive("automations");setSearchOpen(false);}}><AlarmClock size={17}/>Автоматизации</button><button onClick={() => {setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/>Файлы и таблицы</button><button onClick={() => {setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/>Заметки и задачи</button><button onClick={()=>{setActive("feed");setSearchOpen(false);}}><Rss size={17}/>Лента</button><button onClick={()=>{setActive("notifications");setSearchOpen(false);}}><Bell size={17}/>Уведомления</button><button onClick={()=>{setActive("messages");setSearchOpen(false);}}><Mail size={17}/>Сообщения</button>{filteredScreens.map(s => <button key={s.id} onClick={() => {setActive(s.id);setSearchOpen(false);}}><LayoutDashboard size={17}/>{s.name}</button>)}{matchingFiles.length>0&&<div className="fox-search-category">Файлы и папки</div>}{matchingFiles.map(item=><button key={item.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><Folder size={17}/><span>{item.name}</span></button>)}{matchingTables.length>0&&<div className="fox-search-category">Таблицы и данные</div>}{matchingTables.map(t=><button key={t.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/><span>{t.name}</span></button>)}{matchingTasks.length>0&&<div className="fox-search-category">Задачи</div>}{matchingTasks.map(t=><button key={t.id} onClick={()=>{navigateToTask(t.id);setSearchOpen(false);}}><CheckSquare size={17}/><span>{t.title}</span></button>)}{matchingNotes.length>0&&<div className="fox-search-category">Заметки</div>}{matchingNotes.map(n=><button key={n.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/><span>{n.title}</span></button>)}</div></div></div>}
 
-      {settingsOpen && <div className="overlay settings-overlay" onMouseDown={e => e.target === e.currentTarget && setSettingsOpen(false)}><aside className="settings-panel"><div className="settings-head"><div><div className="eyebrow">ПЕРСОНАЛИЗАЦИЯ</div><h2>Настройки</h2></div><button className="close-button" onClick={() => setSettingsOpen(false)}><X size={18}/></button></div><div className="setting-group"><h3>Тема оформления</h3><div className="theme-options"><button className={theme === "light" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("light")}><Sun size={18}/>Светлая</button><button className={theme === "dark" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("dark")}><Moon size={18}/>Тёмная</button><button className={theme === "system" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("system")}><Monitor size={18}/>Системная</button></div></div><div className="setting-group"><h3>Акцентный цвет</h3><p>Используется для кнопок и активных элементов интерфейса.</p><div className="accent-options">{accents.map(c => <button key={c.value} className={accent === c.value ? "accent-swatch selected" : "accent-swatch"} style={{"--swatch":c.value} as CSSProperties} onClick={() => setAccent(c.value)} title={c.name}/>)}</div></div><BackupPanel /><div className="settings-note"><SlidersHorizontal size={17}/> Дополнительные настройки появятся по мере развития Fox Space.</div></aside></div>}
+      {settingsOpen && <div className="overlay settings-overlay" onMouseDown={e => e.target === e.currentTarget && setSettingsOpen(false)}><aside className="settings-panel" aria-label="Настройки"><div className="settings-head"><h2>Настройки</h2><button aria-label="Закрыть настройки" className="close-button" onClick={() => setSettingsOpen(false)}><X size={18}/></button></div>
+      <nav className="fox-settings-tabs" aria-label="Разделы настроек">
+        {["Оформление","Подключения","Приложение","Резервные копии"].map(tab=><button type="button" key={tab} aria-pressed={settingsTab===tab} onClick={()=>setSettingsTab(tab)}>{tab}</button>)}
+      </nav>
+      {settingsTab==="Оформление"&&<><div className="setting-group"><h3>Тема оформления</h3><div className="theme-options"><button className={theme === "light" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("light")}><Sun size={18}/>Светлая</button><button className={theme === "dark" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("dark")}><Moon size={18}/>Тёмная</button><button className={theme === "system" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("system")}><Monitor size={18}/>Системная</button></div></div><div className="setting-group"><h3>Акцентный цвет</h3><p>Используется для кнопок и активных элементов интерфейса.</p><div className="accent-options">{accents.map(c => <button key={c.value} className={accent === c.value ? "accent-swatch selected" : "accent-swatch"} style={{"--swatch":c.value} as CSSProperties} onClick={() => setAccent(c.value)} title={c.name}/>)}</div></div></>}
+      {settingsTab==="Подключения"&&<ConnectionSettings onOpenFeed={()=>{setSettingsOpen(false);openTopSection("feed");}} onOpenAgents={()=>{setSettingsOpen(false);setActive("agents");}}/>}
+      {settingsTab==="Приложение"&&<><AutoLaunchSettings/><ReminderSettings/></>}
+      {settingsTab==="Резервные копии"&&<BackupPanel/>}
+      </aside></div>}
     </div>
   );
 }

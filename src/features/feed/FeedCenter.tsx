@@ -2,14 +2,11 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState } from "react";
 import { Rss, Layers3, ShieldCheck, Radio, ExternalLink, RefreshCw, MessageCircle, Image as ImageIcon } from "lucide-react";
 
-type SourceId = "telegram-bulotkaff" | "vk-btsah";
+import { feedSources, useHiddenFeedSources, type FeedSourceId as SourceId } from "./sources";
 type Source = {id:SourceId;platform:"telegram"|"vk";title:string;url:string;status:string;message:string;updatedAt?:string};
 type Post = {id:string;sourceId:SourceId;text:string;url:string;date?:string|null;images?:string[]};
 type FeedData = {generatedAt:string|null;sources:Source[];posts:Post[]};
-const defaultSources:Source[]=[
-  {id:"telegram-bulotkaff",platform:"telegram",title:"Telegram · @bulotkaff",url:"https://t.me/bulotkaff",status:"pending",message:"Ожидаем первой синхронизации"},
-  {id:"vk-btsah",platform:"vk",title:"ВКонтакте · btsah",url:"https://vk.ru/btsah",status:"pending",message:"Ожидаем первой синхронизации"}
-];
+const defaultSources:Source[]=feedSources.map(source=>({...source,status:"pending",message:"Ожидаем первой синхронизации"}));
 const sourceName=(id:SourceId)=>id==="telegram-bulotkaff"?"Telegram":"ВКонтакте";
 function validLink(url:unknown):url is string{
   if(typeof url!=="string")return false;
@@ -41,6 +38,7 @@ export default function FeedCenter(){
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [refresh,setRefresh]=useState(0);
+  const hiddenSources=useHiddenFeedSources();
   useEffect(()=>{
     const controller=new AbortController();
     setLoading(true);
@@ -71,14 +69,16 @@ export default function FeedCenter(){
     void load();
     return ()=>controller.abort();
   },[refresh]);
-  const sources=feed.sources.length?feed.sources:defaultSources;
-  const visible=useMemo(()=>feed.posts.filter(post=>filter==="all"||post.sourceId===filter),[feed.posts,filter]);
+  const sources=(feed.sources.length?feed.sources:defaultSources).filter(source=>!hiddenSources.includes(source.id));
+  const selectedFilter=filter!=="all"&&hiddenSources.includes(filter)?"all":filter;
+  const available=useMemo(()=>feed.posts.filter(post=>!hiddenSources.includes(post.sourceId)),[feed.posts,hiddenSources]);
+  const visible=useMemo(()=>available.filter(post=>selectedFilter==="all"||post.sourceId===selectedFilter),[available,selectedFilter]);
   const sourceById=(id:SourceId)=>sources.find(source=>source.id===id);
   return <section className="fox-feed-center">
     <header className="fox-comm-heading"><div><div className="eyebrow">ПУБЛИКАЦИИ</div><h1>Лента</h1><p>Публичные публикации из Telegram и ВКонтакте.</p></div></header>
     <div className="fox-feed-layout"><div className="fox-feed-main">
-      <div className="fox-feed-filter-head"><Layers3 size={16}/><span>Публикации</span><small>{feed.posts.length} получено</small><button className="fox-feed-refresh" aria-label="Обновить ленту" title="Проверить новую синхронизацию" onClick={()=>setRefresh(v=>v+1)}><RefreshCw size={16}/></button></div>
-      <div className="fox-feed-filters"><button className={filter==="all"?"active":""} onClick={()=>setFilter("all")}>Все</button>{sources.map(source=><button key={source.id} className={filter===source.id?"active":""} onClick={()=>setFilter(source.id)}>{sourceName(source.id)}</button>)}</div>
+      <div className="fox-feed-filter-head"><Layers3 size={16}/><span>Публикации</span><small>{available.length} получено</small><button className="fox-feed-refresh" aria-label="Обновить ленту" title="Проверить новую синхронизацию" onClick={()=>setRefresh(v=>v+1)}><RefreshCw size={16}/></button></div>
+      <div className="fox-feed-filters"><button className={selectedFilter==="all"?"active":""} onClick={()=>setFilter("all")}>Все</button>{sources.map(source=><button key={source.id} className={selectedFilter===source.id?"active":""} onClick={()=>setFilter(source.id)}>{sourceName(source.id)}</button>)}</div>
       {loading&&<div className="fox-feed-status" role="status">Загрузка публикаций…</div>}
       {!loading&&error&&<div className="fox-feed-status" role="alert">{error}</div>}
       {!loading&&visible.length>0&&<div className="fox-feed-posts">{visible.map(post=><article className="fox-feed-post" key={post.id}>
@@ -88,7 +88,7 @@ export default function FeedCenter(){
         {!post.text&&!post.images?.length&&<div className="fox-feed-no-preview"><ImageIcon size={18}/> Медиа без доступного предпросмотра</div>}
         <a href={post.url} className="fox-feed-post-link" target="_blank" rel="noopener noreferrer">Смотреть оригинал <ExternalLink size={13}/></a>
       </article>)}</div>}
-      {!loading&&visible.length===0&&<div className="fox-comm-empty fox-feed-empty"><Rss size={32}/><h2>Публикации пока не загружены</h2><p>Источники добавлены в Fox Space. Отображение постов зависит от доступности публичного Telegram-просмотра и официального VK API. Ты можешь открыть источники по ссылкам справа.</p></div>}
+      {!loading&&visible.length===0&&<div className="fox-comm-empty fox-feed-empty"><Rss size={32}/><h2>{sources.length?"Публикации пока не загружены":"Источники скрыты"}</h2><p>{sources.length?"Проверьте статус источников справа.":"Включите нужные источники в настройках подключений."}</p></div>}
     </div><aside className="fox-feed-side"><div className="fox-feed-aside-title"><Radio size={16}/> Источники</div><div className="fox-feed-sources">{sources.map(source=><div key={source.id} className="fox-feed-source">
       <div className="fox-feed-source-title"><strong>{source.title}</strong><span className={"fox-feed-source-state "+source.status}>{source.status==="ok"?"Посты загружены":source.status==="stale"?"Старые данные":source.status==="pending"?"Ожидает загрузки":"Нет данных"}</span></div>
       <p>{source.message||"Источник добавлен"}</p><a href={source.url} target="_blank" rel="noopener noreferrer">Открыть источник <ExternalLink size={13}/></a>

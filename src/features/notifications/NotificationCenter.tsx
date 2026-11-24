@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, CheckCheck, Clock3, CalendarDays, AlertCircle, Check, RotateCcw, ArrowUpRight, Inbox, Monitor, BellOff } from "lucide-react";
-import { listNotifications, markAllNotifications, markNotification, snoozeNotification, enableDesktopReminders, disableDesktopReminders, dispatchDesktopReminders, getReminderPreferences, type LocalNotification } from "./data";
+import { Bell, CheckCheck, Clock3, CalendarDays, AlertCircle, Check, RotateCcw, ArrowUpRight, Inbox } from "lucide-react";
+import { listNotifications, markAllNotifications, markNotification, snoozeNotification, type LocalNotification } from "./data";
+import { ReminderSettings } from "../settings/DesktopSettings";
 import PlatformIcon from "../icons/PlatformIcon";
 
-type Props={onOpenTask:(taskId:string)=>void};
+type Props={onOpenTask:(taskId:string)=>void;onOpenConnections:()=>void};
 type Filter="all"|"unread";
 const category:Record<LocalNotification["kind"],string>={overdue:"Просрочено",today:"Сегодня",upcoming:"Скоро"};
-export default function NotificationCenter({onOpenTask}:Props){
+export default function NotificationCenter({onOpenTask,onOpenConnections}:Props){
   const [version,setVersion]=useState(0);
   const [filter,setFilter]=useState<Filter>("all");
-  const [permissionMessage,setPermissionMessage]=useState("");
   useEffect(()=>{
     const refresh=()=>setVersion(v=>v+1);
     window.addEventListener("fox-notifications-updated",refresh);
@@ -19,18 +19,6 @@ export default function NotificationCenter({onOpenTask}:Props){
     const timer=window.setInterval(refresh,60_000);
     return ()=>{window.clearInterval(timer);window.removeEventListener("focus",refresh);window.removeEventListener("fox-notifications-updated",refresh);window.removeEventListener("fox-notes-tasks-updated",refresh);window.removeEventListener("storage",refresh);};
   },[]);
-  async function toggleReminders(){
-    setPermissionMessage("");
-    try{
-      if(getReminderPreferences().enabled)disableDesktopReminders();
-      else if(await enableDesktopReminders()){
-        setPermissionMessage("Уведомления включены.");
-        void dispatchDesktopReminders();
-      }else setPermissionMessage("Разрешите уведомления в настройках macOS или браузера.");
-    }catch{
-      setPermissionMessage("Не удалось запросить разрешение на уведомления.");
-    }
-  }
   const items=useMemo(()=>listNotifications(),[version]);
   const unread=items.filter(x=>!x.isRead).length;
   const visible=filter==="unread"?items.filter(x=>!x.isRead):items;
@@ -47,9 +35,10 @@ export default function NotificationCenter({onOpenTask}:Props){
       {!visible.length&&<div className="fox-comm-empty"><Inbox size={32}/><h2>{filter==="unread"?"Всё прочитано":"Уведомлений нет"}</h2><p>{filter==="unread"?"Новых уведомлений пока нет.":"Здесь появятся задачи со сроком сегодня, просроченные и задачи на ближайшие три дня."}</p></div>}
       </div>
     </div>
-    <section className="fox-notification-platforms" aria-label="Источники уведомлений"><div className="fox-notification-platforms-head"><strong>Площадки и сервисы</strong><span>Значки готовы к подключению. Уведомления из этих сервисов пока не синхронизируются.</span></div><div className="fox-notification-platforms-icons">{[["tg","Telegram"],["vk","ВКонтакте"],["tiktok","TikTok"],["x","X"],["gmail","Gmail"],["whatsapp","WhatsApp"],["kwork","Kwork"],["avito","Авито"],["hh","HeadHunter"],["youtube","YouTube"]].map(([id,label])=><div key={id} className="fox-notification-platform" title={label+" · Не подключено"}><PlatformIcon value={id} size={27}/><span>{label}</span></div>)}</div></section>
-    <div className="fox-notification-desktop"><div><Monitor size={17}/><span><strong>Напоминания на рабочем столе</strong><small>Системное уведомление о задачах со сроком сегодня, пока Fox Space открыт.</small></span></div><button onClick={toggleReminders}>{getReminderPreferences().enabled?<BellOff size={15}/>:<Bell size={15}/>} {getReminderPreferences().enabled?"Отключить":"Включить"}</button></div>
-    {permissionMessage&&<p className="fox-comm-footnote" role="status">{permissionMessage}</p>}
-    <p className="fox-comm-footnote">Для системных оповещений требуется разрешение macOS или браузера.</p>
+    <section className="fox-notification-platforms" aria-label="Источники уведомлений">
+      <div className="fox-notification-platforms-head"><strong>Площадки</strong><button type="button" className="outline-button" onClick={onOpenConnections}>Настроить подключения</button></div>
+      <div className="fox-notification-platforms-icons">{[["tg","Telegram"],["vk","ВКонтакте"],["tiktok","TikTok"],["x","X"],["gmail","Gmail"],["whatsapp","WhatsApp"],["kwork","Kwork"],["avito","Авито"],["hh","HeadHunter"],["youtube","YouTube"]].map(([id,label])=><div key={id} className="fox-notification-platform" title={label+" · Системные уведомления о событиях площадки недоступны"}><PlatformIcon value={id} size={27}/><span>{label}</span></div>)}</div>
+    </section>
+    <ReminderSettings/>
   </section>;
 }
