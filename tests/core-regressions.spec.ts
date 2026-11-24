@@ -104,7 +104,7 @@ test("monthly automation scheduled for the 31st runs on February's last day",asy
 
 test("Excel import never overwrites formula or relation columns with the same display name",()=>{
  let n=0;const id=()=>String(++n);
- const draft=createImportDraft("Финансы",[["Итого","Клиент"],["1250","Новый клиент"]],{},id);
+ const draft=createImportDraft("Финансы",[["Итого","Клиент"],[1250,"Новый клиент"]],{},id);
  const base:TableData={id:"finance",name:"Финансы",columns:[
   {id:"total",name:"Итого",type:"formula",formulaSourceId:"amount",formulaFactor:1,formulaOperator:"*"},
   {id:"client",name:"Клиент",type:"relation",relationTableId:"clients"}
