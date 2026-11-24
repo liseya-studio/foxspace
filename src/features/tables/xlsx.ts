@@ -1,3 +1,5 @@
+import { saveDownload } from "../desktop/integration";
+
 export type SpreadsheetValue=string|number|boolean|undefined|null;
 type ZipFile={name:string;data:Uint8Array};
 const encoder=new TextEncoder();
@@ -25,7 +27,7 @@ function cellXml(value:SpreadsheetValue,ref:string):string{
  const text=value===null||value===undefined?"":String(value);
  return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xml(text)}</t></is></c>`;
 }
-export function downloadXlsx(name:string,headers:string[],rows:SpreadsheetValue[][],columns?:{type:string;options?:string[]}[]):void{
+export async function downloadXlsx(name:string,headers:string[],rows:SpreadsheetValue[][],columns?:{type:string;options?:string[]}[]):Promise<void>{
  if(headers.length>16384||rows.length>1048575)throw new Error("Таблица превышает лимиты Excel");
  const safeName=(name.trim()||"Fox Space").replace(/[\\/*?:\[\]]/g," ").slice(0,31)||"Fox Space";
  const sheetRows=[headers,...rows].map((row,rowIndex)=>`<row r="${rowIndex+1}">${headers.map((_,colIndex)=>cellXml(row[colIndex],columnName(colIndex)+(rowIndex+1))).join("")}</row>`).join("");
@@ -50,5 +52,5 @@ export function downloadXlsx(name:string,headers:string[],rows:SpreadsheetValue[
  ];
  const bytes=zipStore(files);const buffer=new ArrayBuffer(bytes.byteLength);new Uint8Array(buffer).set(bytes);
  const blob=new Blob([buffer],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
- const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(name.trim()||"table")+".xlsx";link.click();window.setTimeout(()=>URL.revokeObjectURL(url),1500);
+ await saveDownload(blob,(name.trim()||"table")+".xlsx");
 }

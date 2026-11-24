@@ -129,7 +129,7 @@ test("Excel import adds observed values to an existing choice column even when i
 test("older backups without widget-column preferences remain restorable",async({page})=>{
  await page.goto("/");
  const result=await page.evaluate(async()=>{
-  const {inspectBackup}=await import("/src/features/backup/backup.ts");
+  const {inspectBackup,restoreBackup}=await import("/src/features/backup/backup.ts");
   const records={
    "fox-screens":[],"fox-theme":"light","fox-accent":"#f06432","fox-tables-v1":[],
    "fox-notes-tasks-v1":{notes:[],tasks:[]},"fox-editor-widgets-v1":{},"fox-screen-grid-v1":{},
@@ -137,12 +137,16 @@ test("older backups without widget-column preferences remain restorable",async({
    "fox-trackers-v1":{version:1,trackers:[]},"fox-agent-policies-v1":[],"fox-audit-log-v1":[],
    "fox-automations-v1":{version:1,items:[],history:[],notificationsEnabled:false},"fox-agent-pending-v1":[]
   };
-  const file=new File([JSON.stringify({format:"fox-space-backup-v1",createdAt:"2026-01-01T00:00:00.000Z",records,files:[]})],"old-backup.json",{type:"application/json"});
+  const payload={format:"fox-space-backup-v1",createdAt:"2026-01-01T00:00:00.000Z",records,files:[]};
+  const bytes=new TextEncoder().encode(JSON.stringify(payload));
+  const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)), byte=>byte.toString(16).padStart(2,"0")).join("");
+  const file=new File([JSON.stringify({...payload,integrity:{algorithm:"SHA-256",digest}})],"old-backup.json",{type:"application/json"});
   const inspected=await inspectBackup(file);
-  return {summary:inspected.summary,preferences:inspected.backup.records["fox-widget-table-columns-v1"]};
+  await restoreBackup(inspected.backup,inspected.items);
+  return {summary:inspected.summary,preferences:JSON.parse(localStorage.getItem("fox-widget-table-columns-v1")??"null")};
  });
  expect(result.preferences).toEqual({});
- expect(result.summary).toContain("старый архив без контрольной суммы");
+ expect(result.summary).toContain("SHA-256 проверен");
 });
 
 test("automation retries revoked notification permission no more than once per hour",async({page})=>{

@@ -1,3 +1,5 @@
+import { isTauri } from "@tauri-apps/api/core";
+import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { readNotesTasks, type Task } from "../notes/data";
 
 const KEY="fox-notification-state-v1";
@@ -62,30 +64,41 @@ export function getReminderPreferences():ReminderPreferences{
   }catch{return {enabled:false,notified:[]};}
 }
 export async function enableDesktopReminders():Promise<boolean>{
-  if(!("Notification" in window))return false;
-  const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
-  const prefs=getReminderPreferences();prefs.enabled=permission==="granted";
-  localStorage.setItem(REMINDER_KEY,JSON.stringify(prefs));
+  let allowed=false;
+  if(isTauri())allowed=await isPermissionGranted()||(await requestPermission())==="granted";
+  else if("Notification" in window)allowed=Notification.permission==="granted"||(await Notification.requestPermission())==="granted";
+  const prefs=getReminderPreferences();
+  localStorage.setItem(REMINDER_KEY,JSON.stringify({...prefs,enabled:allowed}));
   window.dispatchEvent(new Event("fox-notifications-updated"));
-  return prefs.enabled;
+  return allowed;
 }
 export function disableDesktopReminders():void{
   const prefs=getReminderPreferences();prefs.enabled=false;
   localStorage.setItem(REMINDER_KEY,JSON.stringify(prefs));
   window.dispatchEvent(new Event("fox-notifications-updated"));
 }
-export function dispatchDesktopReminders():void{
-  if(!("Notification" in window)||Notification.permission!=="granted")return;
-  const prefs=getReminderPreferences();
-  if(!prefs.enabled)return;
-  // Desktop reminders are intentionally only delivered for due-today tasks, not all historic overdue items.
-  const today=listNotifications().filter(item=>item.kind==="today"&&!item.isRead);
-  let changed=false;
-  for(const item of today){
-    if(prefs.notified.includes(item.id))continue;
-    try{new Notification("Срок задачи сегодня",{body:item.title,tag:"fox-space-"+item.id});
-      prefs.notified.push(item.id);changed=true;
-    }catch{/* some browsers block desktop notifications */}
+let dispatching = false;
+
+export async function dispatchDesktopReminders():Promise<void>{
+  if(dispatching||!getReminderPreferences().enabled)return;
+  dispatching=true;
+  try{
+    const native=isTauri();
+    const allowed=native?await isPermissionGranted():"Notification" in window&&Notification.permission==="granted";
+    if(!allowed)return;
+    for(const item of listNotifications().filter(item=>item.kind==="today"&&!item.isRead)){
+      const prefs=getReminderPreferences();
+      if(!prefs.enabled)break;
+      if(prefs.notified.includes(item.id))continue;
+      const title="Срок задачи сегодня";
+      if(native)await sendNotification({title,body:item.title});
+      else new Notification(title,{body:item.title,tag:"fox-space-"+item.id});
+      const current=getReminderPreferences();
+      localStorage.setItem(REMINDER_KEY,JSON.stringify({...current,notified:[...current.notified,item.id].slice(-500)}));
+    }
+  }catch(error){
+    console.error("Fox Space task reminder failed",error);
+  }finally{
+    dispatching=false;
   }
-  if(changed){prefs.notified=prefs.notified.slice(-500);localStorage.setItem(REMINDER_KEY,JSON.stringify(prefs));}
 }

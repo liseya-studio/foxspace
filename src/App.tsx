@@ -82,13 +82,14 @@ export default function App() {
   useEffect(()=>{
     void createAutoBackup().catch(error=>console.error("Fox Space automatic backup failed",error));
     const backupTimer=window.setInterval(()=>{void createAutoBackup().catch(error=>console.error("Fox Space automatic backup failed",error));},30*60*1000);
-    const update=()=>dispatchDesktopReminders();
+    const update=()=>{void dispatchDesktopReminders();};
     runDueAutomations();
     const automationTimer=window.setInterval(runDueAutomations,60*1000);
     update();
     const timer=window.setInterval(update,5*60*1000);
     window.addEventListener("fox-notes-tasks-updated",update);
-    return ()=>{window.clearInterval(timer);window.clearInterval(backupTimer);window.clearInterval(automationTimer);window.removeEventListener("fox-notes-tasks-updated",update);};
+    window.addEventListener("focus",update);
+    return ()=>{window.clearInterval(timer);window.clearInterval(backupTimer);window.clearInterval(automationTimer);window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("focus",update);};
   },[]);
   useEffect(() => { localStorage.setItem("fox-screens", JSON.stringify(screens)); }, [screens]);
   useEffect(()=>{localStorage.setItem("fox-page-tree-collapsed",JSON.stringify(pageSidebarCollapsed));},[pageSidebarCollapsed]);
@@ -99,7 +100,9 @@ export default function App() {
     window.addEventListener("fox-notifications-updated",update);
     window.addEventListener("fox-notes-tasks-updated",update);
     window.addEventListener("storage",update);
-    return ()=>{window.removeEventListener("fox-notifications-updated",update);window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);};
+    window.addEventListener("focus",update);
+    const timer=window.setInterval(update,60_000);
+    return ()=>{window.clearInterval(timer);window.removeEventListener("fox-notifications-updated",update);window.removeEventListener("fox-notes-tasks-updated",update);window.removeEventListener("storage",update);window.removeEventListener("focus",update);};
   },[]);
   useEffect(()=>{if(!searchOpen)return;let active=true;void listItems().then(items=>{if(active)setFileIndex(items);}).catch(()=>{if(active)setFileIndex([]);});return()=>{active=false;};},[searchOpen]);
   useEffect(() => { localStorage.setItem("fox-theme", JSON.stringify(theme)); }, [theme]);

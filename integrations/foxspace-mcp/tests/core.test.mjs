@@ -64,3 +64,23 @@ test("choice fields expose structured options and selected values without changi
   assert.deepEqual(list.rows[0].fields["Теги"].selectedOptions,["Видео","Срочно"]);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+
+test("a local MCP profile can only read its enabled resources",async()=>{
+ const dir=await mkdtemp(join(tmpdir(),"foxspace-mcp-policy-")),file=join(dir,"workspace.json");
+ const profile={id:"test-agent",enabled:true,permissions:{tasks:{read:true},tables:{read:true}}};
+ try{
+  const save=(policy)=>writeFile(file,JSON.stringify({
+    "fox-agent-policies-v1":JSON.stringify([policy]),
+    "fox-notes-tasks-v1":JSON.stringify({tasks:[{id:"task",title:"Test"}],notes:[]}),
+  }));
+  await save(profile);
+  await assert.rejects(()=>listCollection("tasks",file,""),/FOXSPACE_AGENT_ID/);
+  await assert.rejects(()=>listCollection("tasks",file,"other-profile"),/no read permission/);
+  assert.equal((await listCollection("tasks",file,profile.id))[0].id,"task");
+  await assert.rejects(()=>listCollection("transactions",file,profile.id),/no read permission for finance/);
+  await assert.rejects(()=>getTableImage({tableId:"posts",rowId:"one",columnId:"photo"},file,profile.id),/no read permission for files/);
+  await save({...profile,enabled:false});
+  await assert.rejects(()=>listTables(file,profile.id),/no read permission for tables/);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});

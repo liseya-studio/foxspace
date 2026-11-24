@@ -1,3 +1,4 @@
+import { saveDownload } from "../desktop/integration";
 import { isTauri, invoke } from "@tauri-apps/api/core";
 export type StoredItem = {
   id: string; parentId: string | null; name: string; kind: "file" | "folder";
@@ -120,7 +121,7 @@ export async function downloadItem(item:StoredItem):Promise<void>{
   if(item.kind!=="file")throw new Error("Это не файл");
   const full=item.blob?item:await getItem(item.id);
   if(!full?.blob)throw new Error("Содержимое файла не найдено");
-  const url=URL.createObjectURL(full.blob);const link=document.createElement("a");link.href=url;link.download=item.name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  await saveDownload(full.blob,item.name);
 }
 export function sizeLabel(size:number):string{
   if(size<1024)return size+" Б";

@@ -813,3 +813,5 @@
 
 /* Multi-line options should remain editable in both add-field and edit-field dialogs. */
 .dialog textarea.form-input{height:auto;min-height:100px;resize:vertical;padding:10px 11px;line-height:1.5}
+
+.fox-storage-error { max-width: 650px; margin: 12vh auto; padding: 24px; }

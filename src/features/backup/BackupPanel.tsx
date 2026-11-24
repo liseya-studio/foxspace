@@ -18,10 +18,11 @@ export default function BackupPanel(){
     setBusy(true);setError("");setStatus("");
     try{
       const result=await exportBackup();
+      if(!result)return;
       await createAutoBackup(true);
       const backupStatus=await getAutoBackupStatus();setLastAuto(backupStatus.createdAt);setAutoCount(backupStatus.count);
       setStatus("Резервная копия скачана. Файлов: "+result.fileCount+". Локальная копия также сохранена.");
-    }catch(e){setError(e instanceof Error?e.message:"Экспорт не удался");}
+    }catch(e){setError(typeof e==="string"?e:e instanceof Error?e.message:"Экспорт не удался");}
     finally{setBusy(false);}
   }
   async function restore(){
@@ -30,16 +31,19 @@ export default function BackupPanel(){
     try{
       const {backup,items,summary}=await inspectBackup(selected);
       if(!window.confirm("Восстановить архив ("+summary+")? Текущие экраны, таблицы, заметки и файлы будут заменены."))return;
+      await createAutoBackup(true);
       await restoreBackup(backup,items);
+      await flushPersistentStorage();
       window.location.reload();
-    }catch(e){setError(e instanceof Error?e.message:"Не удалось восстановить архив");}
+    }catch(e){setError(typeof e==="string"?e:e instanceof Error?e.message:"Не удалось восстановить архив");}
     finally{setBusy(false);}
   }
-  async function enableDurable(){try{await flushPersistentStorage();const current=await getPersistenceStatus();setDurable(current);if(current.native){setStatus("Рабочие записи сохраняются в нативной папке данных Fox Space на Mac.");return;}const result=await requestPersistentStorage();setDurable(await getPersistenceStatus());setStatus(result.persistent?"Браузер разрешил постоянное локальное хранилище.":"Браузер не гарантирует сохранность локальных данных при очистке хранилища.");}catch(e){setError(e instanceof Error?e.message:"Не удалось проверить хранилище");}}
-  async function restoreNative(){setBusy(true);setError("");try{if(!window.confirm("Восстановить последнюю нативную копию вместе с файлами? Текущее состояние рабочего пространства будет заменено."))return;await restoreNativeBackup();window.location.reload();}catch(e){setError(e instanceof Error?e.message:"Не удалось восстановить нативную копию");}finally{setBusy(false);}}
-  async function restoreAutomatic(){setBusy(true);setError("");try{if(!window.confirm("Восстановить последнюю автоматическую копию? Текущие данные будут заменены."))return;await restoreLatestAutoBackup();window.location.reload();}catch(e){setError(e instanceof Error?e.message:"Не удалось восстановить автоматическую копию");}finally{setBusy(false);}}
+  async function enableDurable(){try{await flushPersistentStorage();const current=await getPersistenceStatus();setDurable(current);if(current.native){setStatus("Рабочие записи сохраняются в нативной папке данных Fox Space на Mac.");return;}const result=await requestPersistentStorage();setDurable(await getPersistenceStatus());setStatus(result.persistent?"Браузер разрешил постоянное локальное хранилище.":"Браузер не гарантирует сохранность локальных данных при очистке хранилища.");}catch(e){setError(typeof e==="string"?e:e instanceof Error?e.message:"Не удалось проверить хранилище");}}
+  async function restoreNative(){setBusy(true);setError("");try{if(!window.confirm("Восстановить последнюю нативную копию вместе с файлами? Текущее состояние рабочего пространства будет заменено."))return;await restoreNativeBackup();window.location.reload();}catch(e){setError(typeof e==="string"?e:e instanceof Error?e.message:"Не удалось восстановить нативную копию");}finally{setBusy(false);}}
+  async function restoreAutomatic(){setBusy(true);setError("");try{if(!window.confirm("Восстановить последнюю автоматическую копию? Текущие данные будут заменены."))return;await restoreLatestAutoBackup();await flushPersistentStorage();window.location.reload();}catch(e){setError(typeof e==="string"?e:e instanceof Error?e.message:"Не удалось восстановить автоматическую копию");}finally{setBusy(false);}}
   return <section className="fox-backup">
     <div className="fox-backup-intro"><ShieldCheck size={21}/><div><strong>Резервная копия рабочего пространства</strong><p>Сохраняет экраны, таблицы, задачи, заметки, виджеты, настройки, папки и содержимое файлов в один JSON-архив. Данные не отправляются на сервер.</p></div></div>
+    {durable?.native&&<p>Для переноса с сайта скачайте резервную копию в веб-версии, затем выберите архив здесь.</p>}
     <div className="fox-backup-actions"><button disabled={busy} onClick={()=>void create()}><Download size={16}/> Скачать резервную копию</button><input hidden type="file" ref={ref} accept=".json,application/json" onChange={e=>setSelected(e.target.files?.[0]??null)}/><button disabled={busy} onClick={()=>ref.current?.click()}><Upload size={16}/> Выбрать архив</button></div>
     {selected&&<div className="fox-backup-selected"><span>{selected.name}</span><button disabled={busy} onClick={()=>void restore()}>Восстановить данные</button><button onClick={()=>{setSelected(null);if(ref.current)ref.current.value="";}} title="Отмена"><X size={15}/></button></div>}
     <div className="fox-backup-auto"><div><strong>Дополнительная копия данных</strong><span>{durable?(durable.native?"Нативная папка приложения + IndexedDB · "+durable.records+" зеркальных записей":"IndexedDB: "+durable.records+" записей · "+(durable.persistent?"постоянное хранение разрешено":"постоянное хранение не подтверждено")):"Проверка локального хранилища..."}</span></div><button disabled={busy} onClick={()=>void enableDurable()}>Проверить защиту</button></div>

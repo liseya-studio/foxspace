@@ -15,8 +15,22 @@ export default function NotificationCenter({onOpenTask}:Props){
     window.addEventListener("fox-notifications-updated",refresh);
     window.addEventListener("fox-notes-tasks-updated",refresh);
     window.addEventListener("storage",refresh);
-    return ()=>{window.removeEventListener("fox-notifications-updated",refresh);window.removeEventListener("fox-notes-tasks-updated",refresh);window.removeEventListener("storage",refresh);};
+    window.addEventListener("focus",refresh);
+    const timer=window.setInterval(refresh,60_000);
+    return ()=>{window.clearInterval(timer);window.removeEventListener("focus",refresh);window.removeEventListener("fox-notifications-updated",refresh);window.removeEventListener("fox-notes-tasks-updated",refresh);window.removeEventListener("storage",refresh);};
   },[]);
+  async function toggleReminders(){
+    setPermissionMessage("");
+    try{
+      if(getReminderPreferences().enabled)disableDesktopReminders();
+      else if(await enableDesktopReminders()){
+        setPermissionMessage("Уведомления включены.");
+        void dispatchDesktopReminders();
+      }else setPermissionMessage("Разрешите уведомления в настройках macOS или браузера.");
+    }catch{
+      setPermissionMessage("Не удалось запросить разрешение на уведомления.");
+    }
+  }
   const items=useMemo(()=>listNotifications(),[version]);
   const unread=items.filter(x=>!x.isRead).length;
   const visible=filter==="unread"?items.filter(x=>!x.isRead):items;
@@ -34,8 +48,8 @@ export default function NotificationCenter({onOpenTask}:Props){
       </div>
     </div>
     <section className="fox-notification-platforms" aria-label="Источники уведомлений"><div className="fox-notification-platforms-head"><strong>Площадки и сервисы</strong><span>Значки готовы к подключению. Уведомления из этих сервисов пока не синхронизируются.</span></div><div className="fox-notification-platforms-icons">{[["tg","Telegram"],["vk","ВКонтакте"],["tiktok","TikTok"],["x","X"],["gmail","Gmail"],["whatsapp","WhatsApp"],["kwork","Kwork"],["avito","Авито"],["hh","HeadHunter"],["youtube","YouTube"]].map(([id,label])=><div key={id} className="fox-notification-platform" title={label+" · Не подключено"}><PlatformIcon value={id} size={27}/><span>{label}</span></div>)}</div></section>
-    <div className="fox-notification-desktop"><div><Monitor size={17}/><span><strong>Напоминания на рабочем столе</strong><small>По желанию браузер показывает уведомление о задачах со сроком сегодня, пока Fox Space открыт.</small></span></div><button onClick={async()=>{if(getReminderPreferences().enabled){disableDesktopReminders();setVersion(v=>v+1);}else{const ok=await enableDesktopReminders();setPermissionMessage(ok?"Уведомления включены.":"Браузер не разрешил показывать уведомления.");if(ok)dispatchDesktopReminders();setVersion(v=>v+1);}}}>{getReminderPreferences().enabled?<BellOff size={15}/>:<Bell size={15}/>} {getReminderPreferences().enabled?"Отключить":"Включить"}</button></div>
+    <div className="fox-notification-desktop"><div><Monitor size={17}/><span><strong>Напоминания на рабочем столе</strong><small>Системное уведомление о задачах со сроком сегодня, пока Fox Space открыт.</small></span></div><button onClick={toggleReminders}>{getReminderPreferences().enabled?<BellOff size={15}/>:<Bell size={15}/>} {getReminderPreferences().enabled?"Отключить":"Включить"}</button></div>
     {permissionMessage&&<p className="fox-comm-footnote" role="status">{permissionMessage}</p>}
-    <p className="fox-comm-footnote">Уведомления внутри приложения работают локально. Системные оповещения требуют разрешения браузера и не доставляются при закрытом Fox Space.</p>
+    <p className="fox-comm-footnote">Для системных оповещений требуется разрешение macOS или браузера.</p>
   </section>;
 }

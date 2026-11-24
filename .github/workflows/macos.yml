@@ -2,7 +2,7 @@ name: Build Fox Space for macOS Apple Silicon
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, macos-integrations]
     paths:
       - "src-tauri/**"
       - "src/**"
@@ -13,7 +13,7 @@ on:
   pull_request:
     paths:
       - "src-tauri/**"
-      - "src/features/storage/persistence.ts"
+      - "src/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/macos.yml"
@@ -40,3 +40,23 @@ jobs:
           path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
           if-no-files-found: error
           retention-days: 30
+      - name: Launch bundled app and verify native storage
+        shell: bash
+        run: |
+          app="$(find src-tauri/target/aarch64-apple-darwin/release/bundle -name 'Fox Space.app' -print -quit)"
+          test -n "$app"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
+          "$app/Contents/MacOS/$executable" > "$RUNNER_TEMP/foxspace-app.log" 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          snapshot="$HOME/Library/Application Support/studio.liseya.foxspace/workspace.json"
+          for attempt in $(seq 1 45); do
+            if python3 -c 'import json,sys; assert "fox-screens" in json.load(open(sys.argv[1]))' "$snapshot" 2>/dev/null; then
+              echo "The bundled WKWebView rendered Fox Space and saved its native workspace."
+              exit 0
+            fi
+            kill -0 "$app_pid" || break
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/foxspace-app.log"
+          exit 1

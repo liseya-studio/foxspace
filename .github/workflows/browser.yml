@@ -1,7 +1,7 @@
 name: Browser smoke tests and screenshots
 on:
   push:
-    branches: [main]
+    branches: [main, macos-integrations]
   workflow_dispatch:
   pull_request:
 concurrency:

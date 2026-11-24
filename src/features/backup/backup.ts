@@ -1,6 +1,8 @@
+import { saveDownload } from "../desktop/integration";
 import { listItems, replaceItems, type StoredItem } from "../files/storage";
 
-const KEYS = ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1","fox-widget-table-columns-v1","fox-screen-grid-v1","fox-custom-screen-templates-v1","fox-projects-v1","fox-operations-v1","fox-trackers-v1","fox-agent-policies-v1","fox-audit-log-v1","fox-automations-v1","fox-agent-pending-v1"] as const;
+import { backupKeys, readBackupRecords, withBackupDefaults } from "./records";
+
 const FORMAT = "fox-space-backup-v1";
 type SerializedFile = Omit<StoredItem,"blob"> & {blobBase64?:string};
 type Backup = {format:string;createdAt:string;records:Record<string,unknown>;files:SerializedFile[];integrity?:{algorithm:"SHA-256";digest:string}};
@@ -24,24 +26,20 @@ function fromBase64(input:string):Blob{
 }
 function validateRecords(records:unknown):Record<string,unknown>{
   if(!records||typeof records!=="object"||Array.isArray(records))throw Error("Повреждены настройки рабочего пространства");
-  const values=records as Record<string,unknown>;
-  if(!("fox-widget-table-columns-v1" in values))values["fox-widget-table-columns-v1"]={};
+  const source=records as Record<string,unknown>;
+  for(const key of ["fox-screens","fox-theme","fox-accent","fox-tables-v1","fox-notes-tasks-v1","fox-editor-widgets-v1"]){
+    if(!Object.hasOwn(source,key))throw Error("В архиве отсутствует "+key);
+  }
+  const values:Record<string,unknown>=withBackupDefaults(source);
   if(!values["fox-widget-table-columns-v1"]||typeof values["fox-widget-table-columns-v1"]!=="object"||Array.isArray(values["fox-widget-table-columns-v1"]))throw Error("Повреждены настройки колонок виджетов");
-  if(!("fox-projects-v1" in values))values["fox-projects-v1"]={version:1,projects:[]};
-  if(!("fox-operations-v1" in values))values["fox-operations-v1"]={version:1,transactions:[],publications:[],budgets:[],ledger:[]};
-  if(!("fox-trackers-v1" in values))values["fox-trackers-v1"]={version:1,trackers:[]};
-  if(!("fox-automations-v1" in values))values["fox-automations-v1"]={version:1,items:[],history:[],notificationsEnabled:false};
   const automations=values["fox-automations-v1"] as {version?:number;items?:unknown[];history?:unknown[]};
   if(!automations||automations.version!==1||!Array.isArray(automations.items)||!Array.isArray(automations.history))throw Error("Повреждены настройки автоматизаций");
-  if(!("fox-agent-policies-v1" in values))values["fox-agent-policies-v1"]=[];
-  if(!("fox-agent-pending-v1" in values))values["fox-agent-pending-v1"]=[];
-  if(!("fox-audit-log-v1" in values))values["fox-audit-log-v1"]=[];
   if(!Array.isArray(values["fox-agent-policies-v1"])||!Array.isArray(values["fox-audit-log-v1"])||!Array.isArray(values["fox-agent-pending-v1"]))throw Error("Повреждены настройки доступа или журнал действий");
   const trackers=values["fox-trackers-v1"] as {version?:number;trackers?:unknown[]};
   if(!trackers||trackers.version!==1||!Array.isArray(trackers.trackers))throw Error("Повреждены данные личных трекеров");
   const ops=values["fox-operations-v1"] as Record<string,unknown>;
   if(!ops||ops.version!==1||!["transactions","publications","budgets","ledger"].every(k=>Array.isArray(ops[k])))throw Error("Повреждён финансовый или контентный учёт");
-  if(!Array.isArray(ops.audience))ops.audience=[];
+  if(!Array.isArray(ops.audience))values["fox-operations-v1"]={...ops,audience:[]};
   const projects=values["fox-projects-v1"];
   if(!projects||typeof projects!=="object"||!Array.isArray((projects as {projects?:unknown}).projects))throw Error("Повреждены проекты и цели");
   if(!Array.isArray(values["fox-screens"]))throw Error("Не найден список экранов");
@@ -49,20 +47,13 @@ function validateRecords(records:unknown):Record<string,unknown>{
   const data=values["fox-notes-tasks-v1"];
   if(!data||typeof data!=="object"||!Array.isArray((data as {notes?:unknown}).notes)||!Array.isArray((data as {tasks?:unknown}).tasks))throw Error("Не найдены заметки и задачи");
   if(!values["fox-editor-widgets-v1"]||typeof values["fox-editor-widgets-v1"]!=="object"||Array.isArray(values["fox-editor-widgets-v1"]))throw Error("Повреждены виджеты");
-  if(!("fox-screen-grid-v1" in values))values["fox-screen-grid-v1"]={};
-  if(!("fox-custom-screen-templates-v1" in values))values["fox-custom-screen-templates-v1"]=[];
   if(!Array.isArray(values["fox-custom-screen-templates-v1"]))throw Error("Повреждены пользовательские шаблоны");
   if(!values["fox-screen-grid-v1"]||typeof values["fox-screen-grid-v1"]!=="object"||Array.isArray(values["fox-screen-grid-v1"]))throw Error("Повреждены настройки сетки");
-  for(const key of KEYS)if(!(key in values))throw Error("В архиве отсутствует "+key);
   return values;
 }
 
-export async function exportBackup():Promise<{fileCount:number;totalBytes:number}>{
-  const records:Record<string,unknown>={};
-  for(const key of KEYS){
-    const raw=localStorage.getItem(key);
-    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"||key==="fox-custom-screen-templates-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"||key==="fox-widget-table-columns-v1"||key==="fox-screen-grid-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"||key==="fox-agent-pending-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
-  }
+export async function exportBackup():Promise<{fileCount:number;totalBytes:number}|null>{
+  const records=readBackupRecords();
   const items=await listItems(true);
   let totalBytes=0;
   const files:SerializedFile[]=[];
@@ -78,11 +69,7 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
   const backup:Backup={...payload,integrity:{algorithm:"SHA-256",digest:await digestJson(payload)}};
   const bytes=new Blob([JSON.stringify(backup)],{type:"application/json"});
   if(bytes.size>MAX_IMPORT)throw Error("Объём архива превышает лимит 150 МБ");
-  const url=URL.createObjectURL(bytes);
-  const link=document.createElement("a");
-  link.href=url;link.download="fox-space-backup-"+backup.createdAt.slice(0,10)+".json";
-  document.body.append(link);link.click();link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  if(!await saveDownload(bytes,"fox-space-backup-"+backup.createdAt.slice(0,10)+".json"))return null;
   return {fileCount:items.filter(item=>item.kind==="file").length,totalBytes};
 }
 
@@ -97,7 +84,7 @@ export async function inspectBackup(file:File):Promise<{backup:Backup;items:Stor
   const items:StoredItem[]=[];
   let total=0;
   for(const entry of raw.files){
-    if(!entry||typeof entry.id!=="string"||!entry.id||ids.has(entry.id))throw Error("Некорректный ID файла");
+    if(!entry||typeof entry.id!=="string"||!(/^[A-Za-z0-9-]{1,128}$/).test(entry.id)||ids.has(entry.id))throw Error("Некорректный ID файла");
     if(entry.kind!=="file"&&entry.kind!=="folder")throw Error("Некорректный тип элемента");
     if(typeof entry.name!=="string"||!entry.name.trim()||typeof entry.size!=="number"||entry.size<0)throw Error("Некорректные метаданные");
     ids.add(entry.id);
@@ -106,12 +93,23 @@ export async function inspectBackup(file:File):Promise<{backup:Backup;items:Stor
       if(typeof entry.blobBase64!=="string")throw Error("Нет данных файла «"+entry.name+"»");
       blob=fromBase64(entry.blobBase64);
       total+=blob.size;
-      if(blob.size!==entry.size||total>MAX_IMPORT)throw Error("Размер файла не совпадает с данными");
+      if(blob.size!==entry.size||blob.size>MAX_FILE||total>MAX_IMPORT)throw Error("Размер файла не совпадает с данными");
     }
     const {blobBase64,...metadata}=entry;
     items.push({...metadata,blob:blob?new Blob([blob],{type:entry.mime||"application/octet-stream"}):undefined});
   }
-  for(const item of items)if(item.parentId!==null&&!ids.has(item.parentId))throw Error("Найдена папка с отсутствующим родителем");
+  const folders=new Map(items.filter(item=>item.kind==="folder").map(item=>[item.id,item.parentId]));
+  const checked=new Set<string>();
+  for(const item of items){
+    const chain=new Set<string>();
+    let parent=item.parentId;
+    while(parent!==null&&!checked.has(parent)){
+      if(!folders.has(parent)||chain.has(parent))throw Error("Некорректная структура папок в архиве");
+      chain.add(parent);
+      parent=folders.get(parent)!;
+    }
+    for(const id of chain)checked.add(id);
+  }
   const summary=`${(records["fox-screens"] as unknown[]).length} экранов · ${(records["fox-tables-v1"] as unknown[]).length} таблиц · ${((records["fox-projects-v1"] as {projects:unknown[]}).projects).length} проектов · ${items.filter(x=>x.kind==="file").length} файлов · ${integrityVerified?"SHA-256 проверен":"старый архив без контрольной суммы"}`;
   return {backup:raw,items,summary};
 }
@@ -120,10 +118,10 @@ export async function restoreBackup(backup:Backup,items:StoredItem[]):Promise<vo
   const records=validateRecords(backup.records);
   const existing=await listItems(true);
   const old=new Map<string,string|null>();
-  for(const key of KEYS)old.set(key,localStorage.getItem(key));
+  for(const key of backupKeys)old.set(key,localStorage.getItem(key));
   try{
     await replaceItems(items);
-    for(const key of KEYS)localStorage.setItem(key,JSON.stringify(records[key]));
+    for(const key of backupKeys)localStorage.setItem(key,JSON.stringify(records[key]));
   }catch(error){
     await replaceItems(existing).catch(()=>{});
     for(const [key,value] of old){try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch{/* quota failure */}}

@@ -1,3 +1,4 @@
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState } from "react";
 import { Rss, Layers3, ShieldCheck, Radio, ExternalLink, RefreshCw, MessageCircle, Image as ImageIcon } from "lucide-react";
 
@@ -10,7 +11,25 @@ const defaultSources:Source[]=[
   {id:"vk-btsah",platform:"vk",title:"ВКонтакте · btsah",url:"https://vk.ru/btsah",status:"pending",message:"Ожидаем первой синхронизации"}
 ];
 const sourceName=(id:SourceId)=>id==="telegram-bulotkaff"?"Telegram":"ВКонтакте";
-function validLink(url:string){return /^https:\/\//.test(url);}
+function validLink(url:unknown):url is string{
+  if(typeof url!=="string")return false;
+  try{return new URL(url).protocol==="https:";}catch{return false;}
+}
+function readFeed(data:FeedData):FeedData{
+  if(!data||!Array.isArray(data.sources)||!Array.isArray(data.posts))throw Error("Некорректный формат ленты");
+  const ids=new Set(defaultSources.map(source=>source.id));
+  return {
+    generatedAt:typeof data.generatedAt==="string"?data.generatedAt:null,
+    sources:data.sources.filter(source=>source&&ids.has(source.id)&&validLink(source.url)&&typeof source.title==="string"&&typeof source.message==="string"),
+    posts:data.posts.filter(post=>post&&ids.has(post.sourceId)&&typeof post.id==="string"&&typeof post.text==="string"&&validLink(post.url))
+      .map(post=>({...post,images:Array.isArray(post.images)?post.images.filter(validLink):[]})),
+  };
+}
+async function bundledFeed(signal:AbortSignal){
+  const response=await fetch(import.meta.env.BASE_URL+"feed.json?v="+Date.now(),{signal,cache:"no-store"});
+  if(!response.ok)throw Error("Ошибка загрузки: HTTP "+response.status);
+  return readFeed(await response.json());
+}
 function readableDate(date?:string|null){
   if(!date)return "Дата не указана";
   const value=new Date(date);
@@ -25,28 +44,43 @@ export default function FeedCenter(){
   useEffect(()=>{
     const controller=new AbortController();
     setLoading(true);
-    const source=import.meta.env.BASE_URL+"feed.json?v="+Date.now();
-    fetch(source,{signal:controller.signal,cache:"no-store"}).then(async response=>{
-      if(!response.ok)throw Error("Ошибка загрузки: HTTP "+response.status);
-      return response.json() as Promise<FeedData>;
-    }).then(data=>{
-      if(!Array.isArray(data.sources)||!Array.isArray(data.posts))throw Error("Некорректный формат ленты");
-      setFeed({generatedAt:data.generatedAt??null,sources:data.sources,posts:data.posts});
-      setError("");
-    }).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:"Не удалось загрузить ленту");})
-      .finally(()=>{if(!controller.signal.aborted)setLoading(false);});
+    setError("");
+    async function load(){
+      try{
+        if(!isTauri()){
+          const data=await bundledFeed(controller.signal);
+          if(!controller.signal.aborted)setFeed(data);
+          return;
+        }
+        try{
+          const data=readFeed(await invoke<FeedData>("fetch_social_feed"));
+          if(!controller.signal.aborted)setFeed(data);
+        }catch(error){
+          const data=await bundledFeed(controller.signal);
+          if(!controller.signal.aborted){
+            setFeed(current=>current.generatedAt&&Date.parse(current.generatedAt)>Date.parse(data.generatedAt??"")?current:data);
+            setError("Не удалось обновить ленту. Показаны сохранённые публикации.");
+          }
+        }
+      }catch(error){
+        if(!controller.signal.aborted)setError(error instanceof Error?error.message:"Не удалось загрузить ленту");
+      }finally{
+        if(!controller.signal.aborted)setLoading(false);
+      }
+    }
+    void load();
     return ()=>controller.abort();
   },[refresh]);
   const sources=feed.sources.length?feed.sources:defaultSources;
   const visible=useMemo(()=>feed.posts.filter(post=>filter==="all"||post.sourceId===filter),[feed.posts,filter]);
   const sourceById=(id:SourceId)=>sources.find(source=>source.id===id);
   return <section className="fox-feed-center">
-    <header className="fox-comm-heading"><div><div className="eyebrow">ПУБЛИКАЦИИ</div><h1>Лента</h1><p>Два выбранных публичных источника. Здесь отображаются только действительно загруженные публикации, без демонстрационных постов.</p></div></header>
+    <header className="fox-comm-heading"><div><div className="eyebrow">ПУБЛИКАЦИИ</div><h1>Лента</h1><p>Публичные публикации из Telegram и ВКонтакте.</p></div></header>
     <div className="fox-feed-layout"><div className="fox-feed-main">
       <div className="fox-feed-filter-head"><Layers3 size={16}/><span>Публикации</span><small>{feed.posts.length} получено</small><button className="fox-feed-refresh" aria-label="Обновить ленту" title="Проверить новую синхронизацию" onClick={()=>setRefresh(v=>v+1)}><RefreshCw size={16}/></button></div>
       <div className="fox-feed-filters"><button className={filter==="all"?"active":""} onClick={()=>setFilter("all")}>Все</button>{sources.map(source=><button key={source.id} className={filter===source.id?"active":""} onClick={()=>setFilter(source.id)}>{sourceName(source.id)}</button>)}</div>
       {loading&&<div className="fox-feed-status" role="status">Загрузка публикаций…</div>}
-      {!loading&&error&&<div className="fox-feed-status" role="alert">Лента временно недоступна: {error}</div>}
+      {!loading&&error&&<div className="fox-feed-status" role="alert">{error}</div>}
       {!loading&&visible.length>0&&<div className="fox-feed-posts">{visible.map(post=><article className="fox-feed-post" key={post.id}>
         <div className="fox-feed-post-meta"><span className={"fox-feed-post-avatar "+(post.sourceId==="telegram-bulotkaff"?"telegram":"vk")}><MessageCircle size={18}/></span><div><strong>{sourceById(post.sourceId)?.title??sourceName(post.sourceId)}</strong><small>{readableDate(post.date)}</small></div><a href={post.url} target="_blank" rel="noopener noreferrer" aria-label="Открыть оригинал"><ExternalLink size={16}/></a></div>
         {post.text&&<p className="fox-feed-post-text">{post.text}</p>}

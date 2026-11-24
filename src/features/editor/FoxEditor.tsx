@@ -1,3 +1,4 @@
+import { saveDownload } from "../desktop/integration";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {GRID_KEY,readGridStore,reconcileGrid,reposition,updateGridSettings,nextSlot,type GridLayout,type Rect} from "./gridLayout";
 import { aggregateRows, filterRows, formatCell, valueForColumn, type Aggregate, type RowFilter, type TableData } from "../tables/values";
@@ -256,10 +257,7 @@ export default function FoxEditor({ screenId, editMode, onDoneEditing, tables, t
 
   function exportLayout() {
     const blob = new Blob([JSON.stringify({format:"fox-space-screen-v2",widgets,grid},null,2)],{type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href=url;link.download="fox-space-screen.json";link.click();
-    setTimeout(()=>URL.revokeObjectURL(url),0);
+    void saveDownload(blob,"fox-space-screen.json").catch(error=>setImportError(String(error)));
   }
   async function importLayout(file: File | undefined) {
     if (!file) return;

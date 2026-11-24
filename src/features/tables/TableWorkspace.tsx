@@ -1,3 +1,4 @@
+import { saveDownload } from "../desktop/integration";
 import { readProjects, type Project } from "../projects/data";
 import { valueForColumn, relationIds, linkedRows, type TableData } from "./values";
 import { GalleryView, KanbanView, CalendarView } from "./ExtraTableViews";
@@ -274,14 +275,14 @@ export default function TableWorkspace({openCreate=false,onCreateConsumed,openRe
 
   function exportXlsx(){
     if(!activeTable)return;
-    downloadXlsx(activeTable.name,activeTable.columns.map(column=>column.name),activeTable.rows.map(row=>activeTable.columns.map(column=>column.type==="multiselect"?splitMultiple(row.cells[column.id]).join("; "):computedCell(column,row,tables))),activeTable.columns);
+    void downloadXlsx(activeTable.name,activeTable.columns.map(column=>column.name),activeTable.rows.map(row=>activeTable.columns.map(column=>column.type==="multiselect"?splitMultiple(row.cells[column.id]).join("; "):computedCell(column,row,tables))),activeTable.columns).catch(error=>window.alert(String(error)));
   }
   function exportCsv() {
     if (!activeTable) return;
     const quote = (v: Cell | undefined) => '"' + String(v ?? "").replaceAll('"', '""') + '"';
     const csv = [activeTable.columns.map(c => quote(c.name)).join(";"), ...activeTable.rows.map(r => activeTable.columns.map(c => quote(c.type==="multiselect"?splitMultiple(r.cells[c.id]).join("; "):(computedCell(c,r,tables) ?? ""))).join(";"))].join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = activeTable.name + ".csv"; a.click(); URL.revokeObjectURL(url);
+    void saveDownload(blob,activeTable.name + ".csv").catch(error=>window.alert(String(error)));
   }
 
   return <section className="table-workspace">

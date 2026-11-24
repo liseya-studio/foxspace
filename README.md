@@ -41,7 +41,7 @@ npm run dev
 ```
 Open the local URL printed by Vite (typically `http://localhost:5173/`).
 
-**What to review:** start with the home empty state; use the bottom `+` for screens, tables, notes, tasks, folders and uploads; verify Fox Editor widgets, themes, calendar, search, file preview, notifications and backup. Feed and Messages deliberately show disconnected states until real integrations are built. No fabricated account data is loaded on a fresh browser.
+**What to review:** start with the home empty state; use the bottom `+` for screens, tables, notes, tasks, folders and uploads; verify Fox Editor widgets, themes, calendar, search, file preview, notifications and backup. In the browser, Feed displays the public snapshot and the Messages screen explains how to connect a VK community in the macOS app. No fabricated account data is loaded on a fresh browser.
 
 **Automated checks:** `npm run build` checks TypeScript/Vite. `npm run test:e2e` runs Chromium smoke tests and captures screenshots. Screenshots and traces are available as artifacts of [Browser smoke tests and screenshots](https://github.com/liseya-studio/foxspace/actions/workflows/browser.yml).
 
@@ -80,7 +80,7 @@ In the native shell, structured workspace records are atomically saved to the op
 - Content planning supports source publications, platform-specific text variants, attached media files, publication status and a week/month calendar view.
 - Analytics compares equivalent weekly or monthly periods and includes project results, goals, publication views, manually recorded social audience/bot activity snapshots and personal tracker entries.
 
-External social publishing, OAuth integrations, cross-device server sync and AI-agent execution are not connected yet. Agent policy and audit foundations are present; actual provider credentials and server-side adapters remain separate work.
+The native app supports VK community messages and a local MCP bridge that checks read permissions on every data request. External social publishing, social OAuth, cross-device sync and cloud MCP are still pending.
 
 ## Run locally
 ```bash
@@ -163,7 +163,9 @@ npm run dev
 - Notifications are derived from local tasks with due dates: overdue, today and within the next three days
 - Read/unread state and one-day snoozing persist locally; a task can be opened directly from its notification
 - Optional browser desktop reminders for due-today tasks, with explicit permission and a local deduplication record; these work only while the app is open
-- Messages remains a disconnected state; Feed has two configured public sources (Telegram @bulotkaff and VK btsah). Only verified retrieved posts are displayed.
+- The macOS Messages screen accepts a VK community ID and community key with message permissions. It verifies access, stores the key in Keychain, lists up to 100 recent dialogs, opens their text history and sends replies from the selected dialog. Telegram account messages open in Telegram Web.
+- Feed has two configured public sources (Telegram @bulotkaff and VK btsah). On macOS, refresh fetches the latest public snapshot from GitHub and falls back to bundled data when offline.
+- Connect an MCP desktop host using the [local MCP bridge instructions](integrations/foxspace-mcp/README.md).
 
 ### Public feed sources
 - Registered Telegram [@bulotkaff](https://t.me/bulotkaff) and VK [btsah](https://vk.ru/btsah) as the first two sources in the Feed screen.

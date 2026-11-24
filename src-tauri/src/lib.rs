@@ -3,6 +3,9 @@ use sha2::{Digest, Sha256};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use tauri::{AppHandle, Manager};
 
+mod desktop;
+mod social;
+
 fn app_data_root(app: &AppHandle) -> Result<PathBuf, String> {
     let root = app.path().app_data_dir().map_err(|e| format!("App data directory unavailable: {e}"))?;
     fs::create_dir_all(&root).map_err(|e| format!("Cannot create app data directory: {e}"))?;
@@ -303,8 +306,10 @@ fn chrono_stamp() -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
-        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup, openai_key_status, save_openai_api_key, delete_openai_api_key, openai_responses_create])
+        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup, openai_key_status, save_openai_api_key, delete_openai_api_key, openai_responses_create, social::fetch_social_feed, social::vk_connection, social::vk_connect, social::vk_disconnect, social::vk_conversations, social::vk_history, social::vk_send, desktop::save_workspace_export, desktop::open_external_link])
         .run(tauri::generate_context!())
         .expect("error while running Fox Space");
 }
