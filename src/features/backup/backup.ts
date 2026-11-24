@@ -25,6 +25,8 @@ function fromBase64(input:string):Blob{
 function validateRecords(records:unknown):Record<string,unknown>{
   if(!records||typeof records!=="object"||Array.isArray(records))throw Error("Повреждены настройки рабочего пространства");
   const values=records as Record<string,unknown>;
+  if(!("fox-widget-table-columns-v1" in values))values["fox-widget-table-columns-v1"]={};
+  if(!values["fox-widget-table-columns-v1"]||typeof values["fox-widget-table-columns-v1"]!=="object"||Array.isArray(values["fox-widget-table-columns-v1"]))throw Error("Повреждены настройки колонок виджетов");
   if(!("fox-projects-v1" in values))values["fox-projects-v1"]={version:1,projects:[]};
   if(!("fox-operations-v1" in values))values["fox-operations-v1"]={version:1,transactions:[],publications:[],budgets:[],ledger:[]};
   if(!("fox-trackers-v1" in values))values["fox-trackers-v1"]={version:1,trackers:[]};
@@ -59,7 +61,7 @@ export async function exportBackup():Promise<{fileCount:number;totalBytes:number
   const records:Record<string,unknown>={};
   for(const key of KEYS){
     const raw=localStorage.getItem(key);
-    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"||key==="fox-custom-screen-templates-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"||key==="fox-screen-grid-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"||key==="fox-agent-pending-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
+    records[key]=raw?JSON.parse(raw):key==="fox-screens"||key==="fox-tables-v1"||key==="fox-custom-screen-templates-v1"?[]:key==="fox-notes-tasks-v1"?{tasks:[],notes:[]}:key==="fox-editor-widgets-v1"||key==="fox-widget-table-columns-v1"||key==="fox-screen-grid-v1"?{}:key==="fox-projects-v1"?{version:1,projects:[]}:key==="fox-operations-v1"?{version:1,transactions:[],publications:[],budgets:[],ledger:[],audience:[]}:key==="fox-trackers-v1"?{version:1,trackers:[]}:key==="fox-agent-policies-v1"||key==="fox-audit-log-v1"||key==="fox-agent-pending-v1"?[]:key==="fox-automations-v1"?{version:1,items:[],history:[],notificationsEnabled:false}:key==="fox-theme"?"light":"#f06432";
   }
   const items=await listItems(true);
   let totalBytes=0;
