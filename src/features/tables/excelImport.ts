@@ -79,11 +79,17 @@ export function mergeExcelIntoTable(draft:ImportDraft,existing:ImportTable|undef
      :field.type==="select"?draft.rows.map(row=>clean(row[field.index])).filter(Boolean):[];
    const fieldOptions=[...new Set([...field.options,...observed])];
    let col=table.columns.find(c=>c.name.toLocaleLowerCase("ru")===field.name.toLocaleLowerCase("ru"));
+   // Imported scalar cells must never overwrite formula, relation, rollup, image,
+   // person, project, or backlink columns. Create a separate import field instead.
+   if(col&&!["text","number","date","checkbox","select","multiselect"].includes(col.type))col=undefined;
    if(!col){
-     col={id:createId(),name:field.name,type:field.type,options:field.type==="select"||field.type==="multiselect"?fieldOptions:undefined};
+     let importedName=field.name,suffix=2;
+     while(table.columns.some(item=>item.name.toLocaleLowerCase("ru")===importedName.toLocaleLowerCase("ru")))importedName=field.name+" (Импорт "+suffix+++ ")";
+     col={id:createId(),name:importedName,type:field.type,options:field.type==="select"||field.type==="multiselect"?fieldOptions:undefined};
      table.columns.push(col);
    }else if(col.type==="select"||col.type==="multiselect"){
-     col={...col,options:[...new Set([...(col.options??[]),...fieldOptions])]};
+     const observed=col.type==="multiselect"?draft.rows.flatMap(row=>splitMultiple(row[field.index])):draft.rows.map(row=>clean(row[field.index])).filter(Boolean);
+     col={...col,options:[...new Set([...(col.options??[]),...observed,...fieldOptions])]};
      table.columns=table.columns.map(item=>item.id===col!.id?col!:item);
    }else if(col.type==="text"&&(field.type==="select"||field.type==="multiselect")){
      // Upgrade only an entirely empty text column. Never rewrite existing user data.
