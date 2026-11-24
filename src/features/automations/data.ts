@@ -65,12 +65,11 @@ export async function runDueAutomations(now=new Date()):Promise<void>{
    }
    if(a.lastRunKey===key)continue;
    const action=a.action??"notification";
-   if(action==="notification"){
-    // Missing notification permissions must not flood the history every minute.
-    if(!data.notificationsEnabled)continue;
-    const lastAttempt=[...data.history].reverse().find(run=>run.automationId===a.id&&run.scheduledFor===scheduledFor);
-    if(lastAttempt&&lastAttempt.status!=="sent"&&now.getTime()-new Date(lastAttempt.ranAt).getTime()<60*60*1000)continue;
-   }
+   // A failed local action or revoked OS permission must not flood history
+   // and audit logs on every minute tick. Successful actions are deduplicated below.
+   const lastAttempt=[...data.history].reverse().find(run=>run.automationId===a.id&&run.scheduledFor===scheduledFor);
+   if(lastAttempt&&lastAttempt.status!=="sent"&&lastAttempt.status!=="completed"&&now.getTime()-new Date(lastAttempt.ranAt).getTime()<60*60*1000)continue;
+   if(action==="notification"&&!data.notificationsEnabled)continue;
    let status:AutomationRun["status"]="completed",detail="Локальная задача создана";
    try{
     if(action==="create_task"){
