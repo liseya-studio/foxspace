@@ -135,3 +135,34 @@ test("Excel time-only number formats are not misread as calendar dates",async({p
  });
  expect(timeFile[1][0]).toBe(0.5);
 });
+
+test("Files hub import preserves formula columns and extends existing dropdown choices",async({page})=>{
+ await page.goto("/");
+ const result=await page.evaluate(async()=>{
+  localStorage.setItem("fox-tables-v1",JSON.stringify([{
+   id:"existing",name:"Финансы",updatedAt:"2026-01-01T00:00:00.000Z",
+   columns:[
+    {id:"formula-total",name:"Итого",type:"formula",formulaSourceId:"amount",formulaFactor:1,formulaOperator:"*"},
+    {id:"status",name:"Статус",type:"select",options:["Новый"]},
+    {id:"tags",name:"Теги",type:"multiselect",options:["Видео"]}
+   ],rows:[]
+  }]));
+  const {persistImportedTables}=await import("/src/features/files/importDelimited.ts");
+  persistImportedTables([{
+   id:"incoming",name:"Финансы",updatedAt:"2026-11-24T00:00:00.000Z",
+   columns:[
+    {id:"total-in",name:"Итого",type:"number"},
+    {id:"status-in",name:"Статус",type:"text"},
+    {id:"tags-in",name:"Теги",type:"text"}
+   ],
+   rows:[{id:"new",cells:{"total-in":250,"status-in":"Отложен","tags-in":"Видео; Монтаж"}}]
+  }]);
+  return JSON.parse(localStorage.getItem("fox-tables-v1")||"[]")[0];
+ });
+ expect(result.columns.find((column:{id:string})=>column.id==="formula-total").type).toBe("formula");
+ expect(result.columns.some((column:{name:string;type:string})=>column.name==="Итого (Импорт 2)"&&column.type==="number")).toBeTruthy();
+ expect(result.columns.find((column:{id:string})=>column.id==="status").options).toEqual(["Новый","Отложен"]);
+ expect(result.columns.find((column:{id:string})=>column.id==="tags").options).toEqual(["Видео","Видео","Монтаж"]);
+ const tags=result.columns.find((column:{id:string})=>column.id==="tags");
+ expect(JSON.parse(result.rows[0].cells[tags.id])).toEqual(["Видео","Монтаж"]);
+});
