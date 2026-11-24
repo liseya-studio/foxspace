@@ -47,9 +47,14 @@ export async function parseDelimitedFile(item:StoredItem):Promise<ImportedTable>
   const header=records[0];
   if(header.length>200)throw Error("В таблице может быть не более 200 колонок");
   if(records.length<2)throw Error("В файле нет записей");
-  const columns:Column[]=header.map((name,index)=>{
+  const names=new Set<string>();
+  const columns:Column[]=header.map((rawName,index)=>{
+    const original=rawName.trim()||"Поле "+(index+1);
+    let name=original,suffix=2;
+    while(names.has(name.toLocaleLowerCase("ru")))name=original+" ("+(suffix++)+")";
+    names.add(name.toLocaleLowerCase("ru"));
     const values=records.slice(1).map(row=>row[index]??"");
-    return {id:crypto.randomUUID(),name:name.trim()||"Поле "+(index+1),type:cellType(values)};
+    return {id:crypto.randomUUID(),name,type:cellType(values)};
   });
   const rows=records.slice(1).map(record=>{
     const cells:Record<string,string|number|boolean>={};
