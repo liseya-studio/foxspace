@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-25T08:45:03.547182+00:00",
+  "generatedAt": "2026-11-25T21:47:30.150456+00:00",
   "sources": [
     {
       "id": "telegram-bulotkaff",
@@ -8,7 +8,7 @@
       "url": "https://t.me/bulotkaff",
       "status": "ok",
       "message": "Загружено публикаций: 4",
-      "updatedAt": "2026-11-25T08:45:03.547182+00:00"
+      "updatedAt": "2026-11-25T21:47:30.150456+00:00"
     },
     {
       "id": "vk-btsah",
@@ -21,64 +21,57 @@
   ],
   "posts": [
     {
-      "id": "telegram:bulotkaff/18824",
+      "id": "telegram:bulotkaff/18852",
       "sourceId": "telegram-bulotkaff",
-      "text": "Коротко про \"Девочка с сюрпризом\"  (ждите ещё глав 40 минимум, я не шучу)",
-      "url": "https://t.me/bulotkaff/18824",
-      "date": "2026-11-24T18:36:46+00:00",
+      "text": "#у_вашего_кота_есть_парень@bulotkaff\n「 6/6 」\n☾\nAU, в котором Чонгук несколько недель подкармливает соседского кота и называет его своим парнем, пока однажды не знакомится с его хозяином. Теперь Чонгуку предстоит объяснить, почему он пытается погладить за ухом взрослого мужчину.\n✦\n#kookyoon@bulotkaff\n#au@bulotkaff\n#miniau@bulotkaff",
+      "url": "https://t.me/bulotkaff/18852",
+      "date": "2026-11-25T16:33:00+00:00",
       "images": [
-        "https://cdn4.telesco.pe/file/bhRztVYpM6UFrH6KXNlDPKYC0D9vJ-HM0LaOvlZJPC3C_ROonL1nNjdKTlOjCnJVBEEcKVsCkLagOqPtGB6UZ7qGQw_ZSJjFBx4aAxZluGcnvCX0vFFhEbc3lEpp16aCJOsCzm_IcDZmu4OlFMFgLSjCzkjQfLNWOyWUQWnhJsWZ0yJbcgMALbV39DpSDcRVqNDCUVr0yfvyejcd3FxwM9gq8sQkYAqRpbdVeVUjg7tlUBg5jd8Qs15O-_MZxLFz4UZA5acGCLYg_C-BVS635Es7pcoQMhFDcJuRdTUuuTTU9UhtxRzuYjBgWKi5ceS4k6_vs7gEP4-9olyrmnP8yg.jpg"
+        "https://cdn4.telesco.pe/file/F_g9mCaUW1XW39sJrtjGRRJhFw_7dfC-wO7RsBVpg9IAnSNKkCn-s0tYv_DUNPsXhK16xnWl-bwqdR3PhZkBKQyla9ygnnm8_ZymwwoxuB7r0ZAoBIKIe7BtHfzrYsLHM6plqdQaGxmvRZHcApWHoFLeuyckQdSTq2Srx2MTjao4cErHJSZXnIHFbIyRvVURrTSkrTKaTgdYHQ9hWkCTXQEHZ6cFik49_pkqHWL-iO_wjv4d_aZCcZTTMJCCFENek2sRmJJ97cPviiTYhmlAjxXSB_W55Q06jAk8ajzGWEhm8FZXVY40tG_xMlhXHRVolyU3P1S3pifdxgtysFdIwQ.jpg",
+        "https://cdn4.telesco.pe/file/D1q_D4JHTkMrFBA-yc3Q1Fw5H4adON1d3xRdDYTfuKAbPJ81zUMc7TF5djXcZ3w7zwLYXCRz4w2eDjne0TM4Zgm42Og2zpZrX2yFKsDrGCvy4aB95613r1g5oTBxjZlOpKbhKKSP3OP-vEM-qY4vXsm6vdE5XQTtLdOVijA2RXH6Vg-c9pGY0wDf5NVcKasWswnRjp2KeJfUOx5QDlkmVFShH0eXiP62M3Y7-TbnwkBV8HhrzvNMDYqNkWY5B3NVdIbdcYjHhL5T4blocl6qr5WRbjx_ufo2oEFbNZox0HqealTMdrPYq2rneCXA_djYF93IjVWqP0-b4WD-Tr5FmA.jpg",
+        "https://cdn4.telesco.pe/file/cSKc-MydCZma0_zp4jznAkxXepOjPxzk2D4gMP3WX5lyN64HT1mamw1befa5mI5BR3VkHLSKSWdLBleM4QvNoYHqFX--kHbD9M9i23Fx46MbHWH6SuZiad-E8oXOsRAUlyN3-uTjOVp2WgjzTWRgXm59io43uKxx4ZENXGKRPk7PjBJPAmWFQj6hhf16B37NwH_BsFOQBmJ4_nt_Af-HIM67teYV3uvR33yCtT-sjNiN9dz0zhIQs_28SCIyy_sHYVdVxtYD_IFVsvCKvFpic3NXIWHf6L0wIrseFJYlTfRFrmNBVm1qyaGfY7DN6h62mLZc0lu_3UbGa8iMDnXtBQ.jpg",
+        "https://cdn4.telesco.pe/file/fFzFKdoyPTsABWGgP-6CVAVzfnF3Fbp83wzWsMuOIo0Bosg0PPmb9dd_QL3-g80kkoZR6nh3j_NBjFdKs2w0zgkYcvNV0RA_r017qMYaYxa37l_Yk7N2NsDgHpRTSDIoeYtHlYatG0SUbtw-zty3rH1uEePo83XQexlAJoCVMZmbRQbFKMY1GI56mgWeekqwtNxSOEsfh36qSwd1iglEpXm0uu_2JfQuXjI1Lk22WEDpDAGizQLRHssac4EUuNlf6fIS1OFsPR_60VG0ZdGtyJjaaEijVEWXhcpCz-AWnd5QTXQ7CKeBxLUraOK0ftLpBmsapMm7MzYI_n_VZiXgXQ.jpg",
+        "https://cdn4.telesco.pe/file/mRhLICbTIpDEu9oJSlIxxd-YJPHMJBpl9VRNNQ8QwuiO0i9Ylnvpmnh-NSKJAE4DL9Nwb-lCA431ICOgJVgepJyoNQTXOZz3Mz4Fbp9yxaqfQz0UX6a6ZwTVvepa7KM3lqKrqqaljtqHwiBtIayyIKPWXZUU7JK-5n9r-h7C17_PK_MQt9XE6lQiNYx87LYXcv6tGA79ybUAq_J6iLCXXX7BJ8Jdr1EpIGT51pyqY8yiOjL7PxWvifxw1EDBOuz5bCP_DDGR7XjSUvM71h9OS6MvyL2WPk2chYltO0Ki--l8rxJ4zi8p4Ife2FMHYNF5n7epDRCW8zVIDzVxGsiZwg.jpg"
       ]
     },
     {
-      "id": "telegram:bulotkaff/18815",
+      "id": "telegram:bulotkaff/18844",
       "sourceId": "telegram-bulotkaff",
-      "text": "#у_вашего_кота_есть_парень@bulotkaff\n「 4/6 」\n☾\nAU, в котором Чонгук несколько недель подкармливает соседского кота и называет его своим парнем, пока однажды не знакомится с его хозяином. Теперь Чонгуку предстоит объяснить, почему он пытается погладить за ухом взрослого мужчину.\n✦\n#kookyoon@bulotkaff\n#au@bulotkaff\n#miniau@bulotkaff",
-      "url": "https://t.me/bulotkaff/18815",
-      "date": "2026-11-23T15:35:54+00:00",
+      "text": "#у_вашего_кота_есть_парень@bulotkaff\n「 5/6 」\n☾\nAU, в котором Чонгук несколько недель подкармливает соседского кота и называет его своим парнем, пока однажды не знакомится с его хозяином. Теперь Чонгуку предстоит объяснить, почему он пытается погладить за ухом взрослого мужчину.\n✦\n#kookyoon@bulotkaff\n#au@bulotkaff\n#miniau@bulotkaff",
+      "url": "https://t.me/bulotkaff/18844",
+      "date": "2026-11-25T16:02:53+00:00",
       "images": [
-        "https://cdn4.telesco.pe/file/pZtOijpKfPNGCJK1-oiINQpbzLB8ItEmS3Ztw2qBh2VkFSXJE_V7xCi-gD7-WOc6lJr8758ByE63739g4aFA9sIOs-GGPsNt1BEBridV7Wz-uT6LxM8ZhzGV2Hz0PCpUcvhOtMKIlHG8WbzHh326T_EiVCjGZZy3o6ff2HrY5r1pTvZeNrq8tdQj4FaP36rhwvZPPh3K3tZr6B7I3MY9YmuPeDhPy2kLwGmBWJgwrpi6lL0AE7WjQP5ppCrzo1bXxrsvPN78fygKhWHWEnSrv5Jr9yHIxVTVaiaaQGIK6JnqcguIyk_WkCyFEH-nwvwT34Gp6dnbBG_mV25tea_gqw.jpg",
-        "https://cdn4.telesco.pe/file/iL9mq-RQVoFCP1EDPv9MQQiMMGsWt_2jQhjk82bqw_JUs8IeGdC3ATmhcmTUgKpFJOcCJKopKMU6HgK3grk_thg5O0wBc8ZDGh0Ed0EBikB9ykEI_Z9OnT0ONhSETxqC9nuDsevpL4LSAJZm6NswZde3lTkZTaj-QyIwko_N7LWXtp8xwn71vmk3j2zXVN2xgJfNVdxvwXezEwZqHA-FjqiR9E03O2w1QHRqSxa64Mpr9_vSuoo6dq5OKiwvs4UgMYYvKjLpFSPrR3CUZ4aa2LbHk0c821SivOxltO-1scHKTfdh09mVxclY9zkaomQAB8_ndVYDJnUn6UvWD966yw.jpg",
-        "https://cdn4.telesco.pe/file/iePTyUIvRf2FzlXe_vuMlrcz70sDuQeFVO-dZRrBDFUf8Xf3HZBk5qsq-sCtKq0wNZalWCr9zOZDvc10GHnOwJgWKtc4No7xIyA0g7PsKLWjLbwBglYmT3XlmsKQGFneusY6_3qZ4MlOUc2I2lt3zM8nhrTRJBy0Ti1ZYtlcvBgP3Cq-kXjLcvMSNg0k_8r7AZZNd9Ert6a56FXYD0cyQ27p-Sd6VPxWZ3VpuYqi6MxSxp6i3S11_gCRf_ixYU-Dh-gbiz9wWnQbLqdhG1xCB7kFJGWd_XZwKFgRx_MVOycUp7-ALLUnOTobU4kpujvoQCdeK-QGB21mi19QPIuzeg.jpg",
-        "https://cdn4.telesco.pe/file/QRXRTVSDLYryBPGCb1kaSaE014BUXCmUcQlKtGBLc921z7MJ67skvbogMfp-BEd2vg6LOnCx-zxy5JO8oyC8XX6TI2JnDe748ev5EYNUlswKETulZAXGnkpLQioGmGw8VenT9W5uznbpryjbe1r3j5EDgprfj-nmfwFyjHAld-epdpgWFjISFLIi1GLmtJW8JPssFck4LfeT9BwAEIa9RNGSyAJc4rMlKyj13cLC1DYZf34rnT-IxQs4m1FAPGjKLS8yRgNUmyyJxlQ-1O8jf_ecREzWPIO5yOS7FFSnfmXrdkiOyJW0mWFW6s5x5Mp5cuulfRGwdUZD_K1TTj_5TQ.jpg",
-        "https://cdn4.telesco.pe/file/vWZ2iD6yjYFP7OcLvbOqA_84UoEcJTAhcoNJzlWemtRtxgrb4oCzCCwXroTu366fRJp60a71UDiWmSytUV477n3vOJo1Zzl5bm_rrx-XAMNc71b2PVLz5tBFEY2KPvVHzjaSXZ2XgDixwl60SMbsukOAGHodimBzzapTkbDpCADx_Z3pMl1fxwN9R8gW_ki0RsI2P54BWLlZox6j2Qi3eNG60Hima0FLvhXAx_bOwhf2A5pX3KFicpSy8L8Ym0qDYkbHszZz-GW8fwkJUEpqL4g3Pf3cynApTS1KXBHnh0VlrRkB6GVKqeHouBaHqXY5CFHTMmQ0g56bLaYB0KsEgA.jpg",
-        "https://cdn4.telesco.pe/file/K1pNfDgNS0SZjTjrB7afUIJZUMOP2IuPAOv0itGLowU4qmfzP3nznFwSSB3joz5bU6MAh0eTWn9bKI1FB1sVqRRgQzn9JWytQzVLJjgXdtHYXbmUGfg9eFrT7bxHwonhpWM5NgcgyA6X_h4WzC8IrxC59SYQC4b_7-ZoNqMV_TVFDkGuwXbu7pqes1YycY25XCr15SO-8udiE9eBQjrf5vA8i-GfMdS8_OaH0O34-P6Ql5hLVcgPGEVcbV6QLgXRh8EgcQR3fO8NXLn0twiN21v8aVrFS3mJoN9o6S-QkRvrHuaqw0DLCHxdSbq_6ZDJq5EzIF-AlZ_xhKkN1PaLfA.jpg",
-        "https://cdn4.telesco.pe/file/jRKF-yDvyJu5P3IXv-SFnCqXODyxj1AvskUCe2QyWC7aNRe0OsVAzVKy8bzeXNjTKGcojAy8OM1kkgAtESaPjcMjMZFthwai7OLBa_Oz22cD1XyS2EQqlstymr6ucTudqiqyh0VCJqLFY_doAxM8HJDlA6FiFiml7xZV_jV8WGoh4tFocbiueXItJWMC6riRP5w0JqnoLJOUrDAqtdAWYQbz5enbO6GWp5lYKcNqkIqf6XTpJvbUagMq-V5ydomV_xqCjDhfsoH5FHs0oa6Aop-ZJS-JnRpypSPY4yV_430tJIDnt7GKQ6Jck-Z_YIX5NfixQ7jUUziF-ftAS2Zmuw.jpg",
-        "https://cdn4.telesco.pe/file/LGkylMZxFlTjyC3pl95zVYuFl7bbhjALv711N4s67TJ7qMS4WazsdxrpxgPZHkztom21GHcFiwxiJlmXTtNiXCvwE2iCalgnZDGJAIpyiIaRJk1F32ULcgm9QM5V8DVLO6IO-1tQRJCHg-NXyAdLkcEKUohA_tH4EVvIgsiEgwwKZE6N1RpEb9YgKDK7_clsUyvCEfGLlP70Y0COP4J7koMueFXH_uX1bM2v65H7w9f9el8rsuPHeewolL1Fv5qjYjl8OyNmEAGqVm58tSTyp2lV1JQxSR_8Oi9G4AKibY07uPaHjj0QOTyhbeMy-zWOB-QEAQbsscRs7TBn2pEjLA.jpg"
+        "https://cdn4.telesco.pe/file/rs1j1_JUmQAqVyy1qJ35kSLquHI2I3HWkAuxh0ypKI-AXIzaxkz8OGjGCh6n50Nv2i1Vh7CpKWDoYB8RpkeVRnlFMPvfNNBkPYaSSgu_gjPp1SLt_IUi6lJbS2x93m3mK7O00z5zn6z6Qhph-VJIQMbs1JvhJnwI-VPVv-sfZtdsP0q-m3IfCA0jpBvWEI1PSmSavv6FPYaQbVwaXdQobub36gHPjygDuHzIW5WvglzZPCeZjiNNywW7Fd3P3jWeWSbAGkm-YqMr3Z2aYTWY2y5N6YHJlhSnBgl8KDZpLM5eP9lnHHNuobmqjyosvHdJ7K6SVNOaJyora_BJB-996w.jpg",
+        "https://cdn4.telesco.pe/file/drKD7jtzpatPznolSb61-nR6YZvzVLYA3-bB8fuMJu38arOI6SL32k4xUjhUOggTozDirkJlhHRvMoT0kwZu-5IodWk8TiQ_xmPapPJwZsp8-hvJVhPJzJxzFOH8FDBiYsuWOTAHDgsINxhEtcp-ybnKFVTO-60LamcLZLbPvUR04J5zlaRFD4kRanliGLQPCWOwZs-yVHg3nMtEms-3452naM6VBxI1Ju6JFvavaQnhfuSAgMsMQh03Agu9ThR5exeHsdJD5rgoSpubxGFepHVhYatKcK4df0R9iJIe0-GGdL46egbIImsJcXDSjdasPwaeRJkIALhMvrd8r_qb7w.jpg",
+        "https://cdn4.telesco.pe/file/Zjb0bVj6bklVZSBDjQPOrOnofQwvxzNPelMb5qOuWt9LooDcKpJ644cg5cbMrm0VVPfArcZAIRW3sBkHskfTxP7ViGFcySC7y3MFG8t-pZEN7qcJ10Bg2UVX3LvVh51d-WoY3ukDaK_5-AmMgEzytQYF2FqmIUosogO0HAgn0Qsk3eZs8GsjCZB6NdiFNMEAsSDogBHqDmcSNdOUJ2RYVJzibXiKstYrWb1GffmeTxjdrtpeVmtwCCwXOSUrfxcRTYmcA6U0UEcCKD8qYxs350W6RU1iOLAsugdThJbTv0GdMVZu0K8iWgvi3a9rOKMf8jst9CT64VZ6Hk8Ze1cq9A.jpg",
+        "https://cdn4.telesco.pe/file/I2aAzVWt98MT2aVcg2Wo285E8vRyL8BIGYwxUX0b7XWsHiD5_mjUg5XZ-WFwVx_D-8zpj0VY_5MSQZ200B-_QqtBDhQ02q48do7bLUp6whZFQUmahxBJPcOoPl3Gn1ToNOKeDTGAdvhYpMm2V6FVKYeeBCuvN5MaDniWPN9H0aUUZ385Yx7xeGWmjWBfjkgkZPi2BOeUBR03J9JZhFpc-DskVQ5bFYurgTbnwQI63251rktWvU5RnAzaQr6z5_5YBDb6qazaWH69P91DP6rMzZNI4kiuaaYMDqo_qmR0svCja8BgRsrzJ3rqjKLcoDMjI82kkOs81Hi6AkvNLe3BbQ.jpg",
+        "https://cdn4.telesco.pe/file/uw9BaiVfP5Ok8e_-YASRcJXyNS0NcXdh44MovPh_oEf_mLHdErlhngs3hJF87-uVDIbDq7rdxPhSfrLklbbT7ehVSkLQzDypYs8Pkx2Kstsn6IuYbrjlzb68wAtHZNt1HtzZS2sDf_bBvc2yGOCGn2uQD-f5dM1XEIinN30KWaeP9lnfwqCamiOIxpNmixulsLezFgsvgL3h9F7RqteMsg2_DAnV-CqU_S-OCAQVpmwipwtFgPhMT2ejMaqrysIqK18BYKevDSmBr3BdNlqauqPMy9326Fw-eRTU3zmStOQ02wDhDLbzRnSzIagkgoRL8UUjeoytr11L3sCOsO0b8g.jpg",
+        "https://cdn4.telesco.pe/file/ZgEIx1h_d9Our665QaA4TWuqz6S1Ti7FuaDC9NcyLYCBGk870BFcoP4EvETVNtYV9w3ds4XkiAF6aIiDoIFJ95paZoMRv5ofdFPwfLEG8_qdrEutRo1WZ3WFGbnS1xMjzeOetFrIROTCEzyTJvVsdlF-ByJYPRuDG5zgE5kUR5_gYS6_9Mw2A_kT-jJKEql7CyhXWHSGAm_e13pqxgQIkMYexnmSU2DXbnJP6ySSKxonb93RRqfxPT9CVM5tYVAPZdL3R0Ejw8E1tesH6yYbZO-EyKX7lDmYsypCMmBVYd1weLOkv9xIh6lNs7b89SNGDjxrToCPr60J8aSgna9oLQ.jpg",
+        "https://cdn4.telesco.pe/file/Bt1aCKHSqTCDA6ncDJp5bt6uNnF_WWjOBzn0pY0_SGkDJaFRaXMbs0xSSdLq4nb_Hf6bL4Aurnk4LKJKUEbAadJyLm5sybx69vGclkIcJn_-OlBjsOMzp_g2Wf6yeEisuFT5yXBhGqKdTrrhEDaUWomrgumKBH8EcUFLW0dNPda8GijnCIR9ITgnK_4ZhALKv4KFh7OhGpihcWbrPAbHXCdrNDYqn7AgsXVwtuTSVzUVbCKbb7QZqpgjbuUjZWooHl1GyvH6sVLp36MU9jZORZAjQaty6sNkMV2C0rk1TG0odEQArjDkQGAgLVOaC6MFbxrJ8Js1Q-CiIbqdeYSx8g.jpg",
+        "https://cdn4.telesco.pe/file/vOW6L4SzYsMbZHvrfcarMiqpGPVxDVUXK02FR9vDehctdLzfD4Wz2vICCJPOIvCkYeTPQG3v45rIEQtiMGWEJlvEEJBedwQPbkT_XUWylrOrdKvipiwAWqshNtOX0qV-IM0VfLNAxr3p37LR9y2Mkq6GNLrfAEHydoWbCTa1HvvRccenlo7mPT_II3sL4WjXgTispH_1TjhXdEBMPhbB-zX0VKfg_6sGdBr4KGeitH19SyGfH0hyuKHh4N2egh-o_IHmio-L5l67pbkUa8deDAlRpTCOWbATqri76w-QoAEeejGYvO00Bj21EDi7bwwiOxGw1PZUNUkRJPSljCU7sA.jpg"
       ]
     },
     {
-      "id": "telegram:bulotkaff/18807",
+      "id": "telegram:bulotkaff/18843",
       "sourceId": "telegram-bulotkaff",
-      "text": "#девочка_с_сюрпризом@bulotkaff\n[49.5]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
-      "url": "https://t.me/bulotkaff/18807",
-      "date": "2026-11-22T15:06:57+00:00",
-      "images": [
-        "https://cdn4.telesco.pe/file/DwrCw1WNhjnkNS7Ul6PQ3zRgFBfp0rik0Js8MFXjQ8uCDln4dXPpQTE1uUnyodjYSFiw8iYjwUpYc04b-CJDnSYpqnTzyX4YYThzWScW-8zDMzIh1vajS09oEPla7izmfxsnXg4ke70DaUHDr9991MzEgtHPEYdL463mOOFyj_cCKRS0xRHTITWtdKZvy_49mFWntga6ZenTN4QLPjL6lu4nkGzb-77XMtLBAGsr8JczILOxhdw-WuWiByB4Dy-Fn_4HaNq74gXQSvYS-CzjdUA76oRxKXpIVvbhSA8BRf9T3ig5kl_FA8R5XUzd_DyBJMevWPdNcAd0FjR0Bfi7pw.jpg",
-        "https://cdn4.telesco.pe/file/rDZdMjq7XJYlzpR6TWYkzR1L7oBftWeeoVdVvDnp3sbaPzqLa1LKU9gtMUGyMBWg98qjFaCVgSjwKYb_LMLC64az_ND_pNcrXu4nOd6qwaVqECHapOe56KQCN7gFwnRqT7ucxyGfQSRPgPaWwwJ0Lzw7fjs4CZS57zt6dq5bJye_XihOQpVD_NIVedrd7QV-kmvdkQvkHehP0_G3osoCimjviyqcgmdh59YDl5bhBW8DGjRULo_Xp1GgP12jewXQZTMKvWz5dNq4P7jx8SmNSVU5ColM2u8XRGmiUmxMNhwHsKabV4QvLlD8ulWlYYrW77EAmdXl3IvnSQw0BLfSUA.jpg",
-        "https://cdn4.telesco.pe/file/c9fFSHYre01-bygOkPI4gM1QgFsrA6xkYrnIIRwrk-cEh5CJXDOIW8CDnbi02PpcONaiar_JSrEJe90vlTHT7GAJqgw-SrUwfvGSr-A6P47dxr3uEsULieoBdH5B6EF1UzfQZtIGfzukAr6jiRHWG-RSURcZSny2Q3FA0FAKUt9DSSWtooQkfpK1uBx41CmJ8LxXdnj3s4SrSy7wsyt41liIJoJng8kzP37Gh1POfhm4OVdetVCkg3QjCz9SKx4zq1FPmIimmOHGwRlddQtkYr4VIPKUD3KcFBy0nqf6JZYgi1MN7pQdA77snQ-kqojKpqhVcRZo5ssroddAs17sIg.jpg",
-        "https://cdn4.telesco.pe/file/s_4_UmnYHEMOzWfYOj7-1pjwOynQoN286brBCXEKXiIir_MGdMi_4CoILXm9uwEaQkcCTBQ1d8erxHC3tQBf__-wAYy_8MQh7nWspYJ6MH-_QdKDb2HfUqRQYVKwkSbM9QKdCWhZUfOxP9GtFOXpKHXuCTHMdXSXkh4Y3fYFGgLhRvsg2qrAINN-GUmXFH4Wuw4hFZPhGjZu3iepSq2iO3HB8NJ9Q8G-IXEJ6xHXF2xGFKHDn5YRyzPKLO0pJKZ1VDBaeVAnXKkX_VJBN56Sed_LKxpKplAyRH-uny-Py-BgYm6K6uUkYZCMhzzPKXNnUDlzikU4hAw4pr9Tb9ZVQw.jpg",
-        "https://cdn4.telesco.pe/file/OEpCINN9QrC_nWe_2AWT_Zk0waXtWvfvUvcuT3SOophJr151LQ7W9XWm_ZMHsyQGl6uQOYEL9gOHGgwn3fWKAZmgLKFKqkvNKPZEVz1ST7nJlR9CM0mKiDnRV7iyk6UK7GLmdPoBQiR69wC1WqcYygQEmEyVO7VYARWvqLJj9Q4WXc3CTdbfUSClo6nHbYoK-UxGmeZOSXQPkLKDLOuOCw_39P5hZ6SjgxRy3i4mqGIi7_Dv5zb4SBHIu6D4wO6gA-iSW3rXlR_O2R92OO7VOU1tluv5_gU-O4euI6j-HIZ9q3WX2gT56JvUg4qKwoGPQYYxJvYWQh1Avqq3FQTv7Q.jpg",
-        "https://cdn4.telesco.pe/file/iFDwkzEWb5LY6N4bqn4NWyxhM-_AI9V4RPvAtqv2y1TkzBeeYQl3lrhrHUlI1aEJAVBGkHxsHL-IG2Y5KccB38u4-ISe96QQoS8YWMKpePyzzqFkp2t2y77LATXNVgAhQm8ujRiIr6MsG3wnVTMCC2n6G7hDssQTCqOta__F0ramaNgBj76Zf0C9gKMaxHGsdz9_lkScqv1i3QIm3tA4ggHdaGXM7UstHS-u-N6BSbWyMWpH6Q5syw9Ywhtg8Vdg5PY9ntKdCvLUzgIM_maGsE2iRkLt9OGdHGSkUFATbJaZ5Zfxfc5dc0Qj14WVs7iaMLWM0rIwoQbd8KZU16y0-g.jpg",
-        "https://cdn4.telesco.pe/file/DrsJKuuLn_ShLoCTULih6oRXrmcf9L1h-1nMnRqtf9PPex5ZzoDLzHeExtr0iQAcCyExQKfaKSvy5rpB4y_RAAFeJR96UjLFqXB8p5c3MPTpCaBHG1DdK1ScpVLLPqS-A8aoKQGs3nr9LidcZKjrWaAardeYnwBY7CZ7IDSrjojjViDw5FTO9RrA70OHxJB1Axt4QnRKIsItbswzYd3eojiKomWajpvmpl75p07s4RzMJ9AykUmYljm088I-WwdCpQ1E2GIjbE9tw24KMQ_oMs4FCqrlOT-ueIBoyMCkAYFLQkOmhDu4tNwZGGwU9nV2kIvn3e4AhFfTTkrGpN-0dw.jpg"
-      ]
+      "text": "Истории Юнги ☾ | AU · Fanfiction · Comix\npinned «\nhttps://t.me/bulotkaff?boost   Голосуйте за канальчик, сделаем красивые реакции с нашими милашками. Смотрите какой пак сделала:   https://t.me/addemoji/bulotkaff\n»",
+      "url": "https://t.me/bulotkaff/18843",
+      "date": "2026-11-25T15:10:56+00:00",
+      "images": []
     },
     {
-      "id": "telegram:bulotkaff/18798",
+      "id": "telegram:bulotkaff/18837",
       "sourceId": "telegram-bulotkaff",
-      "text": "#девочка_с_сюрпризом@bulotkaff\n[49]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
-      "url": "https://t.me/bulotkaff/18798",
-      "date": "2026-11-22T15:06:19+00:00",
+      "text": "#девочка_с_сюрпризом@bulotkaff\n[50]\nAU, в котором Юнги — жуткий бабник, который меняет девушек как перчатки, и с одной из последних ему не везёт. Она оказывается мстительной и сначала пытается портить Мину жизнь странными слухами, а затем в итоге платит ведьме, чтобы на парня наложили порчу, и он почувствовал на себе, каково это, оказаться брошенным и использованным. На следующее утро он просыпается в женском теле.\n#au@bulotkaff\n#jimsu@bulotkaff",
+      "url": "https://t.me/bulotkaff/18837",
+      "date": "2026-11-25T14:10:58+00:00",
       "images": [
-        "https://cdn4.telesco.pe/file/mipANCYNJBMT5Jm9PcvhK9WNW7KkRNkx9LJAZ0eVVbXjhz4OpbgXYdjfqvBpYlhdnuPfvZPdlbC52HrNYiVjXatpCXUIHLfWeBqpLvS2B6nybFBe6Y6NEHNedhH64WSrEbZjObRzHulF1iSpjcp6wSPaQRg9nwOC7hsLAHBZm54bNr7qcqgZpOsmjlcHl73-gUdZflEM7cZdyaPyTuUxuyq-0jPecb8Nj3UIdUyWvlzANf4QizjoroD1_vR1Iunv3PP2n31-7sOeMPQBJKq9K8mFGkwwzVo9H2RQvd__fjtHbvvpFHxLaU9SnQnaGGiWi3yvbSK1_PDiIwo_tBJ34w.jpg",
-        "https://cdn4.telesco.pe/file/L6LDePfQSyGJCKf_D6U5EwoV4eY5bhEdyUfxn5o_CW7F4Yr4jxkbAm-q82vS_AU3Q_qmlvgeM_Z5lb8YoDpXbH_yBIL-F_nJU-VISjijQQWO-g0Y5mvd1HoB8qQCvRCBcQOv2yRuVyK1cEHwiRBMVGBHeoJ-BpU_IQgQgpS1IWcy7HUZeRdfzWrK0g5_s9OWjhxOLhzfITw6aK9w3Rxi-LcnpaUcrTU0yNZT1tHaUA7ptcIWNhzQacQc9-0KeoPlcxsEjGvUVNfMSDY0UfJBLfFaaa2tBDgGzBbDtESCv3yAcbvpnt0mcfwaS1l-_ihuzKj3lnJJWv-cqjWaw9TSMA.jpg",
-        "https://cdn4.telesco.pe/file/Ld2qTwtC0eAD0IBAw9NgmLwcHfkq8wLmYTJbnGIPtiQiAkAImkBevrgvsXAGC5ZWH3mlWc2Wjdi4bo-fpGhMdk-zSneljtwkpWnAMuK2bhZmFCVIGcFjm17umhZ8x24bVQShloSBdFN3fRAp3h-2AAKv9ri76MCKJqzRbxPQi9x4XVV6accuAKUkpv7MmQAmL5GqwVkoFNlRY_ALMjgW3m2_N2Q_gqfc7OZDhGCAuycjWwOmuyWbOus4f-HwsR4XpVfXEpJn-2Vt31zrOw0eD1xnuGRb6OBkcBc_eWZX20UHs6IL4ksuA5qkRZ4m2qdmjAMxq1tp9vidayL_q6plqQ.jpg",
-        "https://cdn4.telesco.pe/file/TaMxew-WIA5Rtrt5jeHCgu7VwRY43irk_cGuyhmYAKju6thr_aP9iJFzvio6kz04t1IzH_S9iDvugrkW47CCNQqHm1S6tbq1FO7gFI3bHlbrQvyOgK1Wm_bXyH1UbziuBTGke0CS57Srfkp-r-u30d94mILA5QjMpEIwdviq7wMQiDKtZY1VKDEWjzkDWaZu7Vunt1WyBhXOIndLM3ADTWua6KzUgvzm1ERmcb5itMji9wi9vC8tQ8smklA9pH7_PZ5EegAOMn7fN0h2MLxmjZJq9EPtPKZhfle4lEuBz2AFkSZ41nR7mnwSaV5YoNCXW1PmCdLmHTQYYa33zemQtg.jpg",
-        "https://cdn4.telesco.pe/file/E2H4JKFchtQowAjH3RKiXOz4g_i-vzr6_cWnJ1DQT814fq0KhRW7jbdZpN47UCLiJBBkuMAlQ_ZwZhmx-Ry9E4N89hHSBk1gEIOz4gcQ1udF9uWpbroiaTTGIPuHfTBAo27RRrUpMjp3VJFSKhC5kC0xkhsSvcR0nOMDC2nAfMEjzZvNX03RKLMQxiY3slColFQx9FXq4NcwIsnYY6Wa3yGotFWyQhleGr-zxoa3f-eEv10H6xQNpBVrjc8ENSKDQGhRL5GtpgGjsE3SnxXy3P6E89MEMo9toX8CxlVAZEenrqJsNd2jx6whR31yBeISkTMhUpREN2JMyKZZvU5CrQ.jpg",
-        "https://cdn4.telesco.pe/file/qaK_Qh7ZAAFceS3DvNtXCRoqOmIQCmgf1alqVpbhC58TIYN1hlqHgXNXfC5rQUMStX-4EX95TiAHd3OxGMTMPuyvBG535iIlC38CsDcLImdYHJ3YJjsVJsVnj0Pwde0FlImh-CfEnZ9AeN0UQoBwRXa1tom06C01gt850T8tYbOlc48921j7-LcxFHsfHSCEGtwZl8pLjXfDPI8c2hr1qFME3VTGc0SL5iK-4Q1CeJg6B1CzKDQxwS-jbyluCgawG475i-jO4srDUzzf787PReAIWe2Lb6q3MZM3zNZJPpW_LJ27J_1P45gTZz9yerius-b3hef9Mu3z4T4pGMnURQ.jpg",
-        "https://cdn4.telesco.pe/file/qIUd2fRP9qwpqJDECKAneKZIXwtmIz91np-otHNlIfI8rXgiInaoLU9vw-CT1SvzicJ9MSGB8OssLL4c4GCO1fD8uNwia-f8mKiUIdyfmfGF3m74AZYsfcKlZQgcLLlAkUusGtyZEhjAyWNvoPfEmVQVrcsBf1k1xB_m_0S7-RKyUqPJWqZWRJKrJ7PNA_g6BZiFxJIAwN-SnsMn62k1jaQilIl1A9vNun40nL_3l_TW9F7hBVrjoBODrMiCa3Cv4dExQEslNc89yX53aOA-EKXyfDxcVErQNSTn0cdBXeJvRKuYUYXyyuSHXuEK5pl2EkzBYEYyB4FepghCSLL0Og.jpg",
-        "https://cdn4.telesco.pe/file/OnKsOKum8Kf8Ds4jCDMrPzqeR7566hYgHF3KAW_awFh43sGUHxC6JratF8T-7oVYXHaXqaqrvkx76cYhVUVkOH_xzXrW3IGUUxKcVqUG7ojDJ5MQ2i3jQ0_fx4IVXBC1WqrOpscvYUXdmLWft_0IV4QJlQOovtyHXS_ZrAyaeD0fdU-8QtOkSxrojzo3U9eGvr30_Q-XZNy5zMerR4jFSCoopbJfG5ZtSq_t1g4B0v-0AhHYnf_BO-OKcWvCov4r53nM-_y17pRkJH3JiArv7JjrrrL7vp2gIgJLzneeFQ7tgKBKqBH5xHgda4eSLXucWdYhB6QaM90egs_3a1Tqdg.jpg",
-        "https://cdn4.telesco.pe/file/E66IHw7MVqluX6Fl3obEATzOGsQRR7IUQeUZ3MiImasVNGGpsDFfb67Tpmx9ineAKuBGMfwFWUmowdtFAH7quu1uUJ9PsocqqK9t0MzCiuNPXX7baqdEDgkup0E0KBX-8dZUiuohV_HQVbmtnlywZqOcOj8IFo_osBp0aMb3B3qlO0JoVDTgvtg0YkqQCe69BUvl5_oYFISsS-WNGpZK6AYQ8-eebeiMN-zzfZl2ZJSKfQnYX7mapDuOYvWj7h2nIyYLpoIieiU-9NwOc47PhZk0QZvsdDUg-VCjHuiRedCj9uK6dysWWkip1V22vPohdIydPBwf4gqlDeyxnwHYWg.jpg"
+        "https://cdn4.telesco.pe/file/mYtRYV9VILBj1PlMjng1gID16hkFEq_cdv0i4dD6MuLcnDMgvCwmU9vA8JUPWV4BPnIx5wVpBUo7B7EzBicg0XQC-t04KbqhoRGstGRkkxhp6IrOtpqicpdmt01WNJoqHZf0V3jsTHqv2m2DHQuXBVdFqLbu_Vna5S_nCZAsFIJfhcm0qIp6Nr90aWlziVBQiBcOZscyLiG5YXYSDNbRC7Sf3GraVtT3AkhUV2umq06CGkXObHsi8S3_gR9t_rh7mGamlOFlMa3juPM2r0va4TctigNYBoTXhkriykZN8lbt0f2akQxiE3GUElg-ciAOoZdZfnB6X9kbO0CdxUKuXg.jpg",
+        "https://cdn4.telesco.pe/file/LQ2NUTNyhQSwvcLC1VQ6QnDarrECK86BVULn3yp5xviQEZYMt82zApZIOfOvLp6newWjUd8eMKvoco0p4fAmTAacSMvukekqZHkVyNvOITAnmu2uPCmBGU6WidnrKZLuN6uHoNTNQ25OLwZMWNRIhGCKFfX3URhu3HeB0tNXokqORR0473usaxZYSOVglfuM5SdicrcStezyT8wJAhceA70Eownhr7R0dkc7Inqr680oRsNUqLDWqMXLzvyCCMmHHotk9P-G7MvwelW0Wy02q91pJCM8K0cETcwQSR1LS38IlIcfYyEqX3CWguMDv1evtHKVc2GX8TQCxznyr1-atw.jpg",
+        "https://cdn4.telesco.pe/file/IN6a93Llz3EGXLSDayF4_feP_j9-xvcqE76IyQf0B5WGqbqQ-db5g7JSzemWFLrKrILbXXTwH1XqNYqpY1iu0K3XCKeWSzE0XvVUnzTPwCBJIjqfpudElaohHpBiivc8VY1If-8LcAkLjno-7l8qb-ytX_8vuO9v8ozYbo-WRcsJlmRtCXqiuxwO-HoxIbIcQO6fHdUxUPWgbRXUAJBUzmCZu2-YWPFyxWY8teNFPn0k6HvcWRjGuPrQeVZ4NaWChfOGqzJERev4ZZ2X0IdKIBeL7ZZNC3xahimQ0AllAQfphei1J0lS3anktns26AMtociXI3_zSPrJXvBGTk-V8g.jpg",
+        "https://cdn4.telesco.pe/file/X4Qxle3bIY_PV-un6jSR6N9xnm2m8Bv9PEMlyxPPnzUvoMck_83CWetKHlvHLcsrjEgLS_Myuc_-xCAg4UPMTMCviI6AZVwk7_eSj5liox2gI8u2EXFfjuxMVDgqRThYrQACfbgARzQfi2cVfQKQmYCBSiKQaOEVAKH0Il_o0yLdBUnoZQ7KrJG7TDeB9p-m_lkxROIOXMBhCP9zuBihAiJg4MtcEHxmPn62HyzkzFfvBeWNYn0S4p3rlz-4L_3jqQE6TX2NCb0a0Jtktx0fFSSd1NMcqodLn2K4ij978U10tA1A7AOn_7XdYZQCiipyoJNEnhqGzKM_CjaouAvUIg.jpg",
+        "https://cdn4.telesco.pe/file/cXseQQcSD5jjTQ76JQCDYKqN82AzUrVBMgkDOGF9wArWhQQtzSSCBvGSCI0lmx2j85KsFcWLg7CF4FSaEzaHQjkPO5ymMqvd-Uj2GgqBrTRBjtuDnMN6YUAf_cBiWLn6cyG54_kd2tOrLVGln_h8lB4_Bxa-JqUPFGLmsMD5XhfF_4pYGC-8cox0o8_8EUPUaZGLpqbVQa9u3DI8BpqUd4biBUW2VQOZ__hhucxj4P2qzOkw1h6I0UQrqR5_QTRyeYQ3DitI9ghxP72T13is20ECirTuVYIjAP0Kh2xR-pjK9539G7kblBlWDBOJtT3JMfKGvnWZR80ga8r4Ao429Q.jpg",
+        "https://cdn4.telesco.pe/file/PlDrGWQmI6Zi_0R3Jlkw4asoaxEVipr_Afs72zNfGr9cpF8p_CrLGHdErsTvpGgoFnE041FCyKWqd-PfTBdMYmih3kX6-bQCuIX527paPPW2V-MbKNH83ZmMGeS5Y50xVdSESgacEQ_AWYYfE4m1Rw2i_6_IR970fV9WRGTumpXC2uvHuTb5EdlLZGOo1ef8irokqW3fi5FSXJGBY9fFrkBB6bFoFVUftaNyfuvX9l-NMwXiVLPbSyB8JPW0m-q7gdT-26MqKC8roI0Jffa-3ZS6VllltIQWq59o_B3rSE5V7oYFSuWc6trWHMNdszVJ41EiE_CqWsbwpiA85KJQAQ.jpg"
       ]
     }
   ]
