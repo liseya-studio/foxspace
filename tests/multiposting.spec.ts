@@ -42,3 +42,18 @@ test("opening connection settings from a draft preserves unsaved text",async({pa
   await page.getByRole("button",{name:"Закрыть настройки"}).click();
   await expect(page.getByLabel("Исходный текст")).toHaveValue("Содержание черновика");
 });
+
+test("the archive panel displays a prepared queue with ordered media",async({page})=>{
+  await page.goto("/");
+  await page.getByRole("button",{name:"Управление",exact:true}).click();
+  await page.getByRole("button",{name:"Архив Boosty",exact:true}).click();
+  const archive={
+    format:"foxspace-boosty-archive-v1",channel:"Архив",hashtag:"#работа",complete:true,
+    posts:[{id:"1:2",date:"2026-08-01T10:00:00Z",text:"Глава #новый_тег",
+      media:["media/1/02/first.jpg","media/1/03/second.jpg"],blocked:[]}]
+  };
+  await page.locator(".ops-panel").filter({has:page.getByRole("heading",{name:"Архив Telegram → Boosty"})}).locator('input[type="file"]').setInputFiles({name:"boosty-archive.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(archive))});
+  await expect(page.getByText("Архив · #работа",{exact:true})).toBeVisible();
+  await page.getByText("2026-08-01 · 1:2 · 2 файлов",{exact:true}).click();
+  await expect(page.locator(".fox-publishing-target ol li")).toHaveText(["first.jpg","second.jpg"]);
+});
