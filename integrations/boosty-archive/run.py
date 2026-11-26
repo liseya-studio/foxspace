@@ -111,7 +111,8 @@ async def scan(client, args):
                 del post["blocked"][flags:]
             directory = root / "media" / str(post["message_ids"][0]) / str(msg.id)
             directory.mkdir(parents=True, exist_ok=True)
-            cached = sorted(path for path in directory.iterdir() if path.is_file() and path.stat().st_size)
+            cached = sorted(path for path in directory.iterdir()
+                            if path.is_file() and path.suffix != ".part" and path.stat().st_size)
             if not cached:
                 stage = directory / "download"
                 stage.mkdir(exist_ok=True)
