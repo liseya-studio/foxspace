@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import FilesHub from "./features/files/FilesHub";
 import { uploadFiles } from "./features/files/storage";
-import ConnectionSettings from "./features/settings/ConnectionSettings";
-import { AutoLaunchSettings, ReminderSettings } from "./features/settings/DesktopSettings";
-import "./features/settings/settings.css";
-import BackupPanel from "./features/backup/BackupPanel";
+import SettingsPage, {type SettingsSection} from "./features/settings/SettingsPage";
 import { listItems, type StoredItem } from "./features/files/storage";
 import FoxEditor from "./features/editor/FoxEditor";
 import NotesTasks from "./features/notes/NotesTasks";
@@ -29,8 +26,8 @@ import PlatformIcon,{ PLATFORM_ICONS, DECORATIVE_ICONS } from "./features/icons/
 import { unreadNotificationCount, dispatchDesktopReminders } from "./features/notifications/data";
 import {
   Bell, Mail, Search, Plus, ChevronDown, MoreHorizontal, Settings,
-  FileSpreadsheet, StickyNote, CheckSquare, LayoutDashboard, BriefcaseBusiness, Activity, ShieldCheck, AlarmClock, X, Sun,
-  Moon, Monitor, Palette, PanelRightClose, Command, ArrowUpRight,
+  FileSpreadsheet, StickyNote, CheckSquare, LayoutDashboard, BriefcaseBusiness, Activity, ShieldCheck, AlarmClock, X,
+  PanelRightClose, Command, ArrowUpRight,
   CircleHelp, CalendarDays, Folder, Sparkles, Upload, FolderPlus, Database, ArrowDownToLine, Rss
 } from "lucide-react";
 
@@ -61,9 +58,15 @@ export default function App() {
   const [active, setActive] = useState<Section>("home");
   const [theme, setTheme] = useState(() => read("fox-theme", "light"));
   const [accent, setAccent] = useState(() => read("fox-accent", "#f06432"));
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState("Оформление");
-  const openConnections = () => { setSettingsTab("Подключения"); setSettingsOpen(true); };
+  const [settingsSection,setSettingsSection]=useState<SettingsSection|null>(null);
+  const [settingsFrom,setSettingsFrom]=useState<Section>("home");
+  const [profileName,setProfileName]=useState(()=>read("fox-profile-name",""));
+  function openSettings(section:SettingsSection|null=null){
+    if(active!=="settings")setSettingsFrom(active);
+    setSettingsSection(section);
+    setActive("settings");
+  }
+  const openConnections=()=>openSettings("connections");
   const [createOpen, setCreateOpen] = useState(false);
   const [templateCategory,setTemplateCategory]=useState<"Все"|"Личное"|"Творчество"|"Работа">("Все");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -111,12 +114,13 @@ export default function App() {
   },[]);
   useEffect(()=>{if(!searchOpen)return;let active=true;void listItems().then(items=>{if(active)setFileIndex(items);}).catch(()=>{if(active)setFileIndex([]);});return()=>{active=false;};},[searchOpen]);
   useEffect(() => { localStorage.setItem("fox-theme", JSON.stringify(theme)); }, [theme]);
+  useEffect(() => { localStorage.setItem("fox-profile-name",JSON.stringify(profileName)); },[profileName]);
   useEffect(() => { localStorage.setItem("fox-accent", JSON.stringify(accent)); }, [accent]);
   useEffect(() => { document.documentElement.dataset.theme = theme; document.documentElement.style.setProperty("--accent", accent); }, [theme, accent]);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSearchOpen(true); }
-      if (e.key === "Escape") { setSearchOpen(false); setCreateOpen(false); setSettingsOpen(false); }
+      if (e.key === "Escape") { setSearchOpen(false); setCreateOpen(false); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -137,7 +141,7 @@ export default function App() {
   const matchingNotes = searchTerm ? organizerSearch.notes.filter(n=>(n.title+" "+n.body).toLocaleLowerCase("ru").includes(searchTerm)).slice(0,8) : [];
 
   function openTopSection(section:"notifications"|"messages"|"feed"){
-    setSearchOpen(false);setSettingsOpen(false);
+    setSearchOpen(false);
     if(active===section){setActive(previousSection);return;}
     if(active!=="notifications"&&active!=="messages"&&active!=="feed")setPreviousSection(active);
     setActive(section);
@@ -263,7 +267,7 @@ export default function App() {
       <header className="topbar">
         <div className="top-left">
           {activeScreen&&<button className="fox-global-sidebar-toggle" aria-label={pageSidebarCollapsed?"Развернуть боковое меню":"Свернуть боковое меню"} title={pageSidebarCollapsed?"Развернуть боковое меню":"Свернуть боковое меню"} onClick={()=>setPageSidebarCollapsed(value=>!value)}><LayoutDashboard size={18}/></button>}
-          <button className="profile-avatar" aria-label="Профиль и настройки" onClick={() => setSettingsOpen(true)}>L</button>
+          <button className="profile-avatar" aria-label="Профиль и настройки" onClick={()=>openSettings("profile")}>{typeof profileName==="string"?(Array.from(profileName.trim())[0]??"L").toLocaleUpperCase("ru"):"L"}</button>
           <span className="workspace-name">Fox Space</span>
           <ChevronDown size={14} className="muted-icon" />
         </div>
@@ -273,13 +277,18 @@ export default function App() {
           <button className={"icon-button"+(active==="feed"?" active":"")} title="Лента" onClick={()=>openTopSection("feed")}><Rss size={18}/></button>
           <button className={"icon-button"+(active==="notifications"?" active":"")} title="Уведомления" aria-label={"Уведомления: "+unreadCount+" непрочитанных"} onClick={()=>openTopSection("notifications")}><Bell size={18}/>{unreadCount>0&&<span className="fox-bell-count">{unreadCount>99?"99+":unreadCount}</span>}</button>
           <button className={"icon-button"+(active==="messages"?" active":"")} title="Сообщения" onClick={()=>openTopSection("messages")}><Mail size={18}/></button>
-          <button className="icon-button" title="Настройки" onClick={() => setSettingsOpen(true)}><Settings size={18}/></button>
+          <button className={"icon-button"+(active==="settings"?" active":"")} title="Настройки" onClick={()=>openSettings()}><Settings size={18}/></button>
         </div>
       </header>
 
-      <main className={"main-area"+(activeScreen?" has-page-tree"+(pageSidebarCollapsed?" tree-collapsed":""):"")}>
+      <main className={"main-area"+(active==="settings"?" settings-active":"")+(activeScreen?" has-page-tree"+(pageSidebarCollapsed?" tree-collapsed":""):"")}>
         {activeScreen&&<PageTree pages={screens} activeId={activeScreen.id} onNavigate={setActive} onAddChild={addChildScreen} onMove={moveScreen} collapsed={pageSidebarCollapsed} onToggle={()=>setPageSidebarCollapsed(value=>!value)}/>}
-        {active === "home" ? (
+        {(active==="operations"||(active==="settings"&&settingsFrom==="operations"))&&<div hidden={active!=="operations"}><OperationsCenter onOpenConnections={openConnections}/></div>}
+        {active==="settings"?(
+          <SettingsPage section={settingsSection} onSection={setSettingsSection} onNavigate={setActive} onClose={()=>setActive(settingsFrom)}
+            theme={theme} onTheme={setTheme} accent={accent} accents={accents} onAccent={setAccent}
+            name={profileName} onName={setProfileName} pages={screens} onOpenPage={setActive} onCreatePage={()=>setCreateOpen(true)}/>
+        ):active==="operations"?null:active === "home" ? (
           <section className="fox-home">
             <div className="fox-home-hero">
               <div className="fox-home-content">
@@ -319,8 +328,6 @@ export default function App() {
           <AgentsCenter />
         ) : active === "trackers" ? (
           <TrackersCenter />
-        ) : active === "operations" ? (
-          <OperationsCenter onOpenConnections={openConnections} />
         ) : active === "projects" ? (
           <ProjectsCenter onOpenTask={navigateToTask} onOpenScreen={setActive} onCreateScreen={createProjectScreen}/>
         ) : active === "files" ? (
@@ -386,6 +393,7 @@ export default function App() {
             </div>
           ))}
         </div>
+        <button className={active==="settings"?"dock-item active":"dock-item"} onClick={()=>openSettings()}><Settings size={19}/><span>Настройки</span></button>
         <button className="dock-add" onClick={() => setCreateOpen(true)} title="Создать"><Plus size={20}/></button>
       </nav>
 
@@ -404,15 +412,7 @@ export default function App() {
       {iconPickerId && <div className="overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setIconPickerId(null);}}><div className="dialog fox-icon-picker"><button className="close-button" title="Закрыть" onClick={()=>setIconPickerId(null)}><X size={18}/></button><div className="eyebrow">НАСТРОЙКА ЭКРАНА</div><h2>Выберите значок</h2><p>Готовые значки площадок и универсальные символы для Dock.</p><div className="fox-icon-palette">{PLATFORM_ICONS.map(platform=><button type="button" key={platform.id} title={platform.title} onClick={()=>{setScreens(prev=>prev.map(s=>s.id===iconPickerId?{...s,icon:platform.id}:s));setIconPickerId(null);}}><PlatformIcon value={platform.id} size={32}/><small>{platform.title}</small></button>)}</div><div className="fox-icon-palette fox-symbol-palette">{DECORATIVE_ICONS.map(symbol=><button type="button" key={symbol} title={symbol} onClick={()=>{setScreens(prev=>prev.map(s=>s.id===iconPickerId?{...s,icon:symbol}:s));setIconPickerId(null);}}><PlatformIcon value={symbol} size={28}/></button>)}</div></div></div>}
       {searchOpen && <div className="overlay search-overlay" onMouseDown={e => e.target === e.currentTarget && setSearchOpen(false)}><div className="search-dialog"><div className="search-line"><Search size={19}/><input autoFocus placeholder="Экраны, таблицы, задачи, заметки..." value={search} onChange={e => setSearch(e.target.value)}/><kbd>ESC</kbd><button className="close-button" onClick={() => setSearchOpen(false)}><X size={17}/></button></div><div className="search-results"><button onClick={() => {setActive("home");setSearchOpen(false);}}><LayoutDashboard size={17}/>Главная</button><button onClick={() => {setActive("projects");setSearchOpen(false);}}><BriefcaseBusiness size={17}/>Проекты</button><button onClick={() => {setActive("trackers");setSearchOpen(false);}}><Activity size={17}/>Трекеры</button><button onClick={() => {setActive("agents");setSearchOpen(false);}}><ShieldCheck size={17}/>AI и доступ</button><button onClick={() => {setActive("automations");setSearchOpen(false);}}><AlarmClock size={17}/>Автоматизации</button><button onClick={() => {setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/>Файлы и таблицы</button><button onClick={() => {setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/>Заметки и задачи</button><button onClick={()=>{setActive("feed");setSearchOpen(false);}}><Rss size={17}/>Лента</button><button onClick={()=>{setActive("notifications");setSearchOpen(false);}}><Bell size={17}/>Уведомления</button><button onClick={()=>{setActive("messages");setSearchOpen(false);}}><Mail size={17}/>Сообщения</button>{filteredScreens.map(s => <button key={s.id} onClick={() => {setActive(s.id);setSearchOpen(false);}}><LayoutDashboard size={17}/>{s.name}</button>)}{matchingFiles.length>0&&<div className="fox-search-category">Файлы и папки</div>}{matchingFiles.map(item=><button key={item.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><Folder size={17}/><span>{item.name}</span></button>)}{matchingTables.length>0&&<div className="fox-search-category">Таблицы и данные</div>}{matchingTables.map(t=><button key={t.id} onClick={()=>{setActive("files");setSearchOpen(false);}}><FileSpreadsheet size={17}/><span>{t.name}</span></button>)}{matchingTasks.length>0&&<div className="fox-search-category">Задачи</div>}{matchingTasks.map(t=><button key={t.id} onClick={()=>{navigateToTask(t.id);setSearchOpen(false);}}><CheckSquare size={17}/><span>{t.title}</span></button>)}{matchingNotes.length>0&&<div className="fox-search-category">Заметки</div>}{matchingNotes.map(n=><button key={n.id} onClick={()=>{setActive("notes");setSearchOpen(false);}}><StickyNote size={17}/><span>{n.title}</span></button>)}</div></div></div>}
 
-      {settingsOpen && <div className="overlay settings-overlay" onMouseDown={e => e.target === e.currentTarget && setSettingsOpen(false)}><aside className="settings-panel" aria-label="Настройки"><div className="settings-head"><h2>Настройки</h2><button aria-label="Закрыть настройки" className="close-button" onClick={() => setSettingsOpen(false)}><X size={18}/></button></div>
-      <nav className="fox-settings-tabs" aria-label="Разделы настроек">
-        {["Оформление","Подключения","Приложение","Резервные копии"].map(tab=><button type="button" key={tab} aria-pressed={settingsTab===tab} onClick={()=>setSettingsTab(tab)}>{tab}</button>)}
-      </nav>
-      {settingsTab==="Оформление"&&<><div className="setting-group"><h3>Тема оформления</h3><div className="theme-options"><button className={theme === "light" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("light")}><Sun size={18}/>Светлая</button><button className={theme === "dark" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("dark")}><Moon size={18}/>Тёмная</button><button className={theme === "system" ? "theme-option selected" : "theme-option"} onClick={() => setTheme("system")}><Monitor size={18}/>Системная</button></div></div><div className="setting-group"><h3>Акцентный цвет</h3><p>Используется для кнопок и активных элементов интерфейса.</p><div className="accent-options">{accents.map(c => <button key={c.value} className={accent === c.value ? "accent-swatch selected" : "accent-swatch"} style={{"--swatch":c.value} as CSSProperties} onClick={() => setAccent(c.value)} title={c.name}/>)}</div></div></>}
-      {settingsTab==="Подключения"&&<ConnectionSettings onOpenFeed={()=>{setSettingsOpen(false);openTopSection("feed");}} onOpenAgents={()=>{setSettingsOpen(false);setActive("agents");}}/>}
-      {settingsTab==="Приложение"&&<><AutoLaunchSettings/><ReminderSettings/></>}
-      {settingsTab==="Резервные копии"&&<BackupPanel/>}
-      </aside></div>}
+
     </div>
   );
 }

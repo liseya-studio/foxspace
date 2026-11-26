@@ -2,6 +2,7 @@
 const defaults = {
   "fox-screens": [],
   "fox-theme": "light",
+  "fox-profile-name": "",
   "fox-accent": "#f06432",
   "fox-tables-v1": [],
   "fox-notes-tasks-v1": { tasks: [], notes: [] },
