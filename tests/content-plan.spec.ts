@@ -17,7 +17,7 @@ test("content plan groups drafts, filters platform dates and reuses a template",
   const variant=draft.locator(".ops-variant");
   await variant.locator("select").first().selectOption("Boosty");
   await variant.getByLabel("Адаптированный текст").fill("Отдельный текст");
-  await variant.getByLabel("Доступ",{exact:true}).selectOption("restricted");
+  await variant.getByRole("combobox",{name:/^Доступ/}).selectOption("restricted");
   await variant.getByLabel("Уровень доступа").fill("За кулисами");
   await variant.getByLabel("Дата выхода").fill("2026-08-19T17:15");
   await variant.getByRole("spinbutton",{name:"Просмотры"}).fill("42");
@@ -29,12 +29,12 @@ test("content plan groups drafts, filters platform dates and reuses a template",
   const plan=page.locator(".fox-content-plan");
   await plan.getByRole("button",{name:"По статусам"}).click();
   await plan.getByLabel("Все даты").check();
-  await plan.getByLabel("Площадка",{exact:true}).selectOption("Boosty");
+  await plan.getByRole("combobox",{name:/^Площадка/}).selectOption("Boosty");
   await plan.getByRole("searchbox").fill("#премьера");
   await expect(plan.locator(".fox-plan-column").filter({hasText:"Готово"}).getByRole("button",{name:"Новая глава"})).toBeVisible();
-  await plan.getByLabel("Площадка",{exact:true}).selectOption("Telegram");
+  await plan.getByRole("combobox",{name:/^Площадка/}).selectOption("Telegram");
   await expect(plan.getByRole("button",{name:"Новая глава",exact:true})).toHaveCount(0);
-  await plan.getByLabel("Площадка",{exact:true}).selectOption("Boosty");
+  await plan.getByRole("combobox",{name:/^Площадка/}).selectOption("Boosty");
   await page.locator(".ops-filters input[type=month]").fill("2026-08");
   await plan.getByRole("button",{name:"Календарь",exact:true}).click();
   await expect(plan.getByRole("button",{name:/17:15.*Новая глава.*Boosty/})).toBeVisible();
