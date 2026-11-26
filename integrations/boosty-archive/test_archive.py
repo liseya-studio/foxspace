@@ -8,6 +8,7 @@ import unittest
 
 from archive import begin_delivery, complete_delivery, delivery_db, has_tag, tag
 from run import import_export
+from html_export import open_html_export
 
 
 class ArchiveTest(unittest.TestCase):
@@ -41,6 +42,25 @@ class ArchiveTest(unittest.TestCase):
             self.assertTrue(missing["blocked"])
             self.assertFalse(missing["media"])
             self.assertFalse(has_tag("#работа_продолжение",tag("#работа")))
+
+    def test_html_export_reuses_media_and_rejects_incomplete_pages(self):
+        with TemporaryDirectory() as folder:
+            root=Path(folder)
+            page=root/"messages.html"
+            page.write_text("""<html><div class="name bold">Канал</div>
+              <div class="message default clearfix" id="message7">
+              <div class="body"><div class="pull_right date details" title="12 января 2569, 15:58:04">15:58</div>
+              <a class="photo_wrap" href="photos/photo_7.jpg"><img src="photos/tiny.jpg"></a>
+              <div class="text"><a href="#">#работа</a><br>Текст</div></div></div>""")
+            with self.assertRaises(ValueError):
+                open_html_export(root)
+            with page.open("a") as file: file.write("</html>")
+            identity,name,base,items,closed=open_html_export(root)
+            self.assertTrue(closed)
+            self.assertEqual(name,"Канал")
+            self.assertEqual(items[7]["text"],"#работа\nТекст")
+            self.assertEqual(items[7]["date"],"2026-01-12T15:58:04")
+            self.assertEqual(items[7]["attachments"],["photos/photo_7.jpg"])
 
     def test_pending_or_confirmed_delivery_is_never_started_twice(self):
         with TemporaryDirectory() as folder:

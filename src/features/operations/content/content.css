@@ -1,0 +1,36 @@
+.fox-plan-toolbar,.fox-plan-views,.fox-plan-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.fox-plan-toolbar { justify-content: space-between; margin: 12px 0; }
+.fox-plan-views button, .fox-plan-calendar-heading button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); padding: 6px 9px; }
+.fox-plan-views button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.fox-plan-templates { position: relative; }
+.fox-plan-templates summary { cursor: pointer; padding: 6px; color: var(--accent); }
+.fox-plan-templates ul { padding: 8px; margin: 0; list-style: none; position: absolute; right: 0; z-index: 4; width: max-content; max-width: min(340px,80vw); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.fox-plan-templates li { padding: 4px; display: flex; justify-content: space-between; gap: 4px; }
+.fox-plan-templates li button,.fox-plan-post-actions button { border: 0; background: transparent; color: var(--accent); text-align: left; }
+.fox-plan-filters { align-items: end; margin-bottom: 12px; }
+.fox-plan-filters label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 5px; color: var(--muted); }
+.fox-plan-filters label input,.fox-plan-filters label select { grid-column: 1 / -1; padding: 6px 8px; }
+.fox-plan-filters .fox-plan-all-dates { display: inline-flex; margin: 0 0 5px 4px; cursor: pointer; }
+.fox-plan-list-row { display: grid; grid-template-columns: minmax(105px, auto) 1fr; gap: 15px; padding: 9px 0; border-top: 1px solid var(--line); }
+.fox-plan-list-row time,.fox-plan-list-row small { display: block; }
+.fox-plan-list-row small,.fox-plan-empty,.fox-plan-meta { color: var(--muted); }
+.fox-plan-post { min-width: 0; display: grid; gap: 6px; }
+.fox-plan-post-title { padding: 0; border: 0; background: transparent; color: var(--text); font-weight: 650; text-align: left; overflow-wrap: anywhere; }
+.fox-plan-post-title:hover { color: var(--accent); }
+.fox-plan-meta,.fox-plan-platforms,.fox-plan-post-actions { display: flex; flex-wrap: wrap; gap: 7px; font-size: 11px; }
+.fox-plan-platforms span { border-radius: 5px; background: var(--canvas); padding: 2px 6px; }
+.fox-plan-board { display: grid; grid-auto-columns: minmax(165px, 1fr); grid-auto-flow: column; gap: 10px; overflow-x: auto; min-height: 160px; }
+.fox-plan-column { background: var(--canvas); border: 1px solid var(--line); border-radius: 9px; padding: 9px; }
+.fox-plan-column h3 { margin: 0 0 11px; display: flex; justify-content: space-between; gap: 5px; }
+.fox-plan-column h3 small { color: var(--muted); }
+.fox-plan-column .fox-plan-post { margin-bottom: 7px; border: 1px solid var(--line); border-radius: 7px; padding: 8px; background: var(--surface); }
+.fox-plan-calendar-heading { display: flex; justify-content: space-between; }
+.fox-plan-calendar-heading button { padding: 1px 3px; margin-bottom: 5px; }
+.fox-editorial-fields { border: 1px solid var(--line); border-radius: 8px; margin: 0; padding: 10px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.fox-editorial-fields legend { padding: 0 4px; }
+.fox-editorial-wide,.fox-editorial-fields > .fox-editorial-access { grid-column: 1 / -1; }
+.fox-editorial-access { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+@media (max-width:550px) {
+  .fox-editorial-fields,.fox-editorial-access { grid-template-columns: 1fr; }
+  .fox-plan-list-row { grid-template-columns: 1fr; gap: 5px; }
+}

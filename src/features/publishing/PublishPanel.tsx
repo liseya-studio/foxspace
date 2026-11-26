@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { Publication } from "../operations/data";
+import { selectedPublicationAudience } from "../operations/content/model";
 import { flushPersistentStorage } from "../storage/persistence";
 import { destinationKey, platformNames, providerError, readDeliveries, recordDelivery, useDestinations, type Delivery, type Destination } from "./data";
 import "./publishing.css";
@@ -24,12 +25,20 @@ export default function PublishPanel({post,saveDraft,onOpenConnections}:Props){
   function variants(target:Destination){
     return post.variants.filter(item=>item.platform===platformNames[target.platform] && item.text.trim());
   }
-  function body(target:Destination){
+  function chosenVariant(target:Destination){
     const versions=variants(target);
     const choice=choices[destinationKey(target)];
-    if(choice==="base" || versions.length===0)return post.text.trim();
-    if(choice || versions.length===1)return (versions.find(item=>item.id===choice) ?? versions[0]).text.trim();
+    if(choice==="base")return undefined;
+    return versions.find(item=>item.id===choice)??(versions.length===1?versions[0]:undefined);
+  }
+  function body(target:Destination){
+    const version=chosenVariant(target);
+    if(version)return version.text.trim();
+    if(choices[destinationKey(target)]==="base"||variants(target).length===0)return post.text.trim();
     return "";
+  }
+  function restricted(target:Destination){
+    return selectedPublicationAudience(post,chosenVariant(target))==="restricted";
   }
   function saveResult(target:string,result:Delivery){
     recordDelivery(post.id,target,result);
@@ -44,6 +53,10 @@ export default function PublishPanel({post,saveDraft,onOpenConnections}:Props){
     const targets=destinations.filter(item=>item.platform!=="boosty"&&selected.includes(destinationKey(item))
       && (!latest[destinationKey(item)]||latest[destinationKey(item)].status==="rejected"));
     if(!native || !targets.length)return;
+    if(targets.some(restricted)){
+      setError("Выберите открытую версию для Telegram или VK. Версии с ограниченным доступом можно подготовить для Boosty.");
+      return;
+    }
     if(hasMedia&&!plainText){setError("Выберите отправку только текста. Прикреплённые файлы останутся в черновике.");return;}
     if(targets.some(target=>!body(target)||Array.from(body(target)).length>4096)){
       setError("Для каждой площадки выберите версию текста длиной от 1 до 4096 символов.");
@@ -132,8 +145,10 @@ export default function PublishPanel({post,saveDraft,onOpenConnections}:Props){
           {versions.map((version,index)=><option key={version.id} value={version.id}>Версия {index+1} · {version.text.trim().slice(0,35)}</option>)}
         </select></label>}
         {!delivery?.url&&body(target)&&<details><summary>Предпросмотр текста</summary><pre>{body(target)}</pre></details>}
+        {target.platform!=="boosty"&&restricted(target)&&<p>Ограниченный доступ. Для отправки выберите открытую версию.</p>}
         {sendable&&native&&<label className="fox-publishing-check"><input type="checkbox" disabled={busy} checked={selected.includes(key)} onChange={event=>setSelected(old=>event.target.checked?[...old,key]:old.filter(value=>value!==key))}/> Опубликовать в {target.title}</label>}
         {target.platform==="boosty"&&!delivery?.url&&<>
+          {restricted(target)&&<p>Уровень для Boosty: {(chosenVariant(target)?.tier??post.tier)?.trim()||"По подписке"}.</p>}
           <div className="fox-setting-actions"><button type="button" className="outline-button" onClick={()=>void copyBoosty(target)}>Копировать текст</button><a href="https://t.me/boosty_posting_bot" target="_blank" rel="noreferrer">Открыть бота Boosty</a></div>
           <label>Ссылка на опубликованный пост<input value={boostyLinks[key]??""} placeholder={target.url+"/posts/…"} onChange={e=>setBoostyLinks(old=>({...old,[key]:e.target.value}))} /></label>
           <button type="button" className="outline-button" onClick={()=>confirmBoosty(target)}>Отметить публикацию</button>

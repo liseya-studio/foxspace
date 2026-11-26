@@ -64,7 +64,7 @@ def import_export(args):
             post["blocked"].append("Telegram Desktop не указал ID альбома. Для точного порядка используйте сверку метаданных канала.")
         posts.append(post)
     manifest={"format":"foxspace-boosty-archive-v1","channel_id":channel_id,"channel":title,
-              "hashtag":requested,"complete":True,"posts":posts}
+              "hashtag":requested,"post_id_prefix":channel_id,"complete":True,"posts":posts}
     atomic_json(root/MANIFEST,manifest)
     print(f"Найдено: {len(posts)}. Требуют проверки: {sum(bool(post['blocked']) for post in posts)}. Реестр: {root/MANIFEST}")
 
@@ -81,21 +81,28 @@ async def scan(client, args):
         raise ValueError("В канале ограничено сохранение контента. Проверьте настройки своего канала.")
     requested,replacements = rules(args)
     imported = open_export(args.export) if args.export else None
-    if imported and imported[0] != str(channel.id):
-        raise ValueError("Выбранный экспорт принадлежит другому каналу.")
+    if imported:
+        identity,title,_,_=imported
+        if (identity.startswith("html-") and title.strip()!=channel.title.strip()
+                or not identity.startswith("html-") and identity!=str(channel.id)):
+            raise ValueError("Выбранный экспорт принадлежит другому каналу.")
     root = args.folder
     if imported and root.resolve() == imported[2]:
         raise ValueError("Укажите отдельную папку для очереди Boosty.")
     root.mkdir(parents=True, exist_ok=True)
     (root / "media").mkdir(exist_ok=True)
     old = read_manifest(root) if (root / MANIFEST).exists() else None
-    if old and (old["channel_id"] != str(channel.id) or old["hashtag"] != requested):
+    matching_sources = {str(channel.id)}
+    if imported and imported[0].startswith("html-"):
+        matching_sources.add(imported[0])
+    if old and (old["channel_id"] not in matching_sources or old["hashtag"] != requested):
         raise ValueError("Для другого канала или хэштега выберите новую папку.")
+    prefix = old.get("post_id_prefix",old["channel_id"]) if old else imported[0] if imported else str(channel.id)
     manifest = {"format":"foxspace-boosty-archive-v1","channel_id":str(channel.id),
-                "channel":channel.title,"hashtag":requested,"complete":False,"posts":[]}
+                "channel":channel.title,"hashtag":requested,"post_id_prefix":prefix,"complete":False,"posts":[]}
 
     async def add(album):
-        post = make_post(channel.id, album, requested, replacements, args.heading)
+        post = make_post(prefix, album, requested, replacements, args.heading)
         if post is None:
             return
         for msg in sorted(album,key=lambda item:item.id):

@@ -5,10 +5,14 @@ from pathlib import Path
 import shutil
 from types import SimpleNamespace
 
+from html_export import open_html_export
+
 MEDIA_FIELDS = ("photo", "file", "voice_message", "video_file", "audio_file")
 
 
 def open_export(path):
+    if path.suffix.lower()==".html" or (path.is_dir() and not (path/"result.json").exists()):
+        return open_html_export(path)[:4]
     path = path / "result.json" if path.is_dir() else path
     with path.open(encoding="utf-8-sig") as source:
         export = json.load(source)
@@ -43,16 +47,18 @@ def export_message(entry):
         content = "".join(pieces)
     # Telegram Desktop emits a numeric Unix timestamp alongside the human-readable date.
     raw_date=entry.get("date_unixtime")
-    date=datetime.fromtimestamp(int(raw_date)).astimezone() if raw_date else datetime.fromisoformat(entry["date"])
+    date=datetime.fromtimestamp(int(raw_date)).astimezone() if raw_date else datetime.fromisoformat(entry["date"]) if entry.get("date") else None
     return SimpleNamespace(id=entry["id"],message=content if isinstance(content,str) else "",date=date)
 
 
 def has_media(entry):
-    return any(entry.get(field) for field in MEDIA_FIELDS)
+    return bool(entry.get("attachments")) or any(entry.get(field) for field in MEDIA_FIELDS)
 
 
 def copy_media(source, entry, folder, post, keep_source_format=True):
-    fields = list(dict.fromkeys(entry[field] for field in MEDIA_FIELDS if isinstance(entry.get(field),str)))
+    refs = [ref for ref in entry.get("attachments",[]) if isinstance(ref,str)]
+    refs.extend(entry[field] for field in MEDIA_FIELDS if isinstance(entry.get(field),str))
+    fields = list(dict.fromkeys(refs))
     if not fields:
         return False
     copied = False

@@ -1,0 +1,51 @@
+import { test, expect } from "@playwright/test";
+
+test("content plan groups drafts, filters platform dates and reuses a template",async({page})=>{
+  await page.goto("/");
+  await page.getByRole("button",{name:"Управление",exact:true}).click();
+  await page.getByRole("button",{name:"Контент-план",exact:true}).click();
+  await page.getByRole("button",{name:"Новая публикация"}).click();
+  const draft=page.locator(".ops-dialog");
+  await draft.getByLabel("Название",{exact:true}).fill("Новая глава");
+  await draft.getByLabel("Исходный текст").fill("Основной текст");
+  await draft.getByLabel("Формат",{exact:true}).fill("Глава");
+  await draft.getByLabel("Рубрика").fill("Премьера");
+  await draft.getByLabel("Серия или работа").fill("Первая история");
+  await draft.getByLabel("Хэштеги").fill("#история #История #премьера");
+  await draft.getByLabel("Статус").selectOption("ready");
+  await draft.getByRole("button",{name:"Добавить версию"}).click();
+  const variant=draft.locator(".ops-variant");
+  await variant.locator("select").first().selectOption("Boosty");
+  await variant.getByLabel("Адаптированный текст").fill("Отдельный текст");
+  await variant.getByLabel("Доступ",{exact:true}).selectOption("restricted");
+  await variant.getByLabel("Уровень доступа").fill("За кулисами");
+  await variant.getByLabel("Дата выхода").fill("2026-08-19T17:15");
+  await variant.getByRole("spinbutton",{name:"Просмотры"}).fill("42");
+  await variant.getByLabel("Ссылка",{exact:true}).fill("https://boosty.to/fixture/posts/1");
+  page.once("dialog", dialog=>dialog.accept("Шаблон главы"));
+  await draft.getByRole("button",{name:"Сохранить шаблон"}).click();
+  await draft.getByRole("button",{name:"Сохранить",exact:true}).click();
+
+  const plan=page.locator(".fox-content-plan");
+  await plan.getByRole("button",{name:"По статусам"}).click();
+  await plan.getByLabel("Все даты").check();
+  await plan.getByLabel("Площадка",{exact:true}).selectOption("Boosty");
+  await plan.getByRole("searchbox").fill("#премьера");
+  await expect(plan.locator(".fox-plan-column").filter({hasText:"Готово"}).getByRole("button",{name:"Новая глава"})).toBeVisible();
+  await plan.getByLabel("Площадка",{exact:true}).selectOption("Telegram");
+  await expect(plan.getByRole("button",{name:"Новая глава",exact:true})).toHaveCount(0);
+  await plan.getByLabel("Площадка",{exact:true}).selectOption("Boosty");
+  await page.locator(".ops-filters input[type=month]").fill("2026-08");
+  await plan.getByRole("button",{name:"Календарь",exact:true}).click();
+  await expect(plan.getByRole("button",{name:/17:15.*Новая глава.*Boosty/})).toBeVisible();
+
+  await plan.getByText("Шаблоны",{exact:true}).click();
+  await plan.getByRole("button",{name:"Шаблон главы",exact:true}).click();
+  await expect(draft.getByLabel("Рубрика")).toHaveValue("Премьера");
+  await expect(draft.getByLabel("Хэштеги")).toHaveValue("#история #премьера");
+  await expect(draft.getByLabel("Статус")).toHaveValue("idea");
+  await expect(variant.getByLabel("Адаптированный текст")).toHaveValue("Отдельный текст");
+  await expect(variant.getByLabel("Уровень доступа")).toHaveValue("За кулисами");
+  await expect(variant.getByLabel("Ссылка",{exact:true})).toHaveValue("");
+  await expect(variant.getByRole("spinbutton",{name:"Просмотры"})).toHaveValue("0");
+});

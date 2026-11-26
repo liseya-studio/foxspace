@@ -64,7 +64,7 @@ def make_post(channel_id, messages, requested_tag, replacements, heading=""):
         body = heading + "\n\n" + body
     return {
         "id": f"{channel_id}:{messages[0].id}",
-        "date": messages[0].date.isoformat(),
+        "date": messages[0].date.isoformat() if messages[0].date is not None else "",
         "message_ids": [message.id for message in messages],
         "text": body,
         "media": [],
