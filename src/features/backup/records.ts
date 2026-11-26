@@ -20,6 +20,7 @@ const defaults = {
   "fox-desktop-reminders-v1": { enabled: false, notified: [] },
   "fox-page-tree-collapsed": false,
   "fox-feed-hidden-sources-v1": [],
+  "fox-publishing-deliveries-v1": {},
 };
 
 export const backupKeys = Object.keys(defaults) as (keyof typeof defaults)[];

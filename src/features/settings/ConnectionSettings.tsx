@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { feedSources, setFeedSourceVisible, useHiddenFeedSources } from "../feed/sources";
 import { ExternalLink } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
+import PublishingConnections from "../publishing/PublishingConnections";
+import "../publishing/publishing.css";
 import { connectVk, disconnectVk, useVkConnection } from "./vkConnection";
 
 export default function ConnectionSettings({onOpenFeed,onOpenAgents}: {onOpenFeed:()=>void;onOpenAgents:()=>void}) {
@@ -42,6 +44,7 @@ export default function ConnectionSettings({onOpenFeed,onOpenAgents}: {onOpenFee
   }
 
   return <>
+    <PublishingConnections/>
     <section className="fox-setting-card">
       <h3>Сообщения ВКонтакте</h3>
       <p>Диалоги сообщества и ответы от его имени.</p>

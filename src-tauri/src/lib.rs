@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager};
 
 mod desktop;
 mod social;
+mod publishing;
 
 fn app_data_root(app: &AppHandle) -> Result<PathBuf, String> {
     let root = app.path().app_data_dir().map_err(|e| format!("App data directory unavailable: {e}"))?;
@@ -309,7 +310,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
-        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup, openai_key_status, save_openai_api_key, delete_openai_api_key, openai_responses_create, social::fetch_social_feed, social::vk_connection, social::vk_connect, social::vk_disconnect, social::vk_conversations, social::vk_history, social::vk_send, desktop::save_workspace_export, desktop::open_external_link])
+        .invoke_handler(tauri::generate_handler![read_workspace_snapshot, write_workspace_snapshot, write_file_blob, read_file_blob, delete_file_blob, create_native_backup, restore_latest_native_backup, openai_key_status, save_openai_api_key, delete_openai_api_key, openai_responses_create, social::fetch_social_feed, social::vk_connection, social::vk_connect, social::vk_disconnect, social::vk_conversations, social::vk_history, social::vk_send, publishing::publishing_connect, publishing::publishing_disconnect, publishing::publish_text, desktop::save_workspace_export, desktop::open_external_link])
         .run(tauri::generate_context!())
         .expect("error while running Fox Space");
 }

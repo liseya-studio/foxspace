@@ -320,7 +320,7 @@ export default function App() {
         ) : active === "trackers" ? (
           <TrackersCenter />
         ) : active === "operations" ? (
-          <OperationsCenter />
+          <OperationsCenter onOpenConnections={openConnections} />
         ) : active === "projects" ? (
           <ProjectsCenter onOpenTask={navigateToTask} onOpenScreen={setActive} onCreateScreen={createProjectScreen}/>
         ) : active === "files" ? (
