@@ -220,3 +220,8 @@ GitHub Actions `.github/workflows/build.yml` runs `npm install` and `npm run bui
 ### Notification limitations
 - In-app notifications are calculated on screen from task deadlines and do not require a server. Browser desktop reminders are opt-in, run while the web application is open, and depend on browser notification permission; they are not push notifications.
 - Updating a task due date changes its notification identity so earlier read status does not accidentally hide the new deadline.
+
+
+### Telegram → Boosty archive
+
+The [archive helper](integrations/boosty-archive/README.md) filters a Telegram Desktop export or an authorized channel by hashtag, keeps attachments in source order, and prepares a manifest for **Управление → Архив Boosty**. Its delivery journal prevents sending a confirmed publication twice.
